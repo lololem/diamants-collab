@@ -337,7 +337,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Contact & Support
 
 - **Issues**: [GitHub Issues](https://github.com/lololem/diamants-collab/issues)
-- **Email**: [Contact maintainers](mailto:loic.lemasle@gmail.com)
+- **Email**: [loic.lemasle@gmail.com](mailto:loic.lemasle@gmail.com)
 
 ---
 
