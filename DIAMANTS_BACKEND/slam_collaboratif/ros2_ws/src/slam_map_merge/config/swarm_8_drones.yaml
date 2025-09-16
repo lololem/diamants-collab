@@ -1,0 +1,94 @@
+# Configuration pour essaim de 8 drones (scénario complet)
+swarm:
+  robot_prefixes: ['crazyflie', 'crazyflie1', 'crazyflie2', 'crazyflie3', 'crazyflie4', 'crazyflie5', 'crazyflie6', 'crazyflie7']
+  max_robots: 8
+  use_sim_time: true
+
+# Paramètres optimisés pour gros essaim
+pheromones:
+  increment: 20
+  decrement: 8
+  evaporation: 0.4
+  max_value: 120
+  min_value: 0
+  obstacle_bonus: 15
+  free_penalty: 25
+
+stability:
+  state_change_max: 25
+  min_cluster_size: 4
+  observation_threshold: 12
+
+morphology:
+  enable: true
+  kernel_size: 3  # Réduit de 5 à 3 pour moins de charge
+  iterations: 1   # Réduit de 2 à 1 itération
+  erosion_threshold: 200 # Augmenté pour moins de traitement
+
+temporal:
+  smoothing_window: 7
+  fusion_history: 10
+  stability_window: 5
+
+fusion_weights:
+  merged: 0.35
+  validated: 0.35
+  consensus: 0.25
+  union: 0.05
+
+filters:
+  use_kalman: true
+  kalman_process_noise: 0.005
+  kalman_measurement_noise: 0.05
+  use_fusion: true
+  anti_false_positive: true
+
+consensus:
+  min_robots: 3  # Plus strict avec plus de drones
+  tolerance: 0.6
+
+# Topics de fusion
+topics:
+  input_maps: '/map'
+  output_merged: 'map_merged'
+  output_weighted: 'map_fusion_weighted'  
+  output_coverage_image: 'coverage_image'
+  # Topics optionnels selon version/config
+  # output_confidence: 'map_confidence'        # Version modulaire avec confidence activée
+  # output_coverage_overlay: 'map_coverage_overlay'  # Version modulaire avec overlay activé
+
+performance:
+  max_update_rate: 2.0      # Réduit de 8.0 à 2.0 Hz pour éviter la surcharge
+  memory_limit_mb: 512      # Réduit la mémoire
+  parallel_processing: false # Désactivé pour éviter les conflits de timing
+
+# Configuration des zones d'or (ULTRA-ROBUSTE : Rendu EXACT Gazebo/RViz)
+golden_zones:
+  enable: true
+  
+  # SEUILS ULTRA-STRICTS pour éliminer TOUS les faux positifs
+  creation_threshold: 3             # 3+ drones MINIMUM pour créer
+  validation_threshold: 4           # 4+ drones pour valider  
+  disappear_threshold: 5            # 5+ drones pour supprimer (ultra-strict)
+  
+  # TIMEOUTS ULTRA-LONGS pour stabilité maximale
+  creation_timeout: 30.0            # 30s de stabilité avant création
+  consensus_timeout: 600.0          # 10min pour zones consensus
+  validated_timeout: 1200.0         # 20min pour zones validées
+  
+  # CONFIANCE ULTRA-ÉLEVÉE pour qualité maximale
+  min_confidence: 0.8               # Confiance minimum création
+  validation_confidence: 0.9        # Confiance validation
+  
+  # ANTI-OSCILLATION RENFORCÉ
+  suppression_cooldown: 60.0        # 1min cooldown après suppression
+  
+  # RENDU RVIZ OPTIMISÉ
+  golden_cell_value: 75             # Valeur cellule pour RViz (75 = orange)
+  topic_golden_zones: "/map_golden_zones"  # Topic dédié zones d'or
+
+logging:
+  enable_csv: true          # Activation des logs CSV
+  csv_path: "/tmp/swarm_8_drones"
+  debug_level: "warn"       # Réduit les logs
+  log_frequency: 50         # Augmenté pour moins de logs

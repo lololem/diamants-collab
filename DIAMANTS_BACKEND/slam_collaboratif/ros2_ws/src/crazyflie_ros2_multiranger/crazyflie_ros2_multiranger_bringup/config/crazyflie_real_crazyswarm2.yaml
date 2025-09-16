@@ -1,0 +1,37 @@
+# named list of all robots
+robots:
+  crazyflie_real:
+    enabled: true
+    uri: radio://0/80/2M/E7E7E7E7E7
+    initial_position: [0.0, 0.0, 0.0]
+    type: cf21  # see robot_types
+
+# Definition of the various robot types
+robot_types:
+  cf21:
+    motion_capture:
+      enabled: false
+      # only if enabled; see motion_capture.yaml
+      marker: default_single_marker
+      dynamics: default
+    big_quad: false
+    battery:
+      voltage_warning: 3.8  # V
+      voltage_critical: 3.7 # V
+
+# global settings for all robots
+all:
+  firmware_logging:
+    enabled: true
+    default_topics:
+      odom:
+        frequency: 10 # Hz
+      scan:
+        frequency: 10 # Hz
+  firmware_params:
+    stabilizer:
+      estimator: 2 # 1: complementary, 2: kalman
+      controller: 1 # 1: PID, 2: mellinger
+  broadcasts:
+    num_repeats: 15 # number of times broadcast commands are repeated
+    delay_between_repeats_ms: 1 # delay in milliseconds between individual repeats

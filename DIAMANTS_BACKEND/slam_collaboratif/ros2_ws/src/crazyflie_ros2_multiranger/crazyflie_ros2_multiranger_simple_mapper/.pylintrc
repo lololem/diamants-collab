@@ -1,0 +1,15 @@
+[MASTER]
+disable=
+    import-error,
+    no-name-in-module,
+    unused-import,
+    too-many-instance-attributes,
+    too-many-locals,
+    too-few-public-methods,
+    invalid-name
+
+[MESSAGES CONTROL]
+disable=C0103,C0114,C0115,C0116,R0903,R0913,R0902,R0914
+
+[FORMAT]
+max-line-length=79

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CycloneDDS xmlns="https://cdds.io/config" version="2.0">
+    <Domain id="any">
+        <General NetworkInterfaceAddress="auto" AllowMulticast="true" />
+        <Discovery ParticipantIndex="auto">
+            <Tag>DIAMANTS</Tag>
+        </Discovery>
+        <Internal>
+            <HeartbeatPeriod min="5ms" max="20ms" />
+            <LeaseDuration min="2s" max="4s" />
+        </Internal>
+        <Transport>
+            <UDP Enabled="true" />
+        </Transport>
+    </Domain>
+</CycloneDDS>

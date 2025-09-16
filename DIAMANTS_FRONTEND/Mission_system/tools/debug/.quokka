@@ -1,0 +1,14 @@
+{
+  "quokka": {
+    "babel": false,
+    "typescript": false,
+    "packer": "webpack",
+    "plugins": ["jsdom-quokka-plugin"],
+    "env": {
+      "params": {
+        "runner": "node"
+      }
+    },
+    "pro": false
+  }
+}

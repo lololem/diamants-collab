@@ -1,0 +1,59 @@
+{
+  "name": "@dgreenheck/ez-tree",
+  "author": "Daniel Greenheck",
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dgreenheck/ez-tree.git"
+  },
+  "homepage": "https://dgreenheck.github.io/ez-tree/",
+  "bugs": {
+    "url": "https://github.com/dgreenheck/ez-tree/issues"
+  },
+  "type": "module",
+  "main": "build/ez-tree.umd.js",
+  "module": "build/ez-tree.es.js",
+  "exports": {
+    ".": {
+      "import": "./build/ez-tree.es.js",
+      "require": "./build/ez-tree.umd.js"
+    }
+  },
+  "files": [
+    "build",
+    "src",
+    "LICENSE",
+    "package.json",
+    "README.md"
+  ],
+  "types": "./build/ez-tree.es.d.ts",
+  "scripts": {
+    "build:app": "vite build --config vite.app.config.js",
+    "build:lib": "vite build --config vite.lib.config.js",
+    "build:watch": "vite build --config vite.lib.config.js --watch",
+    "app": "npm run build:lib && vite --config vite.app.config.js",
+    "preview": "vite preview"
+  },
+  "devDependencies": {
+    "@types/three": "^0.169.0",
+    "prettier": "3.3.3",
+    "three": "^0.167.x",
+    "vite": "^5.0.0",
+    "vite-plugin-dts": "^3.9.1",
+    "vite-plugin-static-copy": "^1.0.5"
+  },
+  "peerDependencies": {
+    "three": ">=0.167"
+  },
+  "keywords": [
+    "threejs",
+    "three-js",
+    "procedural",
+    "generation",
+    "tree"
+  ],
+  "dependencies": {
+    "tweakpane": "^4.0.4"
+  }
+}

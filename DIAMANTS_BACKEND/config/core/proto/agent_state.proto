@@ -1,0 +1,16 @@
+syntax = "proto3";
+package diamants;
+
+message Vec3 { float x = 1; float y = 2; float z = 3; }
+message Quat { float x = 1; float y = 2; float z = 3; float w = 4; }
+
+message AgentState {
+  string id = 1;
+  Vec3 position = 2;
+  Quat orientation = 3;
+  Vec3 linear = 4;
+  Vec3 angular = 5;
+  uint64 timestamp_ms = 6;
+}
+
+message AgentStates { repeated AgentState agents = 1; }

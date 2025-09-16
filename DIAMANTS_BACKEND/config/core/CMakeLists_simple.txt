@@ -1,0 +1,70 @@
+cmake_minimum_required(VERSION 3.8)
+project(diamants_univers)
+
+# C++ standard
+if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  add_compile_options(-Wall -Wextra -Wpedantic)
+endif()
+
+# ROS2 packages - minimal set
+find_package(ament_cmake REQUIRED)
+find_package(ament_cmake_python REQUIRED)
+find_package(rclpy REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+
+# Python modules
+ament_python_install_package(${PROJECT_NAME})
+
+# Install Python executables
+install(PROGRAMS
+  02_simulation/physics/orbital_controller.py
+  src/universe_manager.py
+  src/environment_controller.py
+  src/scenario_loader.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install launch files
+install(DIRECTORY
+  launch/
+  DESTINATION share/${PROJECT_NAME}/launch
+  PATTERN "*.py"
+)
+
+# Install worlds
+install(DIRECTORY
+  02_simulation/environments/
+  DESTINATION share/${PROJECT_NAME}/worlds
+  FILES_MATCHING PATTERN "*.world"
+)
+
+# Install scenarios
+install(DIRECTORY
+  02_simulation/scenarios/
+  DESTINATION share/${PROJECT_NAME}/scenarios
+  FILES_MATCHING PATTERN "*.yaml"
+)
+
+# Install scripts with permissions
+install(PROGRAMS
+  scripts/launch_universe.sh
+  scripts/universe_selector.sh
+  scripts/build_universe.sh
+  DESTINATION share/${PROJECT_NAME}/scripts
+)
+
+# Testing (simplified)
+if(BUILD_TESTING)
+  find_package(ament_lint_auto REQUIRED)
+  ament_lint_auto_find_test_dependencies()
+endif()
+
+# Export dependencies
+ament_export_dependencies(
+  rclpy
+  std_msgs
+  geometry_msgs
+)
+
+ament_package()

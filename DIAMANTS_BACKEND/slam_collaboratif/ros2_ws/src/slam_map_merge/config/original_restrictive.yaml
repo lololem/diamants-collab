@@ -1,0 +1,55 @@
+# Configuration restrictive pour le node original
+# Active tous les filtres et la morphologie agressive
+
+map_merger:
+  ros__parameters:
+    # Swarm configuration
+    robot_prefixes: ['crazyflie', 'crazyflie1', 'crazyflie2', 'crazyflie3', 'crazyflie4', 'crazyflie5', 'crazyflie6', 'crazyflie7']
+    max_robots: 8
+    use_sim_time: true
+    
+    # Restrictif - filtrage agressif
+    max_update_rate: 1.0
+    memory_limit_mb: 256
+    parallel_processing: false
+    
+    # Phéromones - agressives
+    phero_increment: 5
+    phero_decrement: 10
+    phero_evaporation: 0.5
+    phero_max_value: 50
+    phero_min_value: 10
+    phero_obstacle_bonus: 2
+    phero_free_penalty: 20
+    
+    # Stabilité - très restrictive
+    state_change_max: 5
+    min_cluster_size: 5
+    observation_threshold: 10
+    
+    # Morphologie - TRÈS AGRESSIVE
+    enable_morphology: true
+    morphology_kernel_size: 5
+    morphology_iterations: 3
+    morphology_erosion_threshold: 50
+    
+    # Temporal - court terme
+    smoothing_window: 2
+    fusion_history: 3
+    stability_window: 1
+    
+    # Fusion weights - favorise le consensus
+    weight_merged: 0.1
+    weight_validated: 0.1
+    weight_consensus: 0.7
+    weight_union: 0.1
+    
+    # Filters - agressifs
+    use_kalman: true
+    kalman_process_noise: 0.1
+    kalman_measurement_noise: 0.1
+    
+    # Debug
+    debug_mode: true
+    publish_debug_map: true
+    log_performance: true

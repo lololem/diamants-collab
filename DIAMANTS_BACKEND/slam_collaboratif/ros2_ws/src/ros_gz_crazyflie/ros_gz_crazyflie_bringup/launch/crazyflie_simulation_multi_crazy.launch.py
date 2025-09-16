@@ -1,0 +1,128 @@
+# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# 
+# Copyright (c) 2025 DIAMANTS Project Contributors
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+# Copyright 2022 Open Source Robotics Foundation, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import os
+
+from ament_index_python.packages import get_package_share_directory
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.actions import IncludeLaunchDescription
+from launch.conditions import IfCondition, UnlessCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+
+from launch_ros.actions import Node
+
+
+def generate_launch_description():
+    # Configure ROS nodes for launch
+
+    gz_ln_arg = DeclareLaunchArgument(
+        'gazebo_launch',
+        default_value='True'
+    )
+    headless_arg = DeclareLaunchArgument(
+        'headless',
+        default_value='False'
+    )
+    # Setup project paths
+    pkg_project_bringup = get_package_share_directory('ros_gz_crazyflie_bringup')
+    pkg_project_gazebo = get_package_share_directory('ros_gz_crazyflie_gazebo')
+    pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
+
+    # Load the SDF file from "description" package
+   # if LaunchConfiguration('gazebo_launch') == 'True':
+   #     gz_model_path = os.getenv('GZ_SIM_RESOURCE_PATH')
+   #     sdf_file  =  os.path.join(gz_model_path, 'crazyflie', 'model.sdf')
+   #     with open(sdf_file, 'r') as infp:
+   #         robot_desc = infp.read()
+
+    # Setup to launch the simulator and Gazebo world
+    # GUI variant
+    gz_sim_gui = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+        condition=UnlessCondition(LaunchConfiguration('headless')),
+        launch_arguments={'gz_args': PathJoinSubstitution([
+            pkg_project_gazebo,
+            'worlds',
+            'crazyflie_multi_world.sdf -r'
+        ])}.items(),
+    )
+
+    # Headless variant (-s runs server only, no GUI)
+    gz_sim_headless = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
+        condition=IfCondition(LaunchConfiguration('headless')),
+        launch_arguments={'gz_args': PathJoinSubstitution([
+            pkg_project_gazebo,
+            'worlds',
+            'crazyflie_multi_world.sdf -r -s'
+        ])}.items(),
+    )
+
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        parameters=[{
+            'config_file': os.path.join(pkg_project_bringup, 'config', 'ros_gz_multi_crazyflie_bridge.yaml'),
+        }],
+
+        output='screen'
+    )
+
+    control = Node(
+        package='ros_gz_crazyflie_control',
+        executable='control_services',
+        output='screen',
+        parameters=[
+            {'hover_height': 0.5},
+            {'robot_prefix': '/crazyflie'},
+            {'incoming_twist_topic': '/cmd_vel'},
+            {'max_ang_z_rate': 0.4},
+        ]
+    )
+
+    return LaunchDescription([
+        gz_ln_arg,
+        headless_arg,
+        gz_sim_gui,
+        gz_sim_headless,
+        bridge,
+        control
+    ])

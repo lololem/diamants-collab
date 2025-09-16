@@ -1,0 +1,70 @@
+# Configuration optimisée temps réel pour 8 drones - format ROS2
+# Éviter les sauts temporels et améliorer les performances
+
+# Paramètres ROS2 compatibles
+map_merger:
+  ros__parameters:
+    # Swarm configuration
+    robot_prefixes: ['crazyflie', 'crazyflie1', 'crazyflie2', 'crazyflie3', 'crazyflie4', 'crazyflie5', 'crazyflie6', 'crazyflie7']
+    max_robots: 8
+    use_sim_time: true
+    
+    # Performance optimizations for real-time
+    max_update_rate: 1.0  # Reduced from 10 Hz to 1 Hz
+    memory_limit_mb: 256
+    parallel_processing: false  # Disable to reduce complexity
+    
+    # Pheromones - lighter processing
+    phero_increment: 10
+    phero_decrement: 3
+    phero_evaporation: 0.2
+    phero_max_value: 80
+    phero_min_value: 0
+    phero_obstacle_bonus: 5
+    phero_free_penalty: 10
+    
+    # Stability - more lenient
+    state_change_max: 30
+    min_cluster_size: 2
+    observation_threshold: 5
+    
+    # Morphology - minimal processing
+    enable_morphology: true
+    morphology_kernel_size: 3
+    morphology_iterations: 1
+    morphology_erosion_threshold: 120
+    
+    # Temporal - shorter windows
+    smoothing_window: 3
+    fusion_history: 5
+    stability_window: 2
+    
+    # Fusion weights - balanced
+    weight_merged: 0.4
+    weight_validated: 0.3
+    weight_consensus: 0.2
+    weight_union: 0.1
+    
+    # Filters - simplified
+    use_kalman: false  # Disable Kalman for performance
+    kalman_process_noise: 0.02
+    kalman_measurement_noise: 0.2
+    use_fusion: true
+    anti_false_positive: false  # Disable for performance
+    
+    # Consensus
+    min_robots_consensus: 2
+    consensus_tolerance: 0.7
+    
+    # Topics
+    input_topic: '/map'
+    output_merged: '/map_merged'
+    output_consensus: '/map_merged_consensus'
+    output_validated: '/map_merged_validated'
+    output_weighted: '/map_fusion_weighted'
+    
+    # Logging - minimal for performance
+    enable_csv_logging: false
+    csv_log_path: '/tmp'
+    debug_level: 'warn'
+    log_frequency: 30  # Log every 30 ticks instead of 10

@@ -1,0 +1,55 @@
+# Configuration ultra-permissive pour le node modulaire
+# Désactive toute suppression d'obstacles et filtrage agressif
+
+map_merger:
+  ros__parameters:
+    # Swarm configuration
+    robot_prefixes: ['crazyflie', 'crazyflie1', 'crazyflie2', 'crazyflie3', 'crazyflie4', 'crazyflie5', 'crazyflie6', 'crazyflie7']
+    max_robots: 8
+    use_sim_time: true
+    
+    # Ultra-permissive - garde TOUS les obstacles
+    max_update_rate: 2.0
+    memory_limit_mb: 512
+    parallel_processing: true
+    
+    # Phéromones - très permissives
+    phero_increment: 20
+    phero_decrement: 1
+    phero_evaporation: 0.01
+    phero_max_value: 255
+    phero_min_value: 0
+    phero_obstacle_bonus: 20
+    phero_free_penalty: 1
+    
+    # Stabilité - ultra permissive
+    state_change_max: 1000
+    min_cluster_size: 1
+    observation_threshold: 1
+    
+    # Morphologie - DÉSACTIVÉE
+    enable_morphology: false
+    morphology_kernel_size: 1
+    morphology_iterations: 0
+    morphology_erosion_threshold: 255
+    
+    # Temporal - garder l'historique
+    smoothing_window: 10
+    fusion_history: 20
+    stability_window: 10
+    
+    # Fusion weights - favorise l'union
+    weight_merged: 0.1
+    weight_validated: 0.1
+    weight_consensus: 0.1
+    weight_union: 0.7
+    
+    # Filters
+    use_kalman: true
+    kalman_process_noise: 0.01
+    kalman_measurement_noise: 0.01
+    
+    # Debug
+    debug_mode: true
+    publish_debug_map: true
+    log_performance: true

@@ -1,0 +1,1 @@
+launch_diamants.sh

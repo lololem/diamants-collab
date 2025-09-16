@@ -1,0 +1,64 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <model name="cypres_provence_08">
+    <static>true</static>
+    
+    <!-- Tronc -->
+    <link name="trunk">
+      <pose>0 0 4.428265094616366 0 0 0</pose>
+      <visual name="trunk_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.31688065527813813</radius>
+            <length>8.856530189232732</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.24 0.15 0.14 1</ambient>
+          <diffuse>0.24 0.15 0.14 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+      <collision name="trunk_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.31688065527813813</radius>
+            <length>8.856530189232732</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!-- Feuillage -->
+    <link name="crown">
+      <pose>0 0 14.493208124418965 0 0 0</pose>
+      <visual name="crown_visual">
+        <geometry>
+          <cone>
+              <radius>0.831784921920954</radius>
+              <length>11.273355870372466</length>
+            </cone>
+        </geometry>
+        <material>
+          <ambient>0.10 0.29 0.10 1</ambient>
+          <diffuse>0.10 0.29 0.10 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+      <collision name="crown_collision">
+        <geometry>
+          <sphere>
+            <radius>0.6654279375367632</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!-- Joint tronc-feuillage -->
+    <joint name="trunk_crown_joint" type="fixed">
+      <parent>trunk</parent>
+      <child>crown</child>
+    </joint>
+    
+  </model>
+</sdf>

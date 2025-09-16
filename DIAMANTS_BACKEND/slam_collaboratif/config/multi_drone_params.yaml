@@ -1,0 +1,45 @@
+# Multi-Drone Configuration
+# System parameters for collaborative simulation
+
+# === DRONE PARAMETERS ===
+drone:
+  max_forward_speed: 0.5        # m/s - Maximum forward speed
+  max_turn_rate: 0.5            # rad/s - Maximum rotation speed
+  wall_following_direction: "right"  # Default wall following direction
+  emergency_threshold: 0.15     # m - Emergency stop distance
+  takeoff_height: 0.5          # m - Takeoff altitude
+  landing_speed: 0.2           # m/s - Landing speed
+
+# === COLLISION AVOIDANCE ===
+collision_avoidance:
+  detection_distance: 1.5      # m - Collision detection distance
+  safety_margin: 0.3           # m - Safety margin between drones
+  prediction_time: 2.0         # s - Trajectory prediction horizon
+  avoidance_strength: 0.8      # Avoidance force coefficient
+  
+# === INTER-DRONE COMMUNICATION ===
+swarm:
+  position_publish_rate: 10    # Hz - Position publication frequency
+  collision_check_rate: 20     # Hz - Collision checking frequency
+  threat_timeout: 2.0          # s - Other drones data timeout
+  max_drones: 8               # Maximum simultaneous drones
+  
+# === CONTROL WEIGHTS ===
+control_weights:
+  static_avoidance: 0.4        # Static obstacle avoidance weight
+  drone_avoidance: 0.8         # Inter-drone avoidance weight
+  wall_following: 0.2          # Wall following weight (residual)
+  
+# === SAFETY ===
+safety:
+  min_altitude: 0.1           # m - Minimum altitude before emergency
+  max_altitude: 3.0           # m - Maximum allowed altitude
+  battery_warning: 20         # % - Battery warning threshold
+  communication_timeout: 5.0   # s - Communication timeout before emergency
+  
+# === PERFORMANCE ===
+performance:
+  control_frequency: 100       # Hz - Control loop frequency
+  log_level: "INFO"           # DEBUG, INFO, WARN, ERROR
+  enable_telemetry: true      # Enable real-time telemetry
+  max_log_size: 100           # MB - Maximum log file size

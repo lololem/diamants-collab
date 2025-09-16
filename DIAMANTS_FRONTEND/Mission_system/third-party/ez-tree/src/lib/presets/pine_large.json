@@ -1,0 +1,34 @@
+{
+  "bark": {
+    "color": "#7a614a",
+    "roughness": 0.8,
+    "bumpScale": 0.3,
+    "segments": 10
+  },
+  "branch": {
+    "angle": 0.15,
+    "segments": 10,
+    "length": 0.9,
+    "taper": 0.85,
+    "color": "#6b523d"
+  },
+  "radiusVariation": {
+    "base": 0.15,
+    "reduction": 0.9,
+    "noise": 0.08
+  },
+  "sections": 6,
+  "segments": 12,
+  "leaves": {
+    "count": 600,
+    "size": 0.5,
+    "color": "#4a5c2a",
+    "distribution": "needle",
+    "seasonalVariation": false
+  },
+  "wind": {
+    "strength": 0.3,
+    "frequency": 0.5,
+    "amplitude": 0.15
+  }
+}
