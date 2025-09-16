@@ -1,18 +1,113 @@
-# 🚁 DIAMANTS - Distributed Intelligence for Autonomous Multi-Agent Navigation and Tactical Systems
+# � DIAMANTS: Distributed Autonomous Multi## 🚀 Quick Start
 
-[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+### Prerequisites
+- **Ubuntu 24.04** (recommended)
+- **ROS2 Jazzy** ([installation guide](https://docs.ros.org/en/jazzy/Installation.html))
+- **Python 3.12+**
+- **Node.js 16+**
 
-> **Advanced multi-drone collaborative SLAM system featuring real-time swarm intelligence, authentic physics simulation, and distributed mapping for autonomous navigation in complex environments.**
+### Installation
 
-## 🎯 Overview
+```bash
+# Clone the collaborative repository
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab
 
-DIAMANTS is a production-ready platform for **collaborative autonomous drone operations** combining:
+# One-command launch (interactive menu)
+./launch_diamants.sh
+```
 
-- **🤖 Multi-Agent SLAM**: 8-drone collaborative mapping with stigmergy-based fusion
-- **🎮 Real-time 3D Visualization**: WebGL-powered interface with authentic Crazyflie physics
-- **🔗 ROS2 Integration**: Complete Jazzy ecosystem with modern message protocols
-- **🧠 Swarm Intelligence**: Bio-inspired collective decision-making algorithms
-- **⚡ High Performance**: Unified WebSocket service with optimized data flow
+## 🔧 Component-Specific Launch
+
+You can run each system autonomously using dedicated scripts:
+
+### 📡 DIAMANTS_API - FastAPI Service & WebSocket Bridge
+```bash
+cd DIAMANTS_API
+./setup.sh        # First-time setup
+./start.sh        # Launch API service
+./status.sh       # Check service status
+./stop.sh         # Stop service
+```
+
+### 🤖 DIAMANTS_BACKEND - ROS2 SLAM System
+```bash
+cd DIAMANTS_BACKEND
+./setup.sh                          # Install ROS2 dependencies
+./launch_slam_collaborative.sh      # Start collaborative SLAM
+# Monitor logs: tail -f logs/diamants_tmux_slam_collab_journal.log
+```
+
+### 🌐 DIAMANTS_FRONTEND - 3D Visualization Interface
+```bash
+cd DIAMANTS_FRONTEND/Mission_system
+npm install       # Install dependencies
+npm run dev       # Start development server (http://localhost:5173)
+npm run build     # Production build
+```
+
+## 🤝 Collaborative Development
+
+**DIAMANTS is actively seeking contributors!** 
+
+We need help with:
+- 🐛 **Bug Fixes**: System stability and edge cases
+- 🚀 **Performance Optimization**: Multi-agent coordination efficiency
+- 📚 **Documentation**: User guides and API documentation
+- 🧪 **Testing**: Unit tests and integration testing
+- 🎨 **UI/UX**: Frontend interface improvements
+- 🤖 **Algorithm Development**: Advanced swarm intelligence behaviors
+
+### 🛠️ Development Workflow
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test thoroughly
+4. Submit a pull request with detailed description
+
+### 🆘 Report Issues
+Found a bug or have a feature request? Please [create an issue](https://github.com/lololem/diamants-collab/issues) with:
+- Detailed description of the problem
+- Steps to reproduce
+- System environment (Ubuntu version, ROS2 distribution, etc.)
+- Expected vs actual behavior[ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+
+**DIAMANTS is an open-source platform for the simulation and execution of distributed intelligence. Our philosophy: code once, and deploy everywhere—in simulation and in the real world.**
+
+This project is a 'playground' for developers, creating a robust bridge between high-level intent (the swarm's strategy) and low-level execution (each drone's physical commands). It's a space to code distributed intelligence, test it in a credible simulation, and push it directly to real-world swarms.
+
+## 🎯 Vision
+
+DIAMANTS's objective is to tackle a major technical challenge: achieving emergent collective behaviors in open, modular, and interoperable code. We aim to demonstrate that distributed intelligence is not a theoretical concept, but a robust, documented, and reusable software artifact for the community.
+
+## ✨ Key Features & Technical Challenges
+
+### 🌱 Open Source by Design
+
+Our entire ecosystem is built on recognized open standards. No proprietary lock-in.
+
+**Main Stack:**
+- **Backend & Simulation**: ROS 2, Gazebo, PX4/ArduPilot, MAVROS
+- **Frontend & Visualization**: Vite, Three.js, Babylon.js, WebGL, Node.js
+
+**Goal**: To foster an ecosystem where every developer can contribute, test, and enrich the platform.
+
+### 🌐 Radical Interoperability
+
+A defined mission must be understood by any agent, regardless of its hardware or middleware.
+- **Universal Missions**: Mission definitions in YAML/JSON
+- **Unified APIs**: Design of agnostic interfaces and mission translators
+
+### 🧠 From Simple Rules to Collective Intelligence
+
+The scientific core of the project is the study of emergence from simple interactions.
+- **Explored Algorithms**: Stigmergy, consensus algorithms, social forces (Lennard-Jones type)
+- **Challenge**: To code simple behavioral bricks and observe the emergence of a credible collective intelligence
+
+### 🔄 Seamless Sim-to-Real Workflow
+
+Simulation is a mirror of reality. Zero throwaway code.
+- **High-Fidelity Simulation**: The high-level code produces command streams via ROS 2 that are translated identically for the simulator and for physical agents
+- **Continuous Validation**: Every line of code is validated in simulation and then executed without any modification on the real hardware
 
 ## � Quick Start
 
