@@ -144,36 +144,6 @@ Simulation is a mirror of reality. Zero throwaway code.
 - **High-Fidelity Simulation**: The high-level code produces command streams via ROS 2 that are translated identically for the simulator and for physical agents
 - **Continuous Validation**: Every line of code is validated in simulation and then executed without any modification on the real hardware
 
-## ✨ Key Features & Technical Challenges
-
-### 🌱 Open Source by Design
-
-Our entire ecosystem is built on recognized open standards. No proprietary lock-in.
-
-**Main Stack:**
-- **Backend & Simulation**: ROS 2, Gazebo, PX4/ArduPilot, MAVROS
-- **Frontend & Visualization**: Vite, Three.js, Babylon.js, WebGL, Node.js
-
-**Goal**: To foster an ecosystem where every developer can contribute, test, and enrich the platform.
-
-### 🌐 Radical Interoperability
-
-A defined mission must be understood by any agent, regardless of its hardware or middleware.
-- **Universal Missions**: Mission definitions in YAML/JSON
-- **Unified APIs**: Design of agnostic interfaces and mission translators
-
-### 🧠 From Simple Rules to Collective Intelligence
-
-The scientific core of the project is the study of emergence from simple interactions.
-- **Explored Algorithms**: Stigmergy, consensus algorithms, social forces (Lennard-Jones type)
-- **Challenge**: To code simple behavioral bricks and observe the emergence of a credible collective intelligence
-
-### 🔄 Seamless Sim-to-Real Workflow
-
-Simulation is a mirror of reality. Zero throwaway code.
-- **High-Fidelity Simulation**: The high-level code produces command streams via ROS 2 that are translated identically for the simulator and for physical agents
-- **Continuous Validation**: Every line of code is validated in simulation and then executed without any modification on the real hardware
-
 ## 🚀 Quick Start
 
 ### Prerequisites
