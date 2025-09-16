@@ -205,6 +205,20 @@
             background: linear-gradient(45deg, #FF6666, #FF4444);
         }
 
+        /* Status indicators */
+        .status_ready {
+            color: #00FF88;
+            font-weight: bold;
+        }
+        .status_warning {
+            color: #FFAA00;
+            font-weight: bold;
+        }
+        .status_error {
+            color: #FF4757;
+            font-weight: bold;
+        }
+
         .topic_monitor {
             font-family: 'Roboto Mono', monospace;
             font-size: 9px;
@@ -264,8 +278,26 @@
         .metric_fill {
             height: 100%;
             background: linear-gradient(90deg, #00FF88, #00CCFF);
-            transition: width 0.3s ease;
+            transition: width 0.3s ease-in-out;
             border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric_fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
         }
 
         .metric_value {
@@ -282,19 +314,6 @@
             height: 100vh !important;
             z-index: 10 !important;
             overflow: hidden !important;
-        }
-
-        #status_display {
-            position: fixed;
-            bottom: 270px;
-            right: 30px;
-            background: rgba(0, 0, 0, 0.8);
-            color: #00FFFF;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px solid #00AAFF;
-            font-size: 12px;
-            z-index: 200;
         }
 
         /* Minimap - Toujours visible et bien positionnée */
@@ -359,15 +378,19 @@
         <div class="ros_panel">
             <h3>🚁 Mission Control</h3>
             <div class="mission_control">
-                <button class="btn_ros" onclick="launchMission()">Launch Mission</button>
-                <button class="btn_ros" onclick="emergencyLand()">Emergency Land</button>
-                <button class="btn_ros" onclick="resetSwarm()">Reset Swarm</button>
-                <button class="btn_ros" onclick="changePattern()">🌟 Pattern</button>
+                <button class="ros_button" onclick="launchMission()">Launch Mission</button>
+                <button class="ros_button emergency" onclick="emergencyLand()">Emergency Land</button>
+                <button class="ros_button" onclick="resetSwarm()">Reset Swarm</button>
+                <button class="ros_button" onclick="changePattern()">🌟 Pattern</button>
+            </div>
+            <div class="mission_control">
+                <button class="ros_button" onclick="clearAllTargets()">🗑️ Clear Targets</button>
+                <button class="ros_button" onclick="generateRandomTargets()">🎯 Random Targets</button>
+                <div class="metric_value">Ctrl+Click pour placer target</div>
             </div>
             <div>
-                <label>Mission Type:</label>
-                <select id="mission_type"
-                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                <label for="mission_type">Mission Type:</label>
+                <select id="mission_type" class="control_select" title="Select mission type">
                     <option value="exploration">Exploration</option>
                     <option value="mapping">SLAM Mapping</option>
                     <option value="surveillance">Surveillance</option>
@@ -408,9 +431,6 @@
                     <div class="metric_value" id="coordination_score">0.0</div>
                 </div>
             </div>
-            <div class="emergence_indicator">
-                <div class="emergence_bar" id="emergence_bar" style="width: 0%"></div>
-            </div>
         </div>
 
         <!-- Mission Metrics Panel -->
@@ -420,18 +440,30 @@
                 <div class="metric_item">
                     <div>Coverage</div>
                     <div class="metric_value" id="mission_coverage">0.0%</div>
+                    <div class="metric_bar">
+                        <div id="coverage_bar" class="metric_fill"></div>
+                    </div>
                 </div>
                 <div class="metric_item">
                     <div>Targets</div>
                     <div class="metric_value" id="targets_discovered">0/0</div>
+                    <div class="metric_bar">
+                        <div id="targets_bar" class="metric_fill"></div>
+                    </div>
                 </div>
                 <div class="metric_item">
                     <div>Efficiency</div>
                     <div class="metric_value" id="mission_efficiency">0.0%</div>
+                    <div class="metric_bar">
+                        <div id="efficiency_bar" class="metric_fill"></div>
+                    </div>
                 </div>
                 <div class="metric_item">
                     <div>Speed</div>
                     <div class="metric_value" id="exploration_speed">0.00 zones/min</div>
+                    <div class="metric_bar">
+                        <div id="speed_bar" class="metric_fill"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -440,15 +472,14 @@
         <div class="ros_panel">
             <h3>📹 Camera Controls</h3>
             <div class="mission_control">
-                <button class="btn_ros" onclick="resetCamera()">Reset View</button>
-                <button class="btn_ros" onclick="topView()">Top View</button>
-                <button class="btn_ros" onclick="toggleFollowMode()">Follow Mode</button>
-                <button class="btn_ros" onclick="zoomToSwarm()">View All</button>
+                <button class="ros_button" onclick="resetCamera()">Reset View</button>
+                <button class="ros_button" onclick="topView()">Top View</button>
+                <button class="ros_button" onclick="toggleFollowMode()">Follow Mode</button>
+                <button class="ros_button" onclick="zoomToSwarm()">View All</button>
             </div>
             <div>
-                <label>Select Drone to Follow:</label>
-                <select id="drone_selector" onchange="selectDroneToFollow()"
-                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                <label for="drone_selector">Select Drone to Follow:</label>
+                <select id="drone_selector" onchange="selectDroneToFollow()" class="control_select" title="Select drone to follow with camera">
                     <option value="">No Selection</option>
                 </select>
             </div>
@@ -458,12 +489,12 @@
         <div class="ros_panel">
             <h3>⚠️ Anti-Collision DIAMANTS</h3>
             <div id="collision_warnings">
-                <div style="font-size: 10px; color: #888;">No collision warnings</div>
+                <div class="warning_text">No collision warnings</div>
             </div>
-            <div style="margin: 10px 0;">
+            <div class="control_group">
                 <label>Safety Distance (m):</label>
-                <input type="range" id="safety_distance" min="1" max="10" value="3" style="width: 100%;"
-                    onchange="updateSafetyDistance(this.value)">
+                <input type="range" id="safety_distance" min="1" max="10" value="3" class="control_slider"
+                    onchange="updateSafetyDistance(this.value)" title="Adjust safety distance">
                 <span id="safety_distance_value">3.0m</span>
             </div>
         </div>
@@ -481,10 +512,10 @@
         <div class="ros_panel">
             <h3>🔢 Formation Control</h3>
             <div class="mission_control">
-                <button class="btn_ros" onclick="setFormation('line')">Line</button>
-                <button class="btn_ros" onclick="setFormation('circle')">Circle</button>
-                <button class="btn_ros" onclick="setFormation('triangle')">Triangle</button>
-                <button class="btn_ros" onclick="setFormation('grid')">Grid</button>
+                <button class="ros_button" onclick="setFormation('line')">Line</button>
+                <button class="ros_button" onclick="setFormation('circle')">Circle</button>
+                <button class="ros_button" onclick="setFormation('triangle')">Triangle</button>
+                <button class="ros_button" onclick="setFormation('grid')">Grid</button>
             </div>
         </div>
 
@@ -492,9 +523,8 @@
         <div class="ros_panel">
             <h3>🌟 Drone Modes</h3>
             <div>
-                <label>Mode:</label>
-                <select id="mode_select"
-                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                <label for="mode_select">Mode:</label>
+                <select id="mode_select" class="control_select" title="Select drone flight mode">
                     <option value="grid">Grid</option>
                     <option value="boustrophedon">Boustrophedon</option>
                     <option value="spiral">Spiral</option>
@@ -508,11 +538,28 @@
 
         <!-- Intelligence Collective Panel -->
         <div class="ros_panel">
-            <h3>� Intelligence Collective</h3>
+            <h3>🧠 Intelligence Collective</h3>
             <div class="metric_display">
                 <div class="metric_item">
-                    <div>Stigmergie</div>
-                    <div class="metric_value" id="stigmergy_value">0</div>
+                    <div>Pheromones (φ):</div>
+                    <div class="metric_bar">
+                        <div id="phi_bar" class="metric_fill"></div>
+                    </div>
+                    <div class="metric_value" id="phi_value">0.00</div>
+                </div>
+                <div class="metric_item">
+                    <div>Stigmergie (σ):</div>
+                    <div class="metric_bar">
+                        <div id="sigma_bar" class="metric_fill"></div>
+                    </div>
+                    <div class="metric_value" id="sigma_value">0.00</div>
+                </div>
+                <div class="metric_item">
+                    <div>Émergence (Ξ):</div>
+                    <div class="metric_bar">
+                        <div id="emergence_bar" class="metric_fill"></div>
+                    </div>
+                    <div class="metric_value" id="emergence_value">0.00</div>
                 </div>
                 <div class="metric_item">
                     <div>Consensus</div>
@@ -529,26 +576,12 @@
             </div>
         </div>
     </div>
-    <div class="metric_bar">
-        <div id="phi_bar" class="metric_fill" style="width: 0%"></div>
-    </div>
-
-    <div class="metric_value">Sigma (σ): <span id="sigma_value">0.00</span></div>
-    <div class="metric_bar">
-        <div id="sigma_bar" class="metric_fill" style="width: 0%"></div>
-    </div>
-
-    <div class="metric_value">Emergence: <span id="emergence_value">0.00</span></div>
-    <div class="metric_bar">
-        <div id="emergence_bar" class="metric_fill" style="width: 0%"></div>
-    </div>
-    </div>
 
     <div class="ros_panel">
         <h3>⚙️ System</h3>
-        <div class="metric_value">Status: <span style="color: #00FF88;">GAZEBO</span></div>
+        <div class="metric_value">Status: <span class="status_ready">GAZEBO</span></div>
         <div class="metric_value">FPS: <span id="fps_display">60</span></div>
-        <div class="metric_value">Mesh: <span style="color: #FFAA00;">COLLADA</span></div>
+        <div class="metric_value">Mesh: <span class="status_warning">COLLADA</span></div>
         <button class="ros_button" onclick="toggleMinimap()">📋 Minimap</button>
         <button class="ros_button" onclick="toggleSAROverlay()">🧭 SAR Lanes</button>
     </div>
@@ -563,14 +596,8 @@
         <canvas id="minimap_canvas" width="180" height="170"></canvas>
     </div>
 
-    <!-- Status Display -->
-    <div id="status_display">
-        🚁 DIAMANTS - Gazebo Style avec Mesh Réels<br>
-        <span id="system_status">Initializing...</span>
-    </div>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
     <script>
         // ===== DIAMANTS - GAZEBO MESH AVEC ROS2 & INTELLIGENCE COLLECTIVE =====
 
@@ -599,6 +626,11 @@
         let colladaLoader = null;
         let minimapCanvas, minimapCtx;
         let minimapVisible = true;
+        
+        // Persistent exploration tracking
+        let exploredZones = new Set();
+        let missionStartTime = Date.now();
+        let totalTargetsPlaced = 0;
 
         // ===== MAPPING ET EXPLORATION AVANCÉE =====
         let explorationMap = [];
@@ -2512,9 +2544,9 @@
             safetyDistance: 1.8,    // Réduit pour optimiser l'espace
             zoneSize: 150,          // Augmenté pour plus d'espace
             explorationGrid: 25,
-            // From /sample/Crazyflie.html to /assets/... one level up
-            meshPath: '../assets/crazyflie/meshes/',
-            modelScale: 1.15,
+            // Correct path from /DEMO/sample/ to /DIAMANTS_FRONTEND/Mission_system/assets/crazyflie/meshes/
+            meshPath: '../../DIAMANTS_FRONTEND/Mission_system/assets/crazyflie/meshes/',
+            modelScale: 4.0, // Augmenté de 1.15 à 4.0 pour plus de visibilité
             mass: 0.025, // kg (25g)
             maxThrust: 0.6, // N  
             maxRPM: 2618, // RPM max moteurs
@@ -2991,7 +3023,7 @@
                 this.group.add(this.aura);
 
                 this.group.position.copy(this.position);
-                this.group.scale.setScalar(1.5); // Agrandir pour meilleure visibilité
+                this.group.scale.setScalar(2.5); // Agrandir encore plus pour meilleure visibilité
 
                 // Sécurité : s'assurer que le groupe est ajouté à la scène
                 if (!this.group.parent) {
@@ -4343,8 +4375,8 @@
             }
 
             createTemporaryMesh() {
-                // Créer un mesh temporaire simple pendant le chargement - PLUS VISIBLE
-                const tempGeometry = new THREE.BoxGeometry(0.5, 0.1, 0.5); // Plus gros
+                // Créer un mesh temporaire simple pendant le chargement - BEAUCOUP PLUS VISIBLE
+                const tempGeometry = new THREE.BoxGeometry(1.5, 0.3, 1.5); // 3x plus gros
                 const tempMaterial = new THREE.MeshBasicMaterial({
                     color: this.type.color || 0x00FFAA,
                     opacity: 0.9,
@@ -4560,16 +4592,16 @@
                 // Vider le groupe temporaire
                 this.group.clear();
 
-                // Version simplifiée avec indicateurs d'intelligence - PLUS GROS pour être visible
-                const bodyGeometry = new THREE.BoxGeometry(0.5, 0.1, 0.5); // Beaucoup plus gros
+                // Version simplifiée avec indicateurs d'intelligence - BEAUCOUP PLUS GROS pour être visible
+                const bodyGeometry = new THREE.BoxGeometry(1.5, 0.3, 1.5); // 3x plus gros
                 this.body = new THREE.Mesh(bodyGeometry, GAZEBO_MATERIALS.crazyflie_red);
                 this.group.add(this.body);
 
                 this.props = [];
                 CONFIG.motorPositions.forEach((pos, i) => {
-                    const propGeometry = new THREE.CylinderGeometry(0.15, 0.15, 0.01, 8); // Plus grosses hélices
+                    const propGeometry = new THREE.CylinderGeometry(0.4, 0.4, 0.03, 8); // Hélices beaucoup plus grosses
                     const prop = new THREE.Mesh(propGeometry, GAZEBO_MATERIALS.propeller);
-                    prop.position.set(pos.x * 2, 0.06, pos.z * 2); // Positions plus étalées
+                    prop.position.set(pos.x * 6, 0.18, pos.z * 6); // Positions beaucoup plus étalées (6x au lieu de 2x)
                     this.group.add(prop);
                     this.props.push({
                         mesh: prop,
@@ -4587,40 +4619,22 @@
             }
 
             createIntelligenceIndicators() {
-                // Label avec nom et intelligence
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = 160;
-                canvas.height = 40;
-
-                context.fillStyle = '#000000';
-                context.fillRect(0, 0, canvas.width, canvas.height);
-                context.fillStyle = '#00FFFF';
-                context.font = 'Bold 12px Arial';
-                context.textAlign = 'center';
-                context.fillText(this.name, canvas.width / 2, 15);
-                context.fillStyle = '#00FF88';
-                context.font = '10px Arial';
-                context.fillText(`I:${this.intelligence.toFixed(1)}`, canvas.width / 2, 30);
-
-                const texture = new THREE.CanvasTexture(canvas);
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
-                this.labelSprite = new THREE.Sprite(spriteMaterial);
-                this.labelSprite.scale.set(0.8, 0.2, 1);
-                this.labelSprite.position.y = 0.3;
-                this.group.add(this.labelSprite);
-
-                // Indicateur d'émergence (anneau coloré)
-                const ringGeometry = new THREE.RingGeometry(0.15, 0.18, 16);
+                // ⚠️ DÉSACTIVÉ - Les bandeaux noirs masquent les drones
+                // Garder seulement l'anneau d'émergence coloré pour la visibilité
+                
+                // Indicateur d'émergence (anneau coloré) - BEAUCOUP PLUS VISIBLE
+                const ringGeometry = new THREE.RingGeometry(0.6, 0.8, 16); // 3x plus gros
                 const ringMaterial = new THREE.MeshBasicMaterial({
                     color: 0x00FF88,
                     transparent: true,
-                    opacity: 0.6
+                    opacity: 0.8
                 });
                 this.emergenceRing = new THREE.Mesh(ringGeometry, ringMaterial);
                 this.emergenceRing.rotation.x = -Math.PI / 2;
-                this.emergenceRing.position.y = -0.01;
+                this.emergenceRing.position.y = 0.06; // Position ajustée pour la nouvelle taille
                 this.group.add(this.emergenceRing);
+                
+                console.log(`✅ Indicateurs simplifiés pour ${this.name} (sans bandeau noir)`);
             }
 
             update(deltaTime, allDrones) {
@@ -5571,29 +5585,14 @@
                     });
                 }
 
-                // Mise à jour du label d'intelligence
+                // Mise à jour du label d'intelligence - DÉSACTIVÉ pour visibilité
                 if (this.labelSprite) {
-                    const canvas = document.createElement('canvas');
-                    const context = canvas.getContext('2d');
-                    canvas.width = 160;
-                    canvas.height = 40;
-
-                    context.fillStyle = '#000000';
-                    context.fillRect(0, 0, canvas.width, canvas.height);
-                    context.fillStyle = '#00FFFF';
-                    context.font = 'Bold 12px Arial';
-                    context.textAlign = 'center';
-                    context.fillText(this.name, canvas.width / 2, 15);
-                    context.fillStyle = '#00FF88';
-                    context.font = '10px Arial';
-                    context.fillText(`I:${this.intelligence.toFixed(1)} E:${this.emergence.toFixed(0)}`, canvas.width / 2, 30);
-
-                    // Protection contre les textures null
+                    // Supprimer le label sprite pour éviter les bandeaux noirs
+                    this.group.remove(this.labelSprite);
                     if (this.labelSprite.material.map) {
                         this.labelSprite.material.map.dispose();
                     }
-                    this.labelSprite.material.map = new THREE.CanvasTexture(canvas);
-                    this.labelSprite.material.needsUpdate = true;
+                    this.labelSprite = null;
                 }
 
                 // Mise à jour de l'anneau d'émergence
@@ -5845,7 +5844,7 @@
             createDenseForest();
 
             console.log('✅ Realistic forest scene initialized');
-            updateSystemStatus('✅ Realistic forest ready');
+            console.log('✅ Realistic forest ready');
         }
 
         // Variables globales pour l'environnement (déclarations supprimées - déjà définies en haut)
@@ -6133,7 +6132,7 @@
 
             // Draw overlay
             if (showSAR) createSAROverlay();
-            updateSystemStatus(`🧭 SAR lanes assigned (${boustrophedonPlan.size})`);
+            console.log(`🧭 SAR lanes assigned (${boustrophedonPlan.size})`);
         }
 
         function createSAROverlay() {
@@ -6169,6 +6168,9 @@
                 if (typeof THREE.ColladaLoader !== 'undefined') {
                     colladaLoader = new THREE.ColladaLoader();
                     console.log('✅ ColladaLoader initialized');
+                    
+                    // Test de chargement pour vérifier les chemins
+                    testMeshPaths();
                 } else {
                     console.warn('⚠️ ColladaLoader not available, using fallback');
                     colladaLoader = null;
@@ -6177,6 +6179,31 @@
                 console.warn('⚠️ ColladaLoader error:', error);
                 colladaLoader = null;
             }
+        }
+
+        // Fonction de test des chemins mesh
+        function testMeshPaths() {
+            console.log('🔍 Testing mesh paths...');
+            console.log('Mesh path:', CONFIG.meshPath);
+            
+            const testFiles = ['cf2_assembly.dae', 'cw_prop.dae', 'ccw_prop.dae'];
+            testFiles.forEach(file => {
+                const fullPath = CONFIG.meshPath + file;
+                console.log(`Testing: ${fullPath}`);
+                
+                // Test avec une requête fetch pour vérifier l'accessibilité
+                fetch(fullPath, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log(`✅ ${file} accessible`);
+                        } else {
+                            console.warn(`⚠️ ${file} not accessible (${response.status})`);
+                        }
+                    })
+                    .catch(error => {
+                        console.warn(`❌ ${file} fetch error:`, error);
+                    });
+            });
         }
 
         // Initialisation de la minimap
@@ -6325,8 +6352,23 @@
             // Drones avec informations tactiques avancées
             if (drones && drones.length > 0) {
                 drones.forEach((drone) => {
-                    const x = centerX + drone.position.x * scale;
-                    const y = centerY - drone.position.z * scale;
+                    let x = centerX + drone.position.x * scale;
+                    let y = centerY - drone.position.z * scale;
+                    
+                    // Vérifier si le drone est hors de la minimap
+                    const margin = 10;
+                    let isOffScreen = false;
+                    let edgeX = x, edgeY = y;
+                    
+                    if (x < margin || x > width - margin || y < margin || y > height - margin) {
+                        isOffScreen = true;
+                        // Calculer la position sur le bord de la minimap
+                        const centerToPos = { x: x - centerX, y: y - centerY };
+                        const angle = Math.atan2(centerToPos.y, centerToPos.x);
+                        const maxDist = Math.min(width, height) / 2 - margin;
+                        edgeX = centerX + Math.cos(angle) * maxDist;
+                        edgeY = centerY + Math.sin(angle) * maxDist;
+                    }
 
                     // Couleur selon rôle et état
                     let droneColor = '#00aa00'; // Par défaut vert
@@ -6342,74 +6384,103 @@
                         droneColor = '#8800ff'; // Violet pour les furtifs
                     }
 
-                    // Trace de trajectoire récente
-                    if (drone.movementHistory && drone.movementHistory.length > 1) {
-                        minimapCtx.strokeStyle = droneColor + '40'; // Transparence
-                        minimapCtx.lineWidth = 1;
+                    // Affichage différent selon si le drone est visible ou pas
+                    if (isOffScreen) {
+                        // Drone hors écran - indicateur de direction
+                        minimapCtx.fillStyle = droneColor;
                         minimapCtx.beginPath();
-                        const historyLength = Math.min(10, drone.movementHistory.length);
-                        for (let i = drone.movementHistory.length - historyLength; i < drone.movementHistory.length - 1; i++) {
-                            if (i >= 0) {
-                                const pos1 = drone.movementHistory[i];
-                                const pos2 = drone.movementHistory[i + 1];
-                                const x1 = centerX + pos1.x * scale;
-                                const y1 = centerY - pos1.z * scale;
-                                const x2 = centerX + pos2.x * scale;
-                                const y2 = centerY - pos2.z * scale;
-
-                                if (i === drone.movementHistory.length - historyLength) {
-                                    minimapCtx.moveTo(x1, y1);
-                                }
-                                minimapCtx.lineTo(x2, y2);
-                            }
-                        }
-                        minimapCtx.stroke();
-                    }
-
-                    // Zone d'influence/détection
-                    if (drone.state === 'FLYING' && drone.intelligence > 0.5) {
-                        const influenceRadius = (drone.intelligence * 3 + 2) * scale;
-                        minimapCtx.strokeStyle = droneColor + '30';
-                        minimapCtx.lineWidth = 1;
-                        minimapCtx.beginPath();
-                        minimapCtx.arc(x, y, influenceRadius, 0, 2 * Math.PI);
-                        minimapCtx.stroke();
-                    }
-
-                    // Corps du drone
-                    minimapCtx.fillStyle = droneColor;
-                    minimapCtx.beginPath();
-                    minimapCtx.arc(x, y, 4, 0, 2 * Math.PI);
-                    minimapCtx.fill();
-
-                    // Bordure selon état
-                    minimapCtx.strokeStyle = drone.state === 'EMERGENCY' ? '#ffffff' : '#000000';
-                    minimapCtx.lineWidth = 1;
-                    minimapCtx.stroke();
-
-                    // Indicateur de direction (flèche)
-                    if (drone.velocity && drone.velocity.length() > 0.1) {
-                        const velNorm = drone.velocity.clone().normalize();
-                        const arrowLength = 6;
+                        // Triangle pointant vers la direction du drone
+                        const angle = Math.atan2(y - centerY, x - centerX);
+                        const size = 6;
+                        minimapCtx.moveTo(edgeX + Math.cos(angle) * size, edgeY + Math.sin(angle) * size);
+                        minimapCtx.lineTo(edgeX + Math.cos(angle + 2.5) * size, edgeY + Math.sin(angle + 2.5) * size);
+                        minimapCtx.lineTo(edgeX + Math.cos(angle - 2.5) * size, edgeY + Math.sin(angle - 2.5) * size);
+                        minimapCtx.closePath();
+                        minimapCtx.fill();
+                        
+                        // Bordure
                         minimapCtx.strokeStyle = '#ffffff';
-                        minimapCtx.lineWidth = 2;
-                        minimapCtx.beginPath();
-                        minimapCtx.moveTo(x, y);
-                        minimapCtx.lineTo(x + velNorm.x * arrowLength, y - velNorm.z * arrowLength);
+                        minimapCtx.lineWidth = 1;
                         minimapCtx.stroke();
-                    }
+                        
+                        // Distance approximative
+                        const distance = Math.sqrt(drone.position.x * drone.position.x + drone.position.z * drone.position.z);
+                        minimapCtx.fillStyle = '#ffffff';
+                        minimapCtx.font = 'bold 8px Arial';
+                        minimapCtx.textAlign = 'center';
+                        minimapCtx.fillText(`${distance.toFixed(0)}m`, edgeX, edgeY - 8);
+                    } else {
+                        // Drone visible normalement
+                        
+                        // Trace de trajectoire récente
+                        if (drone.movementHistory && drone.movementHistory.length > 1) {
+                            minimapCtx.strokeStyle = droneColor + '40'; // Transparence
+                            minimapCtx.lineWidth = 1;
+                            minimapCtx.beginPath();
+                            const historyLength = Math.min(10, drone.movementHistory.length);
+                            for (let i = drone.movementHistory.length - historyLength; i < drone.movementHistory.length - 1; i++) {
+                                if (i >= 0) {
+                                    const pos1 = drone.movementHistory[i];
+                                    const pos2 = drone.movementHistory[i + 1];
+                                    const x1 = centerX + pos1.x * scale;
+                                    const y1 = centerY - pos1.z * scale;
+                                    const x2 = centerX + pos2.x * scale;
+                                    const y2 = centerY - pos2.z * scale;
 
-                    // ID et information
-                    minimapCtx.fillStyle = '#ffffff';
-                    minimapCtx.font = 'bold 9px Arial';
-                    minimapCtx.textAlign = 'center';
-                    minimapCtx.fillText(drone.id.toString(), x, y + 2);
+                                    if (i === drone.movementHistory.length - historyLength) {
+                                        minimapCtx.moveTo(x1, y1);
+                                    }
+                                    minimapCtx.lineTo(x2, y2);
+                                }
+                            }
+                            minimapCtx.stroke();
+                        }
 
-                    // Intelligence level (petit indicateur)
-                    if (drone.intelligence > 0.3) {
-                        const intelligenceSize = Math.max(1, drone.intelligence * 3);
-                        minimapCtx.fillStyle = '#00ff88';
-                        minimapCtx.fillRect(x - intelligenceSize / 2, y - 8, intelligenceSize, 1);
+                        // Zone d'influence/détection
+                        if (drone.state === 'FLYING' && drone.intelligence > 0.5) {
+                            const influenceRadius = (drone.intelligence * 3 + 2) * scale;
+                            minimapCtx.strokeStyle = droneColor + '30';
+                            minimapCtx.lineWidth = 1;
+                            minimapCtx.beginPath();
+                            minimapCtx.arc(x, y, influenceRadius, 0, 2 * Math.PI);
+                            minimapCtx.stroke();
+                        }
+
+                        // Corps du drone
+                        minimapCtx.fillStyle = droneColor;
+                        minimapCtx.beginPath();
+                        minimapCtx.arc(x, y, 4, 0, 2 * Math.PI);
+                        minimapCtx.fill();
+
+                        // Bordure selon état
+                        minimapCtx.strokeStyle = drone.state === 'EMERGENCY' ? '#ffffff' : '#000000';
+                        minimapCtx.lineWidth = 1;
+                        minimapCtx.stroke();
+
+                        // Indicateur de direction (flèche)
+                        if (drone.velocity && drone.velocity.length() > 0.1) {
+                            const velNorm = drone.velocity.clone().normalize();
+                            const arrowLength = 6;
+                            minimapCtx.strokeStyle = '#ffffff';
+                            minimapCtx.lineWidth = 2;
+                            minimapCtx.beginPath();
+                            minimapCtx.moveTo(x, y);
+                            minimapCtx.lineTo(x + velNorm.x * arrowLength, y - velNorm.z * arrowLength);
+                            minimapCtx.stroke();
+                        }
+
+                        // ID et information
+                        minimapCtx.fillStyle = '#ffffff';
+                        minimapCtx.font = 'bold 9px Arial';
+                        minimapCtx.textAlign = 'center';
+                        minimapCtx.fillText(drone.id.toString(), x, y + 2);
+
+                        // Intelligence level (petit indicateur)
+                        if (drone.intelligence > 0.3) {
+                            const intelligenceSize = Math.max(1, drone.intelligence * 3);
+                            minimapCtx.fillStyle = '#00ff88';
+                            minimapCtx.fillRect(x - intelligenceSize / 2, y - 8, intelligenceSize, 1);
+                        }
                     }
                 });
             }
@@ -6433,11 +6504,14 @@
             console.log('🚁 Initializing Gazebo Crazyflie swarm...');
             updateLoadingProgress(10);
 
-            // Démarrer avec fallback si mesh non disponibles
+            // Vérifier la disponibilité des mesh
             let useFallback = !colladaLoader;
             if (useFallback) {
                 console.log('⚠️ Utilisation fallback mesh (géométries simples)');
-                updateSystemStatus('⚠️ Mesh DAE non disponibles - utilisation fallback');
+                console.log('⚠️ Mesh DAE non disponibles - utilisation fallback');
+            } else {
+                console.log('✅ ColladaLoader disponible, tentative de chargement des mesh...');
+                console.log('🔄 Chargement des mesh Crazyflie...');
             }
 
             // Initialiser la mémoire collective AVANT de créer les drones
@@ -6456,10 +6530,24 @@
                     Math.sin(angle) * CONFIG.spawnRadius
                 );
 
+                console.log(`🔄 Création drone ${i} à la position (${position.x.toFixed(2)}, ${position.y.toFixed(2)}, ${position.z.toFixed(2)})`);
+
                 // Instancier le modèle Gazebo DÉTAILLÉ avec vrais mesh Crazyflie
                 const drone = new AdvancedDetailedCrazyflie(i, position);
                 // Optionnel: mémoriser un type sémantique pour l'UI
                 drone.typeName = droneTypes[i % droneTypes.length];
+                
+                // Initialiser l'intelligence collective pour chaque drone
+                if (!drone.swarmIntelligence) {
+                    drone.swarmIntelligence = {
+                        pheromoneLevel: Math.random() * 0.1,
+                        stigmergyLevel: Math.random() * 0.1,
+                        emergenceLevel: Math.random() * 0.1,
+                        connections: [],
+                        lastUpdate: Date.now()
+                    };
+                }
+                
                 drones.push(drone);
 
                 updateLoadingProgress(10 + (i + 1) * 15);
@@ -6470,7 +6558,7 @@
 
             // SWARM_MEMORY déjà initialisée avant la création des drones
 
-            updateSystemStatus(`✅ DIAMANTS swarm ready: ${drones.length} Crazyflie avec intelligence collective`);
+            console.log(`✅ DIAMANTS swarm ready: ${drones.length} Crazyflie avec intelligence collective`);
 
             // Forcer la mise à jour de la minimap après initialisation
             setTimeout(() => {
@@ -6528,13 +6616,24 @@
             }
         }
 
-        function updateSystemStatus(message) {
-            const status = document.getElementById('system_status');
-            if (status) {
-                status.textContent = message;
-            }
-            console.log(message);
+        function updateDroneSelector() {
+            // Cette fonction peut rester vide maintenant
         }
+
+        // Debug function - accessible from console
+        window.debugDroneSelector = function() {
+            console.log('🔍 Debugging drone selector...');
+            const grid = document.getElementById('drone_grid');
+            console.log('Grid element:', grid);
+            if (grid) {
+                console.log('Grid children count:', grid.children.length);
+                console.log('Grid innerHTML:', grid.innerHTML);
+                console.log('Grid style:', window.getComputedStyle(grid));
+            }
+            
+            // Force reinitialize
+            initializeDroneSelector();
+        };
 
         // Fonctions de contrôle
         window.toggleSwarm = function () {
@@ -6546,12 +6645,12 @@
                 drones.forEach(drone => {
                     if (drone.state === 'FLYING') drone.land();
                 });
-                updateSystemStatus('🛬 Landing Gazebo swarm...');
+                console.log('🛬 Landing Gazebo swarm...');
             } else {
                 drones.forEach(drone => {
                     if (drone.state === 'IDLE') drone.takeoff();
                 });
-                updateSystemStatus('🚁 Taking off Gazebo swarm...');
+                console.log('🚁 Taking off Gazebo swarm...');
             }
         };
 
@@ -6619,7 +6718,7 @@
                 drone.currentMode = newPattern;
             });
 
-            updateSystemStatus(`🔄 Pattern: ${newPattern}`);
+            console.log(`🔄 Pattern: ${newPattern}`);
         };
 
         window.addDrone = function () {
@@ -6643,12 +6742,12 @@
 
             updateDroneCount();
             updateDroneSelector();
-            updateSystemStatus(`➕ DIAMANTS drone added: ${newDrone.name} (${randomType})`);
+            console.log(`➕ DIAMANTS drone added: ${newDrone.name} (${randomType})`);
         };
 
         window.emergencyLand = function () {
             drones.forEach(drone => drone.emergencyLand());
-            updateSystemStatus('🚨 EMERGENCY LANDING ALL GAZEBO DRONES!');
+            console.log('🚨 EMERGENCY LANDING ALL GAZEBO DRONES!');
         };
 
         window.resetSimulation = function () {
@@ -6656,7 +6755,7 @@
             drones.length = 0;
             updateDroneCount();
             updateDroneSelector();
-            updateSystemStatus('🔄 Gazebo simulation reset');
+            console.log('🔄 Gazebo simulation reset');
 
             setTimeout(() => {
                 initializeDrones();
@@ -6671,9 +6770,9 @@
 
                 if (minimapVisible) {
                     updateMinimap();
-                    updateSystemStatus('📋 Gazebo minimap activated');
+                    console.log('📋 Gazebo minimap activated');
                 } else {
-                    updateSystemStatus('📋 Minimap deactivated');
+                    console.log('📋 Minimap deactivated');
                 }
             }
         };
@@ -6682,10 +6781,10 @@
             showSAR = !showSAR;
             if (showSAR) {
                 createSAROverlay();
-                updateSystemStatus('🧭 SAR lanes overlay ON');
+                console.log('🧭 SAR lanes overlay ON');
             } else {
                 clearSAROverlay();
-                updateSystemStatus('🧭 SAR lanes overlay OFF');
+                console.log('🧭 SAR lanes overlay OFF');
             }
         };
 
@@ -6704,7 +6803,7 @@
                 showSAR = true;
                 createSAROverlay();
             }
-            updateSystemStatus(`🚀 Mission launched: ${type} (auto takeoff)`);
+            console.log(`🚀 Mission launched: ${type} (auto takeoff)`);
         };
 
         window.resetSwarm = function () {
@@ -6725,7 +6824,7 @@
             camera.lookAt(0, 2, 0);
             window.selectedDrone = null;
             window.followMode = false;
-            updateSystemStatus('📹 Camera reset to default view');
+            console.log('📹 Camera reset to default view');
         };
 
         window.topView = function () {
@@ -6734,18 +6833,18 @@
             camera.lookAt(0, 0, 0);
             window.selectedDrone = null;
             window.followMode = false;
-            updateSystemStatus('📹 Top view activated');
+            console.log('📹 Top view activated');
         };
 
         window.toggleFollowMode = function () {
             window.followMode = !window.followMode;
             if (!window.followMode) {
                 window.selectedDrone = null;
-                updateSystemStatus('📹 Follow mode disabled');
+                console.log('📹 Follow mode disabled');
             } else if (window.selectedDrone) {
-                updateSystemStatus(`📹 Following ${window.selectedDrone.name}`);
+                console.log(`📹 Following ${window.selectedDrone.name}`);
             } else {
-                updateSystemStatus('📹 Follow mode enabled - select a drone');
+                console.log('📹 Follow mode enabled - select a drone');
             }
         };
 
@@ -6772,7 +6871,7 @@
 
             window.selectedDrone = null;
             window.followMode = false;
-            updateSystemStatus(`📹 Viewing swarm (${drones.length} drones)`);
+            console.log(`📹 Viewing swarm (${drones.length} drones)`);
         };
 
         window.selectDroneToFollow = function () {
@@ -6791,7 +6890,7 @@
                 window.selectedDrone = drone;
                 window.followMode = true;
                 zoomToDrone(drone);
-                updateSystemStatus(`📹 Now following ${drone.name}`);
+                console.log(`📹 Now following ${drone.name}`);
             }
         };
 
@@ -6808,7 +6907,7 @@
         window.setMode = function (mode) {
             // Utiliser le système de changePattern amélioré
             window.changePattern(mode);
-            updateSystemStatus(`🌟 Mode set: ${mode}`);
+            console.log(`🌟 Mode set: ${mode}`);
         };
 
         window.updateSafetyDistance = function (val) {
@@ -6909,7 +7008,7 @@
                 camera.position.multiplyScalar(newDistance / distance);
             });
 
-            // Click pour sélectionner un drone et zoomer dessus
+            // Click pour sélectionner un drone et zoomer dessus, ou placer des targets
             renderer.domElement.addEventListener('click', (event) => {
                 if (!scene || !camera) return;
                 const rect = renderer.domElement.getBoundingClientRect();
@@ -6917,6 +7016,18 @@
                 const y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
                 const raycaster = new THREE.Raycaster();
                 raycaster.setFromCamera({ x, y }, camera);
+
+                // Ctrl+Click pour placer des targets
+                if (event.ctrlKey) {
+                    const groundIntersects = raycaster.intersectObjects([groundMesh]);
+                    if (groundIntersects.length > 0) {
+                        const position = groundIntersects[0].point;
+                        placeTarget(position);
+                        return;
+                    }
+                }
+
+                // Click normal pour sélectionner drone
                 const candidates = drones.map(d => d.group).filter(Boolean);
                 const intersects = raycaster.intersectObjects(candidates, true);
                 if (intersects.length > 0) {
@@ -7012,6 +7123,9 @@
             // Mise à jour des métriques
             if (currentTime - lastFPSUpdate > 500) {
                 updateMetrics();
+                updateIntelligenceMetrics(); // Ajouter les métriques d'intelligence
+                updateTargetDisplay(); // Ajouter la mise à jour des targets
+                updateMissionProgress(); // Ajouter les métriques de mission
 
                 if (minimapVisible) {
                     updateMinimap();
@@ -7041,10 +7155,309 @@
         diamantMetrics = new DiamantMetrics();
         swarmMemory = new SwarmMemory();
 
+        // ===== SYSTÈME DE TARGETS =====
+        let targets = [];
+        let maxTargets = 12;
+
+        function placeTarget(position) {
+            if (targets.length >= maxTargets) {
+                console.log(`🎯 Maximum ${maxTargets} targets atteints`);
+                return;
+            }
+
+            // Créer la géométrie du target
+            const targetGeometry = new THREE.CylinderGeometry(0.3, 0.3, 0.1, 8);
+            const targetMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xff4444,
+                emissive: 0x441111
+            });
+            const targetMesh = new THREE.Mesh(targetGeometry, targetMaterial);
+            
+            // Positionner le target
+            targetMesh.position.copy(position);
+            targetMesh.position.y = 0.05; // Légèrement au-dessus du sol
+            
+            // Ajouter un anneau lumineux
+            const ringGeometry = new THREE.RingGeometry(0.35, 0.45, 16);
+            const ringMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0xff6666,
+                transparent: true,
+                opacity: 0.7,
+                side: THREE.DoubleSide
+            });
+            const ringMesh = new THREE.Mesh(ringGeometry, ringMaterial);
+            ringMesh.rotation.x = -Math.PI / 2;
+            ringMesh.position.y = 0.01;
+            targetMesh.add(ringMesh);
+
+            // Ajouter à la scène
+            scene.add(targetMesh);
+            
+            // Stocker le target
+            const target = {
+                id: targets.length,
+                mesh: targetMesh,
+                position: position.clone(),
+                discovered: false,
+                discoveredBy: []
+            };
+            targets.push(target);
+
+            console.log(`🎯 Target ${target.id} placé à:`, position);
+            updateTargetDisplay();
+        }
+
+        function updateTargetDisplay() {
+            // Mettre à jour l'affichage targets
+            const targetElement = document.querySelector('.minimap_metric:nth-child(2)');
+            if (targetElement) {
+                const discoveredCount = targets.filter(t => t.discovered).length;
+                targetElement.textContent = `Targets: ${discoveredCount}/${targets.length}`;
+            }
+
+            // Mettre à jour le panneau Mission Progress
+            const targetsDiscoveredElement = document.getElementById('targets_discovered');
+            if (targetsDiscoveredElement) {
+                const discoveredCount = targets.filter(t => t.discovered).length;
+                targetsDiscoveredElement.textContent = `${discoveredCount}/${targets.length}`;
+            }
+
+            // Vérifier les targets découverts par les drones
+            if (drones && drones.length > 0) {
+                targets.forEach(target => {
+                    if (!target.discovered) {
+                        drones.forEach(drone => {
+                            const distance = drone.position.distanceTo(target.position);
+                            if (distance < 1.0) { // Rayon de découverte
+                                target.discovered = true;
+                                target.discoveredBy.push(drone.id);
+                                target.mesh.material.color.setHex(0x00ff44); // Vert quand découvert
+                                console.log(`🎯 Target ${target.id} découvert par drone ${drone.id}`);
+                            }
+                        });
+                    }
+                });
+            }
+        }
+
+        function updateMissionProgress() {
+            if (!drones || drones.length === 0) return;
+
+            // Mise à jour des zones explorées de manière persistante
+            drones.forEach(drone => {
+                const zoneX = Math.floor((drone.position.x + 10) / 2); // Grille 2x2 dans zone 20x20
+                const zoneZ = Math.floor((drone.position.z + 10) / 2);
+                const zoneKey = `${zoneX},${zoneZ}`;
+                if (zoneX >= 0 && zoneX < 10 && zoneZ >= 0 && zoneZ < 10) {
+                    exploredZones.add(zoneKey);
+                }
+            });
+            
+            // Calcul de la coverage basée sur l'exploration persistante
+            const totalZones = 100; // Grille 10x10
+            const coverage = Math.min(100, (exploredZones.size / totalZones) * 100);
+            
+            // Calcul de l'efficacité basée sur targets découverts
+            const discoveredTargets = targets.filter(t => t.discovered).length;
+            const totalTargets = targets.length;
+            const efficiency = totalTargets > 0 ? (discoveredTargets / totalTargets) * 100 : 0;
+            
+            // Calcul de la vitesse d'exploration en zones par minute
+            const missionTimeMinutes = (Date.now() - missionStartTime) / 60000;
+            const speed = missionTimeMinutes > 0 ? exploredZones.size / missionTimeMinutes : 0;
+            const normalizedSpeed = Math.min(100, speed * 10); // Normaliser pour affichage
+            
+            // Mise à jour des éléments textuels avec vérification d'existence
+            const coverageElement = document.getElementById('mission_coverage');
+            const targetsElement = document.getElementById('targets_discovered');
+            const efficiencyElement = document.getElementById('mission_efficiency');
+            const speedElement = document.getElementById('exploration_speed');
+            
+            if (coverageElement) coverageElement.textContent = `${coverage.toFixed(1)}%`;
+            if (targetsElement) targetsElement.textContent = `${discoveredTargets}/${totalTargets}`;
+            if (efficiencyElement) efficiencyElement.textContent = `${efficiency.toFixed(1)}%`;
+            if (speedElement) speedElement.textContent = `${speed.toFixed(2)} zones/min`;
+            
+            // Mise à jour des barres de progression
+            const coverageBar = document.getElementById('coverage_bar');
+            const targetsBar = document.getElementById('targets_bar');
+            const efficiencyBar = document.getElementById('efficiency_bar');
+            const speedBar = document.getElementById('speed_bar');
+            
+            if (coverageBar) {
+                coverageBar.style.width = `${coverage}%`;
+                coverageBar.style.backgroundColor = coverage > 70 ? '#00ff88' : 
+                                                   coverage > 40 ? '#ffaa00' : '#ff6600';
+                coverageBar.style.transition = 'width 0.3s ease';
+            }
+            
+            if (targetsBar) {
+                targetsBar.style.width = `${efficiency}%`;
+                targetsBar.style.backgroundColor = efficiency > 70 ? '#00ff88' : 
+                                                  efficiency > 40 ? '#ffaa00' : '#ff6600';
+                targetsBar.style.transition = 'width 0.3s ease';
+            }
+            
+            if (efficiencyBar) {
+                efficiencyBar.style.width = `${efficiency}%`;
+                efficiencyBar.style.backgroundColor = efficiency > 80 ? '#00ff88' : 
+                                                     efficiency > 50 ? '#ffaa00' : '#ff6600';
+                efficiencyBar.style.transition = 'width 0.3s ease';
+            }
+            
+            if (speedBar) {
+                speedBar.style.width = `${normalizedSpeed}%`;
+                speedBar.style.backgroundColor = normalizedSpeed > 60 ? '#00ff88' : 
+                                                 normalizedSpeed > 30 ? '#ffaa00' : '#ff6600';
+                speedBar.style.transition = 'width 0.3s ease';
+            }
+            
+            // Debug logging (remove in production)
+            if (Math.random() < 0.01) { // Log only 1% of the time to avoid spam
+                console.log(`📊 Mission Progress - Coverage: ${coverage.toFixed(1)}%, Targets: ${discoveredTargets}/${totalTargets}, Efficiency: ${efficiency.toFixed(1)}%, Speed: ${speed.toFixed(2)} zones/min, Explored zones: ${exploredZones.size}`);
+            }
+        }
+
+        function clearAllTargets() {
+            targets.forEach(target => {
+                scene.remove(target.mesh);
+            });
+            targets = [];
+            totalTargetsPlaced = 0;
+            updateTargetDisplay();
+            console.log('🎯 Tous les targets ont été supprimés');
+        }
+
+        function generateRandomTargets() {
+            clearAllTargets();
+            const targetCount = Math.min(maxTargets, 8 + Math.floor(Math.random() * 4)); // 8-12 targets
+            
+            for (let i = 0; i < targetCount; i++) {
+                const x = (Math.random() - 0.5) * 20; // Zone 20x20
+                const z = (Math.random() - 0.5) * 20;
+                const position = new THREE.Vector3(x, 0, z);
+                placeTarget(position);
+            }
+            totalTargetsPlaced = targetCount;
+            console.log(`🎯 ${targetCount} targets aléatoires générés`);
+            
+            // Reset mission tracking when new targets are generated
+            exploredZones.clear();
+            missionStartTime = Date.now();
+        }
+
         // ===== FONCTIONS DE CONTRÔLE INTERFACE UTILISATEUR =====
         // Conserver une seule implémentation (les versions duplicatives ont été retirées)
 
         // ===== MISE À JOUR DES MÉTRIQUES INTERFACE =====
+
+        function updateIntelligenceMetrics() {
+            if (!drones || drones.length === 0) return;
+
+            // Calcul des métriques d'intelligence collective plus réalistes
+            let totalPheromones = 0;
+            let totalStigmergie = 0;
+            let totalEmergence = 0;
+            let activeConnections = 0;
+            let communicationRange = 3.0; // Distance de communication
+
+            drones.forEach(drone => {
+                if (!drone.swarmIntelligence) {
+                    drone.swarmIntelligence = {
+                        pheromoneLevel: Math.random() * 0.3,
+                        stigmergyLevel: Math.random() * 0.3,
+                        emergenceLevel: Math.random() * 0.1,
+                        connections: []
+                    };
+                }
+
+                // Simuler l'évolution des phéromones (exploration)
+                const movementSpeed = drone.velocity ? drone.velocity.length() : 0.1;
+                drone.swarmIntelligence.pheromoneLevel = Math.min(1.0, 
+                    drone.swarmIntelligence.pheromoneLevel + movementSpeed * 0.01);
+
+                // Calculer les connexions avec autres drones
+                drone.swarmIntelligence.connections = [];
+                drones.forEach(otherDrone => {
+                    if (otherDrone !== drone) {
+                        const distance = drone.position.distanceTo(otherDrone.position);
+                        if (distance < communicationRange) {
+                            drone.swarmIntelligence.connections.push(otherDrone.id);
+                        }
+                    }
+                });
+
+                // Stigmergie basée sur les connexions actives
+                const connectionRatio = drone.swarmIntelligence.connections.length / Math.max(1, drones.length - 1);
+                drone.swarmIntelligence.stigmergyLevel = Math.min(1.0,
+                    drone.swarmIntelligence.stigmergyLevel + connectionRatio * 0.02);
+
+                // Emergence basée sur la coordination du groupe
+                const averageDistance = drones.reduce((sum, d) => {
+                    if (d !== drone) return sum + drone.position.distanceTo(d.position);
+                    return sum;
+                }, 0) / Math.max(1, drones.length - 1);
+                
+                const cohesionFactor = Math.max(0, 1 - (averageDistance / 10));
+                drone.swarmIntelligence.emergenceLevel = Math.min(1.0,
+                    drone.swarmIntelligence.emergenceLevel + cohesionFactor * 0.005);
+
+                // Accumulation des totaux
+                totalPheromones += drone.swarmIntelligence.pheromoneLevel;
+                totalStigmergie += drone.swarmIntelligence.stigmergyLevel;
+                totalEmergence += drone.swarmIntelligence.emergenceLevel;
+                activeConnections += drone.swarmIntelligence.connections.length;
+            });
+
+            // Moyenne des métriques
+            const avgPheromones = totalPheromones / drones.length;
+            const avgStigmergie = totalStigmergie / drones.length;
+            const avgEmergence = totalEmergence / drones.length;
+
+            // Mise à jour des barres de progression avec animation
+            const phiBar = document.getElementById('phi_bar');
+            const sigmaBar = document.getElementById('sigma_bar');
+            const emergenceBar = document.getElementById('emergence_bar');
+
+            if (phiBar) {
+                const phiPercent = Math.min(100, avgPheromones * 100);
+                phiBar.style.width = `${phiPercent}%`;
+                phiBar.style.backgroundColor = phiPercent > 70 ? '#00ff88' : 
+                                              phiPercent > 40 ? '#ffaa00' : '#ff6600';
+                phiBar.style.transition = 'width 0.3s ease';
+            }
+
+            if (sigmaBar) {
+                const sigmaPercent = Math.min(100, avgStigmergie * 100);
+                sigmaBar.style.width = `${sigmaPercent}%`;
+                sigmaBar.style.backgroundColor = sigmaPercent > 70 ? '#00ff88' : 
+                                                sigmaPercent > 40 ? '#ffaa00' : '#ff6600';
+                sigmaBar.style.transition = 'width 0.3s ease';
+            }
+
+            if (emergenceBar) {
+                const emergencePercent = Math.min(100, avgEmergence * 100);
+                emergenceBar.style.width = `${emergencePercent}%`;
+                emergenceBar.style.backgroundColor = emergencePercent > 80 ? '#00ff88' : 
+                                                    emergencePercent > 50 ? '#ffaa00' : '#ff6600';
+                emergenceBar.style.transition = 'width 0.3s ease';
+            }
+
+            // Mise à jour des valeurs textuelles
+            const phiValue = document.getElementById('phi_value');
+            const sigmaValue = document.getElementById('sigma_value');
+            const emergenceValue = document.getElementById('emergence_value');
+            const consensusValue = document.getElementById('consensus_value');
+            const communicationValue = document.getElementById('communication_value');
+            const adaptationValue = document.getElementById('adaptation_value');
+
+            if (phiValue) phiValue.textContent = avgPheromones.toFixed(2);
+            if (sigmaValue) sigmaValue.textContent = avgStigmergie.toFixed(2);
+            if (emergenceValue) emergenceValue.textContent = avgEmergence.toFixed(2);
+            if (consensusValue) consensusValue.textContent = Math.round(activeConnections / 2); // Connexions bidirectionnelles
+            if (communicationValue) communicationValue.textContent = (activeConnections / Math.max(1, drones.length)).toFixed(1);
+            if (adaptationValue) adaptationValue.textContent = Math.round(avgEmergence * 100) + '%';
+        }
 
         function updateMetricsDisplay() {
             if (!drones || drones.length === 0) return;
@@ -7349,6 +7762,9 @@
                 // Initialiser le mapping et l'exploration
                 initializeExplorationMap();
                 createScoutingTargets();
+                
+                // Générer des targets visuels pour la mission
+                generateRandomTargets();
 
                 // Initialiser la minimap
                 initMinimap();
@@ -7374,7 +7790,7 @@
                 console.log('✅ DIAMANTS simulation initialized successfully');
             } catch (error) {
                 console.error('❌ Erreur lors de l\'initialisation:', error);
-                updateSystemStatus('❌ Erreur d\'initialisation');
+                console.log('❌ Erreur d\'initialisation');
             }
         });
     </script>
