@@ -88,18 +88,6 @@ Extended capabilities showcasing various aspects of the DIAMANTS platform.
 - ✅ Self-organizing pathfinding
 - ✅ Bio-inspired collective intelligence
 
-#### Real-time Mission Execution
-[![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
-
-#### Advanced SLAM Integration
-[![Demo 4](https://img.shields.io/badge/▶️%20Watch%20SLAM%20Integration-green?style=for-the-badge)](./DEMO/video/Other4.mp4)
-
-#### System Performance Monitoring
-[![Demo 5](https://img.shields.io/badge/▶️%20Watch%20Performance%20Monitoring-green?style=for-the-badge)](./DEMO/video/Other5.mp4)
-
-#### Complete Workflow Demonstration
-[![Demo 6](https://img.shields.io/badge/▶️%20Watch%20Complete%20Workflow-green?style=for-the-badge)](./DEMO/video/Other6.mp4)
-
 ## ✨ Key Features & Technical Challenges
 
 ### 🌱 Open Source by Design
