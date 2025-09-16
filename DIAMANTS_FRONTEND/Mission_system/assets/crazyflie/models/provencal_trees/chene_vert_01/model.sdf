@@ -1,0 +1,63 @@
+<?xml version="1.0" ?>
+<sdf version="1.10">
+  <model name="chene_vert_01">
+    <static>true</static>
+    
+    <!-- Tronc -->
+    <link name="trunk">
+      <pose>0 0 1.6390208910252144 0 0 0</pose>
+      <visual name="trunk_visual">
+        <geometry>
+          <cylinder>
+            <radius>0.1328922818516312</radius>
+            <length>3.278041782050429</length>
+          </cylinder>
+        </geometry>
+        <material>
+          <ambient>0.29 0.22 0.16 1</ambient>
+          <diffuse>0.29 0.22 0.16 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+      <collision name="trunk_collision">
+        <geometry>
+          <cylinder>
+            <radius>0.1328922818516312</radius>
+            <length>3.278041782050429</length>
+          </cylinder>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!-- Feuillage -->
+    <link name="crown">
+      <pose>0 0 3.923593735012198 0 0 0</pose>
+      <visual name="crown_visual">
+        <geometry>
+          <sphere>
+              <radius>2.151839843205897</radius>
+            </sphere>
+        </geometry>
+        <material>
+          <ambient>0.29 0.40 0.25 1</ambient>
+          <diffuse>0.29 0.40 0.25 1</diffuse>
+          <specular>0.1 0.1 0.1 1</specular>
+        </material>
+      </visual>
+      <collision name="crown_collision">
+        <geometry>
+          <sphere>
+            <radius>1.7214718745647177</radius>
+          </sphere>
+        </geometry>
+      </collision>
+    </link>
+    
+    <!-- Joint tronc-feuillage -->
+    <joint name="trunk_crown_joint" type="fixed">
+      <parent>trunk</parent>
+      <child>crown</child>
+    </joint>
+    
+  </model>
+</sdf>

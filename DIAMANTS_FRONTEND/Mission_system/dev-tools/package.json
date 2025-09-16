@@ -1,0 +1,25 @@
+{
+  "name": "diamants-v3-tests",
+  "version": "1.0.0",
+  "description": "Tests unitaires pour DIAMANTS V3",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/dev-tools/tests/**/*.test.js",
+      "**/tests/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!**/node_modules/**",
+      "!**/coverage/**"
+    ]
+  }
+}
