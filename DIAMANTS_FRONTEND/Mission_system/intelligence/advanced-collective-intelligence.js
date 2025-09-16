@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Intelligence Collective Avancée avec Effet Wahoo
+ * DIAMANTS - Intelligence Collective Avancée avec Effet Wahoo
  * =============================================================
  * Extension du système d'intelligence collective avec comportements émergents
  * Intègre l'effet Wahoo inspiré de SMA.html

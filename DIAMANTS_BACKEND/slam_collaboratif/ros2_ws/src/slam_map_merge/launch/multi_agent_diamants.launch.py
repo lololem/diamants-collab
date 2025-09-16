@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -23,9 +23,9 @@
 #!/usr/bin/env python3
 
 # --- MULTI_AGENT_DIAMANTS.LAUNCH.PY ---
-# Fichier de lancement ROS2 pour le système de fusion de cartes SLAM collaboratif DIAMANTS V3
+# Fichier de lancement ROS2 pour le système de fusion de cartes SLAM collaboratif DIAMANTS
 # Lance le nœud map_merger_node avec configuration pour 8 drones Crazyflie
-# Auteur: Projet DIAMANTS V3, 2025
+# Auteur: Projet DIAMANTS, 2025
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
@@ -35,9 +35,9 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     """
-    Génère la description de lancement pour le système de fusion de cartes DIAMANTS V3.
+    Génère la description de lancement pour le système de fusion de cartes DIAMANTS.
     
-    Configuration DIAMANTS V3:
+    Configuration DIAMANTS:
     - 8 drones: crazyflie, crazyflie1, crazyflie2, crazyflie3, crazyflie4, crazyflie5, crazyflie6, crazyflie7
     - Mode simulation activé pour Gazebo
     - Version restrictive (map_merger_node) avec stigmergie et consensus
@@ -63,7 +63,7 @@ def generate_launch_description():
             name='map_merger',
             output='screen',
             parameters=[{
-                # Configuration 8 drones DIAMANTS V3
+                # Configuration 8 drones DIAMANTS
                 'robot_prefixes': [
                     'crazyflie', 'crazyflie1', 'crazyflie2', 'crazyflie3', 
                     'crazyflie4', 'crazyflie5', 'crazyflie6', 'crazyflie7'

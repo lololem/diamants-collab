@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système de feuilles tombées au sol enrichi
+ * DIAMANTS - Système de feuilles tombées au sol enrichi
  * ========================================================
  * Simulation de feuilles d'automne multicolores dispersées naturellement sur le terrain
  */

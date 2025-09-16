@@ -204,7 +204,7 @@ scripts:
     executable: true
     name: env_gazebo_setup.sh
     path: env_gazebo_setup.sh
-    purpose: Script de configuration de l'environnement Gazebo pour DIAMANTS V3
+    purpose: Script de configuration de l'environnement Gazebo pour DIAMANTS
     size: 1783
   - dependencies: []
     executable: true
@@ -247,7 +247,7 @@ scripts:
     executable: true
     name: test_simulation_pessimiste.sh
     path: test_simulation_pessimiste.sh
-    purpose: Test pessimiste simulation DIAMANTS V3 - Documentation ALL échecs
+    purpose: Test pessimiste simulation DIAMANTS - Documentation ALL échecs
     size: 2035
   - dependencies: []
     executable: true
@@ -259,7 +259,7 @@ scripts:
     executable: true
     name: debug_realtime.sh
     path: debug_realtime.sh
-    purpose: 🔍 DIAMANTS V3 - Script de Debug en Temps Réel
+    purpose: 🔍 DIAMANTS - Script de Debug en Temps Réel
     size: 5060
   - dependencies: []
     executable: true
@@ -283,13 +283,13 @@ scripts:
     executable: true
     name: test_diamants.sh
     path: test_diamants.sh
-    purpose: Script de test automatique pour DIAMANTS V3
+    purpose: Script de test automatique pour DIAMANTS
     size: 2604
   - dependencies: []
     executable: true
     name: test_integration_finale.sh
     path: test_integration_finale.sh
-    purpose: Test d'intégration finale DIAMANTS V3
+    purpose: Test d'intégration finale DIAMANTS
     size: 3653
   - dependencies: []
     executable: false
@@ -301,19 +301,19 @@ scripts:
     executable: true
     name: test_master_script_validation.sh
     path: test_master_script_validation.sh
-    purpose: 🎯 Test Rapide du Script Master DIAMANTS V3
+    purpose: 🎯 Test Rapide du Script Master DIAMANTS
     size: 4221
   - dependencies: []
     executable: true
     name: test_debug_exhaustif.sh
     path: test_debug_exhaustif.sh
-    purpose: FRAMEWORK DE TESTS DEBUG EXHAUSTIF - DIAMANTS V3
+    purpose: FRAMEWORK DE TESTS DEBUG EXHAUSTIF - DIAMANTS
     size: 20550
   - dependencies: []
     executable: true
     name: test_stigmergie_autonomous.sh
     path: test_stigmergie_autonomous.sh
-    purpose: 🧠 Test de la Stigmergie et Navigation Autonome - DIAMANTS V3
+    purpose: 🧠 Test de la Stigmergie et Navigation Autonome - DIAMANTS
     size: 6531
   - dependencies: []
     executable: true
@@ -325,7 +325,7 @@ scripts:
     executable: true
     name: test_architecture_framework_complete.sh
     path: test_architecture_framework_complete.sh
-    purpose: Test complet architecture framework multi-agent DIAMANTS V3
+    purpose: Test complet architecture framework multi-agent DIAMANTS
     size: 9338
   - dependencies: []
     executable: true
@@ -337,31 +337,31 @@ scripts:
     executable: true
     name: ceo_demo_final_test.sh
     path: ceo_demo_final_test.sh
-    purpose: 🎯 LANCEMENT FINAL CEO DEMO - DIAMANTS V3
+    purpose: 🎯 LANCEMENT FINAL CEO DEMO - DIAMANTS
     size: 5264
   - dependencies: []
     executable: false
     name: test_workspace_rviz_ceo.sh
     path: test_workspace_rviz_ceo.sh
-    purpose: 🎯 VALIDATION WORKSPACE DIAMANTS V3 AVEC RVIZ
+    purpose: 🎯 VALIDATION WORKSPACE DIAMANTS AVEC RVIZ
     size: 10466
   - dependencies: []
     executable: true
     name: test_copilot_memory_system.sh
     path: test_copilot_memory_system.sh
-    purpose: 🧪 TEST SYSTÈME MÉMOIRE PERSISTANTE - DIAMANTS V3
+    purpose: 🧪 TEST SYSTÈME MÉMOIRE PERSISTANTE - DIAMANTS
     size: 8146
   - dependencies: []
     executable: true
     name: test_ci_local_fixed.sh
     path: test_ci_local_fixed.sh
-    purpose: 🧪 Script de test CI local - DIAMANTS V3
+    purpose: 🧪 Script de test CI local - DIAMANTS
     size: 5073
   - dependencies: []
     executable: true
     name: test_framework_DIAMANTS_BACKEND.sh
     path: test_framework_DIAMANTS_BACKEND.sh
-    purpose: 🧪 Test rapide du framework DIAMANTS V3 avec coordinateur intelligent
+    purpose: 🧪 Test rapide du framework DIAMANTS avec coordinateur intelligent
     size: 1896
   - dependencies: []
     executable: true
@@ -373,7 +373,7 @@ scripts:
     executable: true
     name: test_logging_system.sh
     path: test_logging_system.sh
-    purpose: 🔧 Test du système de logging DIAMANTS V3
+    purpose: 🔧 Test du système de logging DIAMANTS
     size: 2585
   - dependencies: []
     executable: true
@@ -391,19 +391,19 @@ scripts:
     executable: true
     name: debug_ultra_complet.sh
     path: debug_ultra_complet.sh
-    purpose: 🔍 DIAMANTS V3 - Debug Ultra-Complet
+    purpose: 🔍 DIAMANTS - Debug Ultra-Complet
     size: 13171
   - dependencies: []
     executable: true
     name: monitor_processes.sh
     path: monitor_processes.sh
-    purpose: 📊 DIAMANTS V3 - Surveillance des Processus en Temps Réel
+    purpose: 📊 DIAMANTS - Surveillance des Processus en Temps Réel
     size: 4062
   - dependencies: []
     executable: true
     name: test_validation_simple.sh
     path: test_validation_simple.sh
-    purpose: FRAMEWORK DE TESTS DEBUG SIMPLIFIÉ - DIAMANTS V3
+    purpose: FRAMEWORK DE TESTS DEBUG SIMPLIFIÉ - DIAMANTS
     size: 13142
   - dependencies: []
     executable: false
@@ -415,7 +415,7 @@ scripts:
     executable: true
     name: test_framework_quick.sh
     path: test_framework_quick.sh
-    purpose: Test rapide architecture framework DIAMANTS V3
+    purpose: Test rapide architecture framework DIAMANTS
     size: 3370
   - dependencies: []
     executable: true
@@ -434,31 +434,31 @@ scripts:
     executable: true
     name: launch_DIAMANTS_BACKEND_intelligent_backup.sh
     path: launch_DIAMANTS_BACKEND_intelligent_backup.sh
-    purpose: 🎯 DIAMANTS V3 - Intelligence Collective avec V2 + Multi-Agent V3
+    purpose: 🎯 DIAMANTS - Intelligence Collective avec V2 + Multi-Agent V3
     size: 11491
   - dependencies: []
     executable: true
     name: ros2_quick_start.sh
     path: ros2_quick_start.sh
-    purpose: DIAMANTS V3 - Script de démarrage rapide ROS2
+    purpose: DIAMANTS - Script de démarrage rapide ROS2
     size: 1750
   - dependencies: []
     executable: true
     name: launch_DIAMANTS_BACKEND_coordinator_priority.sh
     path: launch_DIAMANTS_BACKEND_coordinator_priority.sh
-    purpose: 🧠 DIAMANTS V3 - COORDINATEUR INTELLIGENT PRIORITAIRE
+    purpose: 🧠 DIAMANTS - COORDINATEUR INTELLIGENT PRIORITAIRE
     size: 9876
   - dependencies: []
     executable: true
     name: launch_DIAMANTS_BACKEND_intelligent.sh
     path: launch_DIAMANTS_BACKEND_intelligent.sh
-    purpose: 🎯 DIAMANTS V3 - Intelligence Collective Fonctionnelle ORIGINALE
+    purpose: 🎯 DIAMANTS - Intelligence Collective Fonctionnelle ORIGINALE
     size: 8082
   - dependencies: []
     executable: true
     name: launch_DIAMANTS_BACKEND_realtime_analysis.sh
     path: launch_DIAMANTS_BACKEND_realtime_analysis.sh
-    purpose: 🚀 DIAMANTS V3 - LANCEMENT PARALLÈLE SIMPLIFIÉ
+    purpose: 🚀 DIAMANTS - LANCEMENT PARALLÈLE SIMPLIFIÉ
     size: 7323
   - dependencies: []
     executable: false
@@ -482,13 +482,13 @@ scripts:
     executable: true
     name: relaunch_simulation_robust.sh
     path: relaunch_simulation_robust.sh
-    purpose: Script de relance de simulation DIAMANTS V3 - Version robuste
+    purpose: Script de relance de simulation DIAMANTS - Version robuste
     size: 14910
   - dependencies: []
     executable: true
     name: launch_DIAMANTS_BACKEND_master.sh
     path: launch_DIAMANTS_BACKEND_master.sh
-    purpose: 🎯 DIAMANTS V3 MASTER - Script Unique de Déploiement Complet
+    purpose: 🎯 DIAMANTS MASTER - Script Unique de Déploiement Complet
     size: 10341
   - dependencies: []
     executable: true
@@ -500,7 +500,7 @@ scripts:
     executable: true
     name: launch_simulation_directe.sh
     path: launch_simulation_directe.sh
-    purpose: Lancement DIRECT simulation DIAMANTS V3
+    purpose: Lancement DIRECT simulation DIAMANTS
     size: 7738
   - dependencies: []
     executable: true
@@ -518,7 +518,7 @@ scripts:
     executable: true
     name: launch_DIAMANTS_BACKEND_emergency.sh
     path: launch_DIAMANTS_BACKEND_emergency.sh
-    purpose: 🚀 LANCEMENT EMERGENCY CEO - DIAMANTS V3
+    purpose: 🚀 LANCEMENT EMERGENCY CEO - DIAMANTS
     size: 3389
   - dependencies: []
     executable: true
@@ -530,13 +530,13 @@ scripts:
     executable: true
     name: validate_startup_tasks.sh
     path: validate_startup_tasks.sh
-    purpose: 🔍 VALIDATION TASKS AUTOMATIQUES DE DÉMARRAGE - DIAMANTS V3
+    purpose: 🔍 VALIDATION TASKS AUTOMATIQUES DE DÉMARRAGE - DIAMANTS
     size: 9343
   - dependencies: []
     executable: true
     name: launch_DIAMANTS_BACKEND_securise.sh
     path: launch_DIAMANTS_BACKEND_securise.sh
-    purpose: 🎯 DIAMANTS V3 - LANCEMENT CORRIGÉ SANS CONFLITS
+    purpose: 🎯 DIAMANTS - LANCEMENT CORRIGÉ SANS CONFLITS
     size: 6006
   - dependencies: []
     executable: true
@@ -548,7 +548,7 @@ scripts:
     executable: true
     name: pre_launch_ivvq.sh
     path: pre_launch_ivvq.sh
-    purpose: 🔧 Pré-lancement IVVQ - Préparation environnement DIAMANTS V3
+    purpose: 🔧 Pré-lancement IVVQ - Préparation environnement DIAMANTS
     size: 2389
   - dependencies: []
     executable: true
@@ -560,7 +560,7 @@ scripts:
     executable: true
     name: launch_DIAMANTS_BACKEND_ceo_demo.sh
     path: launch_DIAMANTS_BACKEND_ceo_demo.sh
-    purpose: 🎯 DIAMANTS V3 - VERSION CEO SIMPLIFIÉE ROBUSTE
+    purpose: 🎯 DIAMANTS - VERSION CEO SIMPLIFIÉE ROBUSTE
     size: 7001
   - dependencies: []
     executable: true
@@ -578,7 +578,7 @@ scripts:
     executable: true
     name: run_simulation_with_monitoring.sh
     path: run_simulation_with_monitoring.sh
-    purpose: Script de simulation DIAMANTS V3 avec monitoring en temps réel
+    purpose: Script de simulation DIAMANTS avec monitoring en temps réel
     size: 13710
   - dependencies: []
     executable: true
@@ -590,7 +590,7 @@ scripts:
     executable: true
     name: launch_DIAMANTS_BACKEND_parallel_optimized.sh
     path: launch_DIAMANTS_BACKEND_parallel_optimized.sh
-    purpose: 🚀 DIAMANTS V3 - LANCEMENT PARALLÈLE OPTIMISÉ
+    purpose: 🚀 DIAMANTS - LANCEMENT PARALLÈLE OPTIMISÉ
     size: 12256
   - dependencies: []
     executable: true
@@ -602,7 +602,7 @@ scripts:
     executable: true
     name: run_multi_agent.sh
     path: run_multi_agent.sh
-    purpose: Script de lancement du système multi-agent pour DIAMANTS v3.0
+    purpose: Script de lancement du système multi-agent pour DIAMANTS
     size: 2226
   - dependencies: []
     executable: true
@@ -620,7 +620,7 @@ scripts:
     executable: true
     name: launch_rviz_multimapping.sh
     path: launch_rviz_multimapping.sh
-    purpose: 🗺️ SCRIPT AMÉLIORATION - LANCEMENT RVIZ MULTI-MAPPING DIAMANTS V3
+    purpose: 🗺️ SCRIPT AMÉLIORATION - LANCEMENT RVIZ MULTI-MAPPING DIAMANTS
     size: 5975
   maintenance_scripts:
   - dependencies: []
@@ -633,19 +633,19 @@ scripts:
     executable: true
     name: fix_diamants_problems.sh
     path: fix_diamants_problems.sh
-    purpose: 🔧 RÉSOLUTION DES PROBLÈMES DIAMANTS V3
+    purpose: 🔧 RÉSOLUTION DES PROBLÈMES DIAMANTS
     size: 5526
   - dependencies: []
     executable: true
     name: fix_ros2_environment_auto.sh
     path: fix_ros2_environment_auto.sh
-    purpose: DIAMANTS V3 - AUTO-CORRECTEUR ENVIRONNEMENT ROS2
+    purpose: DIAMANTS - AUTO-CORRECTEUR ENVIRONNEMENT ROS2
     size: 8884
   - dependencies: []
     executable: true
     name: cleanup_diamants.sh
     path: cleanup_diamants.sh
-    purpose: NETTOYAGE DIAMANTS V3 - Script unifié et optimisé
+    purpose: NETTOYAGE DIAMANTS - Script unifié et optimisé
     size: 5347
   - dependencies: []
     executable: true
@@ -670,19 +670,19 @@ scripts:
     executable: true
     name: validate_stigmergie_system.sh
     path: validate_stigmergie_system.sh
-    purpose: 🎯 Validation Rapide DIAMANTS V3 - Stigmergie + Navigation
+    purpose: 🎯 Validation Rapide DIAMANTS - Stigmergie + Navigation
     size: 3251
   - dependencies: []
     executable: true
     name: ceo_demo_prep_express.sh
     path: ceo_demo_prep_express.sh
-    purpose: 🚀 PRÉPARATION EXPRESS CEO DEMO - DIAMANTS V3
+    purpose: 🚀 PRÉPARATION EXPRESS CEO DEMO - DIAMANTS
     size: 10916
   - dependencies: []
     executable: true
     name: ivvq_analysis_complete.sh
     path: ivvq_analysis_complete.sh
-    purpose: 🔬 ANALYSE IVVQ AVANCÉE - Framework Multi-Agent DIAMANTS V3
+    purpose: 🔬 ANALYSE IVVQ AVANCÉE - Framework Multi-Agent DIAMANTS
     size: 17136
   - dependencies: []
     executable: true
@@ -700,25 +700,25 @@ scripts:
     executable: true
     name: validation_finale_advanced.sh
     path: validation_finale_advanced.sh
-    purpose: Script de validation finale DIAMANTS V3
+    purpose: Script de validation finale DIAMANTS
     size: 4903
   - dependencies: []
     executable: true
     name: validate_ceo_demo.sh
     path: validate_ceo_demo.sh
-    purpose: 🚨 VALIDATION CEO - DIAMANTS V3 BATTLE MODE
+    purpose: 🚨 VALIDATION CEO - DIAMANTS BATTLE MODE
     size: 7752
   - dependencies: []
     executable: true
     name: menu_gestion_processus.sh
     path: menu_gestion_processus.sh
-    purpose: 🎯 DIAMANTS V3 - Menu de Gestion des Processus
+    purpose: 🎯 DIAMANTS - Menu de Gestion des Processus
     size: 9128
   - dependencies: []
     executable: true
     name: save_advanced_final.sh
     path: save_advanced_final.sh
-    purpose: Script de sauvegarde finale des évolutions avancées DIAMANTS V3
+    purpose: Script de sauvegarde finale des évolutions avancées DIAMANTS
     size: 6875
   - dependencies: []
     executable: true
@@ -742,19 +742,19 @@ scripts:
     executable: true
     name: smart_stop.sh
     path: smart_stop.sh
-    purpose: 🎯 DIAMANTS V3 - Script d'Arrêt Intelligent
+    purpose: 🎯 DIAMANTS - Script d'Arrêt Intelligent
     size: 4731
   - dependencies: []
     executable: true
     name: verification_installation.sh
     path: verification_installation.sh
-    purpose: ✅ DIAMANTS V3 - Vérification Finale de l'Installation
+    purpose: ✅ DIAMANTS - Vérification Finale de l'Installation
     size: 4911
   - dependencies: []
     executable: true
     name: optimize_multi_agent.sh
     path: optimize_multi_agent.sh
-    purpose: Script d'optimisation du système multi-agent DIAMANTS V3
+    purpose: Script d'optimisation du système multi-agent DIAMANTS
     size: 31533
   - dependencies: []
     executable: true
@@ -766,13 +766,13 @@ scripts:
     executable: true
     name: advanced_system_analysis.sh
     path: advanced_system_analysis.sh
-    purpose: Script d'analyse avancée de la simulation DIAMANTS V3
+    purpose: Script d'analyse avancée de la simulation DIAMANTS
     size: 15250
   - dependencies: []
     executable: true
     name: stop_diamants.sh
     path: stop_diamants.sh
-    purpose: 🛑 DIAMANTS V3 - Script d'Arrêt d'Urgence Amélioré
+    purpose: 🛑 DIAMANTS - Script d'Arrêt d'Urgence Amélioré
     size: 2514
   - dependencies: []
     executable: true
@@ -784,19 +784,19 @@ scripts:
     executable: true
     name: nettoyage_urgent_securise.sh
     path: nettoyage_urgent_securise.sh
-    purpose: 🧹 NETTOYAGE URGENT ET SÉCURISÉ - DIAMANTS V3
+    purpose: 🧹 NETTOYAGE URGENT ET SÉCURISÉ - DIAMANTS
     size: 6577
   - dependencies: []
     executable: true
     name: validation_system_complete.sh
     path: validation_system_complete.sh
-    purpose: DIAMANTS V3 - VALIDATION SYSTÈME COMPLÈTE
+    purpose: DIAMANTS - VALIDATION SYSTÈME COMPLÈTE
     size: 9603
   - dependencies: []
     executable: true
     name: push_code_fonctionnel.sh
     path: push_code_fonctionnel.sh
-    purpose: SCRIPT DE SAUVEGARDE MANUELLE DIAMANTS V3
+    purpose: SCRIPT DE SAUVEGARDE MANUELLE DIAMANTS
     size: 1336
   - dependencies: []
     executable: true
@@ -814,7 +814,7 @@ scripts:
     executable: true
     name: demo_final_10.sh
     path: demo_final_10.sh
-    purpose: Démonstration finale DIAMANTS V3 - Score industriel 10/10
+    purpose: Démonstration finale DIAMANTS - Score industriel 10/10
     size: 10357
   - dependencies: []
     executable: true
@@ -826,13 +826,13 @@ scripts:
     executable: true
     name: diagnostic_processes.sh
     path: diagnostic_processes.sh
-    purpose: 🔍 DIAMANTS V3 - Diagnostic des Processus
+    purpose: 🔍 DIAMANTS - Diagnostic des Processus
     size: 3951
   - dependencies: []
     executable: true
     name: update_dependencies.sh
     path: update_dependencies.sh
-    purpose: 🔧 DIAMANTS V3 - Mise à jour des dépendances système
+    purpose: 🔧 DIAMANTS - Mise à jour des dépendances système
     size: 898
   - dependencies: []
     executable: true
@@ -856,7 +856,7 @@ scripts:
     executable: true
     name: multi_agent_system_v3.sh
     path: scripts/lancement/multi_agent_system_v3.sh
-    purpose: 🚁 DIAMANTS V3 - Framework Multi-Agent
+    purpose: 🚁 DIAMANTS - Framework Multi-Agent
     size: 3146
   - dependencies: []
     executable: true

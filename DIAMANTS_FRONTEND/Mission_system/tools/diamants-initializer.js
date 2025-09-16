@@ -8,7 +8,7 @@ if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
 // Utiliser les fonctions globales définies dans index.html
 
-log('🚀 === INITIALISATION DIAMANTS V3 ===');
+log('🚀 === INITIALISATION DIAMANTS ===');
 
 class DiamantsInitializer {
     constructor() {
@@ -70,7 +70,7 @@ class DiamantsInitializer {
             log('✅ Interface utilisateur initialisée');
             
             const totalTime = performance.now() - this.startTime;
-            log(`🎯 DIAMANTS V3 initialisé en ${totalTime.toFixed(0)}ms`);
+            log(`🎯 DIAMANTS initialisé en ${totalTime.toFixed(0)}ms`);
             
             // Signaler que tout est prêt
             window.dispatchEvent(new CustomEvent('diamantsReady', {
@@ -83,7 +83,7 @@ class DiamantsInitializer {
             return true;
             
         } catch (error) {
-            error('🚨 Erreur initialisation DIAMANTS V3:', error);
+            error('🚨 Erreur initialisation DIAMANTS:', error);
             throw error;
         }
     }
@@ -179,14 +179,14 @@ window.diamantsInitializer = new DiamantsInitializer();
 
 // Auto-démarrage
 window.diamantsInitializer.initialize().catch(error => {
-    error('💥 Échec initialisation DIAMANTS V3:', error);
+    error('💥 Échec initialisation DIAMANTS:', error);
 });
 
 // Fonction d'aide
 window.checkDiamantsStatus = () => {
     const status = window.diamantsInitializer.getStatus();
-    log('📊 État DIAMANTS V3:', status);
+    log('📊 État DIAMANTS:', status);
     return status;
 };
 
-log('🎯 Initializer DIAMANTS V3 créé - utilisez checkDiamantsStatus() pour vérifier');
+log('🎯 Initializer DIAMANTS créé - utilisez checkDiamantsStatus() pour vérifier');

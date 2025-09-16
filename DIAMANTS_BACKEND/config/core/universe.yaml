@@ -1,4 +1,4 @@
-# Configuration Univers DIAMANTS V3
+# Configuration Univers DIAMANTS
 # Fichier de configuration principal pour l'orchestration des agents
 
 universe:
@@ -145,7 +145,7 @@ ros2:
       history: "KEEP_LAST"
       depth: 1
 
-# Configuration intégration DIAMANTS V3
+# Configuration intégration DIAMANTS
 integration:
   slam_collaborative:
     enabled: true

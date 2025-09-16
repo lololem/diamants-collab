@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Formules Complètes Implementation
+ * DIAMANTS - Formules Complètes Implementation
  * ===============================================
  * Implémentation complète des 15 harmoniques et formules DIAMANTS
  * Basé sur les spécifications complètes fournies par l'utilisateur

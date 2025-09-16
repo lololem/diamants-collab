@@ -1,9 +1,9 @@
 /**
- * Gestionnaire d'initialisation DIAMANTS V3
+ * Gestionnaire d'initialisation DIAMANTS
  * Coordonne le démarrage de tous les systèmes
  */
 
-console.log('🚀 === INITIALISATION DIAMANTS V3 ===');
+console.log('🚀 === INITIALISATION DIAMANTS ===');
 
 class DiamantsInitializer {
     constructor() {
@@ -65,7 +65,7 @@ class DiamantsInitializer {
             console.log('✅ Interface utilisateur initialisée');
             
             const totalTime = performance.now() - this.startTime;
-            console.log(`🎯 DIAMANTS V3 initialisé en ${totalTime.toFixed(0)}ms`);
+            console.log(`🎯 DIAMANTS initialisé en ${totalTime.toFixed(0)}ms`);
             
             // Signaler que tout est prêt
             window.dispatchEvent(new CustomEvent('diamantsReady', {
@@ -78,7 +78,7 @@ class DiamantsInitializer {
             return true;
             
         } catch (error) {
-            console.error('🚨 Erreur initialisation DIAMANTS V3:', error);
+            console.error('🚨 Erreur initialisation DIAMANTS:', error);
             throw error;
         }
     }
@@ -174,14 +174,14 @@ window.diamantsInitializer = new DiamantsInitializer();
 
 // Auto-démarrage
 window.diamantsInitializer.initialize().catch(error => {
-    console.error('💥 Échec initialisation DIAMANTS V3:', error);
+    console.error('💥 Échec initialisation DIAMANTS:', error);
 });
 
 // Fonction d'aide
 window.checkDiamantsStatus = () => {
     const status = window.diamantsInitializer.getStatus();
-    console.log('📊 État DIAMANTS V3:', status);
+    console.log('📊 État DIAMANTS:', status);
     return status;
 };
 
-console.log('🎯 Initializer DIAMANTS V3 créé - utilisez checkDiamantsStatus() pour vérifier');
+console.log('🎯 Initializer DIAMANTS créé - utilisez checkDiamantsStatus() pour vérifier');

@@ -4,7 +4,7 @@
   <name>diamants_univers</name>
   <version>3.0.0</version>
   <description>
-    Module simulation univers DIAMANTS V3 - Environnement de simulation professionnel 
+    Module simulation univers DIAMANTS - Environnement de simulation professionnel 
     pour système multi-agent avec SLAM collaboratif et exploration autonome
   </description>
 
@@ -47,7 +47,7 @@
     <build_type>ament_cmake</build_type>
   </export>
 
-  <!-- Métadonnées DIAMANTS V3 -->
+  <!-- Métadonnées DIAMANTS -->
   <group_depend condition="$ROS_VERSION == 2">ros_core</group_depend>
   
   <!-- Compatibilité -->

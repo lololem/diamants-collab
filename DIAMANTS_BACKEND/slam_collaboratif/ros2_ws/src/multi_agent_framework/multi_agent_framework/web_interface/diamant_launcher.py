@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -22,7 +22,7 @@
 
 #!/usr/bin/env python3
 """
-DIAMANTS V3 - Launcher intégré avec visualisation
+DIAMANTS - Launcher intégré avec visualisation
 ================================================
 Lance Gazebo + RViz + Interface Web de façon coordonnée
 """
@@ -227,7 +227,7 @@ class DiamantLauncher:
     
     def launch_all(self):
         """Lancer tous les composants"""
-        print("🚀 DIAMANTS V3 - Lancement complet")
+        print("🚀 DIAMANTS - Lancement complet")
         print("=" * 50)
         
         if not self.check_dependencies():
@@ -260,7 +260,7 @@ class DiamantLauncher:
                 
         if self.running:
             print("\n" + "=" * 50)
-            print("🎉 DIAMANTS V3 démarré avec succès!")
+            print("🎉 DIAMANTS démarré avec succès!")
             print("🌐 Interface web: http://localhost:8080")
             print("📊 RViz: Interface SLAM")
             print("🌍 Gazebo: Simulation monde")
@@ -278,7 +278,7 @@ class DiamantLauncher:
     
     def shutdown(self):
         """Arrêter tous les processus"""
-        print("\n🛑 Arrêt DIAMANTS V3...")
+        print("\n🛑 Arrêt DIAMANTS...")
         self.running = False
         
         for name, proc in reversed(self.processes):
@@ -292,11 +292,11 @@ class DiamantLauncher:
             except Exception as e:
                 print(f"⚠️ Erreur arrêt {name}: {e}")
         
-        print("✅ DIAMANTS V3 arrêté")
+        print("✅ DIAMANTS arrêté")
     
     def status(self):
         """Vérifier statut processus"""
-        print("📊 Statut DIAMANTS V3:")
+        print("📊 Statut DIAMANTS:")
         print("-" * 30)
         
         for name, proc in self.processes:

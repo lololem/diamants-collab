@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système de Logging Hiérarchique
+ * DIAMANTS - Système de Logging Hiérarchique
  * =============================================
  * Logger centralisé avec niveaux de log et filtrage
  */

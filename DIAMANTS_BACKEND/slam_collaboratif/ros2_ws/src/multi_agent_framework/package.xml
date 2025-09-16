@@ -3,7 +3,7 @@
 <package format="3">
   <name>multi_agent_framework</name>
   <version>0.0.0</version>
-  <description>Framework multi-agents pour coordination de drones DIAMANTS V3</description>
+  <description>Framework multi-agents pour coordination de drones DIAMANTS</description>
   <maintainer email="dev@diamants.fr">Anonymous Developer</maintainer>
   <license>MIT</license>
 

@@ -198,9 +198,9 @@ rebuild: clean setup build test ## Reconstruction complète après git clone
 	@echo -e "  $(YELLOW)make launch-tmux$(NC)  - Lancer le système TMUX complet"
 	@echo -e "  $(YELLOW)./launch_slam_collaborative.sh$(NC) - Lanceur interactif"
 
-# Gestion TMUX pour DIAMANTS V3
+# Gestion TMUX pour DIAMANTS
 launch-tmux: ## Lance le système SLAM collaboratif avec TMUX
-	@echo -e "$(BLUE)🚀 LANCEMENT SYSTÈME TMUX DIAMANTS V3$(NC)"
+	@echo -e "$(BLUE)🚀 LANCEMENT SYSTÈME TMUX DIAMANTS$(NC)"
 	@echo "==========================================="
 	@if ! command -v tmux >/dev/null 2>&1; then \
 		echo -e "$(RED)❌ TMUX non installé$(NC)"; \
@@ -220,7 +220,7 @@ kill-tmux: ## Arrête toutes les sessions TMUX DIAMANTS
 	@echo -e "$(GREEN)✅ Nettoyage terminé$(NC)"
 
 status-tmux: ## Affiche le statut des sessions TMUX
-	@echo -e "$(BLUE)📊 STATUT TMUX DIAMANTS V3$(NC)"
+	@echo -e "$(BLUE)📊 STATUT TMUX DIAMANTS$(NC)"
 	@echo "============================"
 	@if tmux list-sessions 2>/dev/null | grep -q slam_collab; then \
 		echo -e "$(GREEN)✅ Session slam_collab active$(NC)"; \
@@ -235,7 +235,7 @@ status-tmux: ## Affiche le statut des sessions TMUX
 
 # Configuration post-clone automatique
 post-clone: ## Configuration automatique complète après git clone
-	@echo -e "$(BLUE)🔄 CONFIGURATION POST-CLONE DIAMANTS V3$(NC)"
+	@echo -e "$(BLUE)🔄 CONFIGURATION POST-CLONE DIAMANTS$(NC)"
 	@echo "=============================================="
 	@$(MAKE) check-system
 	@$(MAKE) setup
@@ -272,7 +272,7 @@ validate: test ## Alias pour test
 
 # Target d'information
 info: ## Informations sur le projet
-	@echo -e "$(BLUE)ℹ️  PROJET DIAMANTS V3$(NC)"
+	@echo -e "$(BLUE)ℹ️  PROJET DIAMANTS$(NC)"
 	@echo "========================"
 	@echo "Version: 3.0.0-Production"
 	@echo "Système SLAM collaboratif multi-drones avec TMUX"

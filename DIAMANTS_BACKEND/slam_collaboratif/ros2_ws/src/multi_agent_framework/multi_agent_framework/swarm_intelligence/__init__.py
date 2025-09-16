@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -23,7 +23,7 @@
 """
 Swarm Intelligence Module
 ========================
-Module d'intelligence collective pour DIAMANTS V3
+Module d'intelligence collective pour DIAMANTS
 Intégration des fonctionnalités avancées de DIAMANTS V4
 """
 

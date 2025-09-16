@@ -1,5 +1,5 @@
 /*
- * DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+ * DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
  * 
  * Copyright (c) 2025 DIAMANTS Project Contributors
  * 
@@ -23,7 +23,7 @@
  */
 
 /**
- * DIAMANTS V3 - 3D Visualization Module
+ * DIAMANTS - 3D Visualization Module
  * =====================================
  * Module Three.js pour visualisation 3D temps réel
  */
@@ -60,7 +60,7 @@ class DiamantVisualization {
         this.container.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(45deg, #0d1b2a, #1b263b); color: #90e0ef; text-align: center;">
                 <div style="font-size: 3rem; margin-bottom: 1rem;">🚁</div>
-                <h3>Visualisation 3D DIAMANTS V3</h3>
+                <h3>Visualisation 3D DIAMANTS</h3>
                 <p style="margin: 1rem 0; opacity: 0.8;">Module de visualisation temps réel des positions drones</p>
                 <div style="display: flex; gap: 1rem; margin-top: 2rem;">
                     <div style="padding: 0.5rem 1rem; background: rgba(0, 180, 216, 0.2); border-radius: 8px; border: 1px solid #00b4d8;">

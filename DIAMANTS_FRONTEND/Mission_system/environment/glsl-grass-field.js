@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système d'herbe GLSL Procédurale
+ * DIAMANTS - Système d'herbe GLSL Procédurale
  * ================================================
  * Basé sur : https://github.com/Nitash-Biswas/grass-shader-glsl
  * - 200k+ brins d'herbe avec instancing

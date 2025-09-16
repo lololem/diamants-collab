@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Crazyflie Visuel (Frontend Only)
+ * DIAMANTS - Crazyflie Visuel (Frontend Only)
  * ==============================================
  * Version allégée pour rendu 3D uniquement avec améliorations visuelles
  */

@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Quality Control Panel
+ * DIAMANTS - Quality Control Panel
  * Panneau de contrôle de la qualité graphique
  */
 import { shaderQualityManager, QUALITY_LEVELS } from '../shaders/shader-quality-manager.js';

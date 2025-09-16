@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système de Dynamique de Vol Réaliste
+ * DIAMANTS - Système de Dynamique de Vol Réaliste
  * ===================================================
  * Système unifié qui synchronise physique réaliste, contraintes environnementales 
  * et comportements de vol authentiques pour drones Crazyflie.

@@ -1,5 +1,5 @@
 /*
- * DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+ * DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
  * 
  * Copyright (c) 2025 DIAMANTS Project Contributors
  * 
@@ -23,7 +23,7 @@
  */
 
 /**
- * DIAMANTS V3 - Enhanced 3D Visualization with Authentic Formulas
+ * DIAMANTS - Enhanced 3D Visualization with Authentic Formulas
  * ==============================================================
  * Intégration des formules DIAMANTS authentiques dans l'interface web existante
  */

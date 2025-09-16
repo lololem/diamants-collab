@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Contrôleur ROS 2 pour Crazyflie
+ * DIAMANTS - Contrôleur ROS 2 pour Crazyflie
  * ==============================================
  * Interface moderne entre frontend et backend ROS 2
  */

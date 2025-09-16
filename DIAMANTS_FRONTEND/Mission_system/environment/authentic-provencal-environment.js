@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Environn            enableFallenLeaves: config.enableFallenLeaves !== false,
+ * DIAMANTS - Environn            enableFallenLeaves: config.enableFallenLeaves !== false,
             enableForestWood: config.enableForestWood !== false, // NOUVEAU : Système de bois
             enableUndergrowth: config.enableUndergrowth !== false, // NOUVEAU : Sous-bois
             enableTreeEnhancement: config.enableTreeEnhancement !== false, // NOUVEAU : Amélioration textures arbres
