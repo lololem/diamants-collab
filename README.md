@@ -337,7 +337,7 @@ This project is licensed under the PolyForm Noncommercial License 1.0.0 - see th
 ## 📞 Contact & Support
 
 - **Issues**: [GitHub Issues](https://github.com/lololem/diamants-collab/issues)
-- **Email**: [Contact maintainers](mailto:loic.lemasle@gmail.com)
+- **Email**: [loic.lemasle@gmail.com](mailto:loic.lemasle@gmail.com)
 
 ---
 
