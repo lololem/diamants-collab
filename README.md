@@ -14,15 +14,16 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 See DIAMANTS in action! Watch our multi-drone collaborative system working seamlessly from simulation to real-world deployment.
 
-> 💡 **Tip**: Click the badges below to download and watch the videos, or view them directly in the [DEMO/video/](./DEMO/video/) folder.
-
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-[![Backend Demo](https://img.shields.io/badge/▶️%20Watch%20Backend%20Demo-red?style=for-the-badge)](./DEMO/video/Backend.mp4)
+<video width="100%" controls>
+  <source src="./DEMO/video/Backend.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Backend.mp4">Download Backend Demo</a>
+</video>
 
 <details>
-<summary>🎥 Preview Backend Demo (Click to expand)</summary>
+<summary>🎥 Backend Demo Details (Click to expand)</summary>
 
 ```
 🤖 Backend Features Showcase:
@@ -40,10 +41,14 @@ Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featu
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
 #### Frontend Interface Overview
-[![Frontend Demo 1](https://img.shields.io/badge/▶️%20Watch%20Frontend%20Demo%201-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Frontend1.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Frontend1.mp4">Download Frontend Demo 1</a>
+</video>
 
 <details>
-<summary>🎥 Preview Frontend Demo 1 (Click to expand)</summary>
+<summary>🎥 Frontend Demo 1 Details (Click to expand)</summary>
 
 ```
 🌐 Frontend Interface Features:
@@ -58,10 +63,14 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 </details>
 
 #### Advanced Visualization Features  
-[![Frontend Demo 2](https://img.shields.io/badge/▶️%20Watch%20Frontend%20Demo%202-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Fontend2.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Fontend2.mp4">Download Frontend Demo 2</a>
+</video>
 
 <details>
-<summary>🎥 Preview Frontend Demo 2 (Click to expand)</summary>
+<summary>🎥 Frontend Demo 2 Details (Click to expand)</summary>
 
 ```
 🎮 Advanced Features:
@@ -79,22 +88,53 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 Extended capabilities showcasing various aspects of the DIAMANTS platform.
 
 #### Multi-Agent Coordination
-[![Demo 1](https://img.shields.io/badge/▶️%20Watch%20Multi%20Agent%20Demo-green?style=for-the-badge)](./DEMO/video/Other1.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other1.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other1.mp4">Download Multi-Agent Demo</a>
+</video>
 
 #### Swarm Intelligence Behaviors
-[![Demo 2](https://img.shields.io/badge/▶️%20Watch%20Swarm%20Intelligence-green?style=for-the-badge)](./DEMO/video/Other2.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other2.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other2.mp4">Download Swarm Intelligence Demo</a>
+</video>
 
 #### Real-time Mission Execution
-[![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other3.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other3.mp4">Download Mission Execution Demo</a>
+</video>
 
 #### Advanced SLAM Integration
-[![Demo 4](https://img.shields.io/badge/▶️%20Watch%20SLAM%20Integration-green?style=for-the-badge)](./DEMO/video/Other4.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other4.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other4.mp4">Download SLAM Integration Demo</a>
+</video>
 
 #### System Performance Monitoring
-[![Demo 5](https://img.shields.io/badge/▶️%20Watch%20Performance%20Monitoring-green?style=for-the-badge)](./DEMO/video/Other5.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other5.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other5.mp4">Download Performance Monitoring Demo</a>
+</video>
 
 #### Complete Workflow Demonstration
-[![Demo 6](https://img.shields.io/badge/▶️%20Watch%20Complete%20Workflow-green?style=for-the-badge)](./DEMO/video/Other6.mp4)
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other6.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other6.mp4">Download Complete Workflow Demo</a>
+</video>
+
+#### Complete Workflow Demonstration
+
+<video width="100%" controls>
+  <source src="./DEMO/video/Other6.mp4" type="video/mp4">
+  Your browser does not support the video tag. <a href="./DEMO/video/Other6.mp4">Download Complete Workflow Demo</a>
+</video>
 
 ## ✨ Key Features & Technical Challenges
 
