@@ -14,15 +14,23 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 See DIAMANTS in action! Watch our multi-drone collaborative system working seamlessly from simulation to real-world deployment.
 
-> **📹 How to view videos**: Click on the video badges below. GitHub will open the video file where you can:
-> - **Stream directly**: Use GitHub's built-in video player (works for most video formats)
-> - **Download**: Click the download button to save the video locally
-> - **Alternative**: Clone the repository with `git lfs pull` to get all video files locally
+> **⚠️ Video Integration Notice**: 
+> 
+> For **native video playback** directly in README (without downloading):
+> 1. The videos need to be uploaded directly in GitHub's web editor (not stored in repository)
+> 2. GitHub generates `user-images.githubusercontent.com` URLs that support native playback
+> 3. Repository files like `./DEMO/video/...` cannot be played natively in README
+> 
+> **Current viewing options**:
+> - **📁 Browse videos**: Go to [DEMO/video/](./DEMO/video/) folder and click any video
+> - **⬇️ Download**: Use the download button on GitHub's video file page  
+> - **💻 Local**: Clone with `git lfs pull` to get videos locally
+> - **🔗 Direct links**: Click the badges below to open video files
 
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-[![Backend Demo](https://img.shields.io/badge/🎬_Watch-Backend_Demo-red?style=for-the-badge&logo=youtube)](./DEMO/video/Backend.mp4)
+[![Backend Demo](https://img.shields.io/badge/🎬_Open-Backend_Demo-red?style=for-the-badge&logo=youtube)](./DEMO/video/Backend.mp4)
 
 **🤖 Backend Features Showcase:**
 - ✅ 8 Crazyflie drones in Gazebo simulation
