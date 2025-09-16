@@ -1,53 +1,68 @@
-# 🚁 DIAMANTS V3 - ROS2 Backend (Production Ready)
+# � DIAMANTS Backend
 
-**Multi-Agent Collaborative SLAM System** with automated TMUX orchestration, 8-drone swarm simulation, and real-time stigmergy-based map fusion.
+**Collaborative SLAM System powered by ROS2 Jazzy for multi-agent drone simulation**
 
-## 🎯 Overview
+[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue)](https://docs.ros.org/en/jazzy/)
+[![Python](https://img.shields.io/badge/Python-3.12-green)](https://www.python.org/)
+[![SLAM](https://img.shields.io/badge/SLAM-Multi--Agent-orange)](https://github.com/lololem/diamants-collab)
 
-This backend provides a **complete collaborative SLAM ecosystem** featuring:
-- ✅ **8-Drone Swarm Simulation** with Gazebo physics integration
-- ✅ **Automated TMUX Orchestration** for multi-component management
-- ✅ **Stigmergy-Based Map Fusion** using bio-inspired algorithms
-- ✅ **RVIZ Real-time Visualization** with specialized SLAM configurations
-- ✅ **ROS2 Jazzy Integration** with modern message protocols
-- ✅ **WebSocket Bridge** for frontend-backend communication
-- ✅ **Production-Ready Deployment** with comprehensive testing
+## 🚀 Quick Start
 
-## 🚀 Quick Start (After Git Clone)
+### Prerequisites
+- **Ubuntu 24.04** (recommended)
+- **ROS2 Jazzy Desktop** with full installation
+- **Python 3.12**
+- **Gazebo Classic** (automatic installation)
 
-### **One-Command System Launch**
+### Installation & Launch
 
 ```bash
-cd DIAMANTS_BACKEND
-make                    # 🎯 Complete automated setup & validation
-make launch-tmux        # 🚀 Launch full collaborative SLAM system
+# Clone the collaborative repository
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab/DIAMANTS_BACKEND
+
+# 1. Initial setup (first time only)
+./setup.sh
+
+# 2. Launch collaborative SLAM system
+./launch_slam_collaborative.sh
+
+# 3. Monitor system status
+tail -f logs/diamants_tmux_slam_collab_journal.log
 ```
 
-### **Alternative Launch Methods**
+## 🎯 System Architecture
 
-```bash
-# From project root (recommended)
-cd /path/to/DIAMANTS
-./run.sh                # Interactive launcher
-# Select option 1: "Backend ROS2 + SLAM"
-
-# Manual launch
-cd DIAMANTS_BACKEND
-echo "1" | ./launch_slam_collaborative.sh
+```
+DIAMANTS Backend
+├── 🤖 ROS2 Jazzy Workspace
+├── 🌐 Multi-Agent SLAM
+├── 🎮 Gazebo Simulation Environment
+├── 📊 TMUX Session Management
+└── 📝 Real-time Logging System
 ```
 
-### **Makefile Commands (Complete Automation)**
+## 🛠️ Available Commands
 
-```bash
-# 🔧 Configuration & Setup
-make                    # Complete automated setup (recommended first-time)
-make post-clone         # Detailed post-clone configuration
-make setup              # Manual setup with user interaction
-make build              # Build ROS2 workspace only
-make clean              # Clean build artifacts and reset
+| Command | Purpose | Description |
+|---------|---------|-------------|
+| `./setup.sh` | Initial setup | Install dependencies and configure ROS2 workspace |
+| `./launch_slam_collaborative.sh` | Start system | Launch collaborative SLAM with TMUX orchestration |
+| `./deploy.sh` | System deployment | Full deployment with environment validation |
 
-# 🚀 System Management
-make launch-tmux        # Launch full collaborative SLAM system
+## 📊 TMUX Session Management
+
+The system uses TMUX for orchestrating multiple ROS2 processes:
+
+- **Session Name**: `diamants_slam_collaborative`
+- **Windows**: Gazebo, SLAM nodes, Navigation stack, Logging
+- **Monitoring**: Real-time log aggregation in `logs/` directory
+
+## � Configuration Files
+
+- `config/multi_drone_params.yaml` - Multi-agent configuration
+- `config/rviz_config_slam_optimized.rviz` - Visualization setup
+- `scripts/launch/orchestrate_tmux_slam_collaboratif_fixed.sh` - TMUX orchestration
 make status-tmux        # Check TMUX session and system status
 make kill-tmux          # Clean shutdown of all components
 make restart            # Full system restart (kill + launch)
