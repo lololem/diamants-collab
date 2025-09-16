@@ -1,43 +1,43 @@
 # 🚁 DIAMANTS - Technical Stack & Configuration
 
-**Date de création :** 3 Septembre 2025  
-**Project :** DIAMANTS (Distributed Autonomous Multi-agents Systems)  
-**Version :** Current  
-**Description :** Advanced autonomous drone swarm coordination platform with integrated ROS2 and WebGL visualization  
-**Auteur :** lololem  
+**Creation Date:** September 3, 2025  
+**Project:** DIAMANTS (Distributed Autonomous Multi-agents Systems)  
+**Version:** Current  
+**Description:** Advanced autonomous drone swarm coordination platform with integrated ROS2 and WebGL visualization  
+**Author:** lololem  
 
 ---
 
-## 📋 **Table des Matières**
+## 📋 **Table of Contents**
 
-1. [Vue d'ensemble](#vue-densemble)
-2. [Architecture Système](#architecture-système)
-3. [Technologies Frontend](#technologies-frontend)
-4. [Technologies Backend](#technologies-backend)
-5. [Intelligence Artificielle](#intelligence-artificielle)
-6. [Configuration Environnement](#configuration-environnement)
-7. [Structure Projet](#structure-projet)
-8. [Scripts et Outils](#scripts-et-outils)
-9. [Déploiement](#déploiement)
+1. [Overview](#overview)
+2. [System Architecture](#system-architecture)
+3. [Frontend Technologies](#frontend-technologies)
+4. [Backend Technologies](#backend-technologies)
+5. [Artificial Intelligence](#artificial-intelligence)
+6. [Environment Configuration](#environment-configuration)
+7. [Project Structure](#project-structure)
+8. [Scripts and Tools](#scripts-and-tools)
+9. [Deployment](#deployment)
 10. [Performance](#performance)
 
 ---
 
-## 🎯 **Vue d'ensemble**
+## 🎯 **Overview**
 
-DIAMANTS est une plateforme technologique avancée de simulation multi-agents pour drones collaboratifs, intégrant :
+DIAMANTS is an advanced technological platform for multi-agent simulation of collaborative drones, integrating:
 
-- **Simulation temps réel** de drones Crazyflie
-- **Intelligence collective** avec algorithmes de stigmergie
-- **Rendu 3D WebGL** haute performance
-- **Communication ROS2** bidirectionnelle
-- **SLAM collaboratif** pour navigation autonome
+- **Real-time simulation** of Crazyflie drones
+- **Collective intelligence** with stigmergy algorithms
+- **High-performance WebGL 3D rendering**
+- **Bidirectional ROS2 communication**
+- **Collaborative SLAM** for autonomous navigation
 
 ---
 
-## 🏗️ **Architecture Système**
+## 🏗️ **System Architecture**
 
-### **Pattern Architectural**
+### **Architectural Pattern**
 ```
 ┌─────────────────────────────────────┐
 │           Frontend Web              │
@@ -55,17 +55,17 @@ DIAMANTS est une plateforme technologique avancée de simulation multi-agents po
 └─────────────────────────────────────┘
 ```
 
-### **Flux de Données**
-1. **Frontend → WebSocket** : Commandes utilisateur (takeoff, land, navigation)
-2. **WebSocket → ROS2** : Translation des commandes en messages ROS2
-3. **ROS2 → Agents** : Distribution aux agents drones
-4. **Agents → ROS2** : Télémétrie et données capteurs
-5. **ROS2 → WebSocket** : Agrégation données simulation
-6. **WebSocket → Frontend** : Mise à jour interface temps réel
+### **Data Flow**
+1. **Frontend → WebSocket**: User commands (takeoff, land, navigation)
+2. **WebSocket → ROS2**: Translation of commands to ROS2 messages
+3. **ROS2 → Agents**: Distribution to drone agents
+4. **Agents → ROS2**: Telemetry and sensor data
+5. **ROS2 → WebSocket**: Simulation data aggregation
+6. **WebSocket → Frontend**: Real-time interface updates
 
 ---
 
-## 💻 **Technologies Frontend**
+## 💻 **Frontend Technologies**
 
 ### **Core Runtime**
 ```yaml
@@ -112,7 +112,7 @@ GLSL_Shaders:
     features: ["Wind animation", "LOD system", "Instancing"]
 ```
 
-### **Interface Utilisateur**
+### **User Interface**
 ```yaml
 HTML5:
   canvas: "WebGL rendering surface"
@@ -157,7 +157,7 @@ Hot_Reload:
 
 ---
 
-## 🤖 **Technologies Backend**
+## 🤖 **Backend Technologies**
 
 ### **ROS2 Core System**
 ```yaml
@@ -223,10 +223,35 @@ Drone_Models:
     flight_time: "7 minutes"
     max_speed: "8 m/s"
 ```
+    - "Bidirectional communication"
+    - "Message queuing"
+    - "Connection management"
+    - "Error handling & recovery"
+```
+
+### **Simulation Engine**
+```yaml
+Physics_Engine:
+  type: "Custom implementation"
+  frequency: "60 Hz"
+  features:
+    - "Real-time physics"
+    - "Collision detection"
+    - "Aerodynamics simulation"
+    - "Sensor modeling"
+
+Drone_Models:
+  crazyflie:
+    mass: "27g"
+    motors: 4
+    propellers: "65mm diameter"
+    flight_time: "7 minutes"
+    max_speed: "8 m/s"
+```
 
 ---
 
-## 🧠 **Intelligence Artificielle**
+## 🧠 **Artificial Intelligence**
 
 ### **Multi-Agent Systems**
 ```yaml
@@ -299,7 +324,7 @@ PID_Controllers:
 
 ---
 
-## ⚙️ **Configuration Environnement**
+## ⚙️ **Environment Configuration**
 
 ### **Node.js Configuration**
 ```bash
@@ -348,71 +373,71 @@ VITE_MAX_DRONES=6
 
 ---
 
-## 📁 **Structure Projet**
+## 📁 **Project Structure**
 
-### **Architecture Modulaire**
+### **Modular Architecture**
 ```
 DIAMANTS/
 ├── mission_core/
-│   └── Mission_system_v1/          # Frontend principal
-│       ├── behaviors/              # Comportements IA
+│   └── Mission_system_v1/          # Main frontend
+│       ├── behaviors/              # AI behaviors
 │       │   ├── flight-behaviors.js
 │       │   └── advanced-collective-intelligence.js
-│       ├── drones/                 # Modèles drones
+│       ├── drones/                 # Drone models
 │       │   └── authentic-crazyflie.js
-│       ├── environment/            # Environnement 3D
+│       ├── environment/            # 3D environment
 │       │   └── quality-control-panel.js
-│       ├── intelligence/           # IA collective
-│       ├── tools/                  # Outils système
+│       ├── intelligence/           # Collective AI
+│       ├── tools/                  # System tools
 │       │   └── integrated-controller.js
-│       ├── main.js                 # Point d'entrée principal
-│       ├── index.html             # Interface web
-│       ├── package.json           # Dépendances NPM
-│       └── .nvmrc                 # Version Node.js
+│       ├── main.js                 # Main entry point
+│       ├── index.html             # Web interface
+│       ├── package.json           # NPM dependencies
+│       └── .nvmrc                 # Node.js version
 │
-├── backend/                        # Backend ROS2
-│   ├── diamants_unified_bridge.py # Bridge principal
+├── backend/                        # ROS2 backend
+│   ├── diamants_unified_bridge.py # Main bridge
 │   ├── crazyflie_bridge.py        # (deprecated)
 │   └── improved_crazyflie_bridge.py # (deprecated)
 │
-├── scripts/                        # Scripts automation
-│   ├── start-console-ninja.sh     # Démarrage debug
-│   └── deployment/                # Scripts déploiement
+├── scripts/                        # Automation scripts
+│   ├── start-console-ninja.sh     # Debug startup
+│   └── deployment/                # Deployment scripts
 │
-├── submodules/                     # Sous-modules Git
-│   └── grass-shader-glsl/         # Shaders herbe
+├── submodules/                     # Git submodules
+│   └── grass-shader-glsl/         # Grass shaders
 │
-├── Unity3D-DIAMANTS/              # Version Unity (legacy)
-├── performance_engines/           # Moteurs performance
-├── prototyping/                   # Prototypes R&D
-└── DIAMANTS_TECH_STACK.md        # Cette documentation
+├── Unity3D-DIAMANTS/              # Unity version (legacy)
+├── performance_engines/           # Performance engines
+├── prototyping/                   # R&D prototypes
+└── DIAMANTS_TECH_STACK.md        # This documentation
 ```
 
-### **Fichiers Clés**
+### **Key Files**
 ```yaml
 Configuration:
-  - ".nvmrc": "Version Node.js"
-  - "package.json": "Dépendances frontend"
-  - "vite.config.js": "Configuration build"
-  - ".env": "Variables environnement"
+  - ".nvmrc": "Node.js version"
+  - "package.json": "Frontend dependencies"
+  - "vite.config.js": "Build configuration"
+  - ".env": "Environment variables"
 
-Code_Principal:
-  - "main.js": "Application principale"
-  - "index.html": "Interface utilisateur"
-  - "authentic-crazyflie.js": "Simulation drone"
-  - "diamants_unified_bridge.py": "Bridge ROS2"
+Main_Code:
+  - "main.js": "Main application"
+  - "index.html": "User interface"
+  - "authentic-crazyflie.js": "Drone simulation"
+  - "diamants_unified_bridge.py": "ROS2 bridge"
 
-Comportements_IA:
-  - "flight-behaviors.js": "Comportements vol"
-  - "advanced-collective-intelligence.js": "IA collective"
-  - "integrated-controller.js": "Contrôleur unifié"
+AI_Behaviors:
+  - "flight-behaviors.js": "Flight behaviors"
+  - "advanced-collective-intelligence.js": "Collective AI"
+  - "integrated-controller.js": "Unified controller"
 ```
 
 ---
 
-## 🛠️ **Scripts et Outils**
+## 🛠️ **Scripts and Tools**
 
-### **Scripts de Développement**
+### **Development Scripts**
 ```bash
 # Package.json scripts
 {
@@ -425,20 +450,20 @@ Comportements_IA:
 }
 ```
 
-### **Scripts Shell**
+### **Shell Scripts**
 ```bash
 # start-console-ninja.sh
 #!/bin/bash
-echo "🚀 Démarrage Console Ninja pour DIAMANTS..."
+echo "🚀 Starting Console Ninja for DIAMANTS..."
 nvm use 16.15.0
 echo "🔧 Node.js: $(node -v)"
-echo "🧹 Nettoyage des processus Vite existants..."
+echo "🧹 Cleaning existing Vite processes..."
 pkill -f vite
-echo "🌟 Lancement de Vite avec Console Ninja..."
+echo "🌟 Launching Vite with Console Ninja..."
 npm run dev
 ```
 
-### **Outils de Debug**
+### **Debug Tools**
 ```yaml
 Console_Ninja:
   port: 5568
@@ -457,7 +482,7 @@ Browser_DevTools:
 
 ---
 
-## 🚀 **Déploiement**
+## 🚀 **Deployment**
 
 ### **Development Environment**
 ```bash
@@ -467,15 +492,15 @@ cd diamants/mission_core/Mission_system_v1
 nvm use 16.15.0
 npm install
 
-# Démarrage
+# Startup
 npm run dev          # Vite dev server
-# ou
-./scripts/start-console-ninja.sh  # Avec Console Ninja
+# or
+./scripts/start-console-ninja.sh  # With Console Ninja
 ```
 
 ### **Production Build**
 ```bash
-# Build optimisé
+# Optimized build
 npm run build
 
 # Preview production
@@ -511,7 +536,7 @@ Software:
 
 ## ⚡ **Performance**
 
-### **Métriques Cibles**
+### **Target Metrics**
 ```yaml
 Rendering:
   fps: "60 FPS stable"
@@ -557,7 +582,7 @@ Network:
 
 ## 🔧 **Troubleshooting**
 
-### **Issues Communs**
+### **Common Issues**
 ```yaml
 Syntax_Error_main.js:
   symptom: "Vite import analysis failed"
@@ -635,12 +660,12 @@ Features:
   - "✅ Multi-agent simulation"
   - "✅ WebGL 3D rendering"
   - "✅ ROS2 integration"
-  - "✅ SLAM collaborative"
-  - "🔄 Debug infrastructure (en cours)"
-  - "⏳ Performance optimization (plannifié)"
+  - "✅ Collaborative SLAM"
+  - "🔄 Debug infrastructure (in progress)"
+  - "⏳ Performance optimization (planned)"
 ```
 
-### **Futures Versions**
+### **Future Versions**
 ```yaml
 V4:
   - "TypeScript migration"
@@ -657,26 +682,26 @@ V5:
 
 ---
 
-## 📚 **Documentation Additionnelle**
+## 📚 **Additional Documentation**
 
-### **Références Techniques**
+### **Technical References**
 - **Three.js Documentation**: https://threejs.org/docs/
 - **ROS2 Documentation**: https://docs.ros.org/
 - **Vite Documentation**: https://vitejs.dev/
 - **WebGL Specification**: https://www.khronos.org/webgl/
 
-### **Recherche & Papers**
+### **Research & Papers**
 - **Swarm Robotics**: Craig Reynolds - Flocks, Herds, and Schools
 - **SLAM**: Durrant-Whyte & Bailey - Simultaneous Localization and Mapping
 - **Multi-Agent Systems**: Wooldridge - An Introduction to MultiAgent Systems
 
 ---
 
-**📝 Dernière mise à jour:** 3 Septembre 2025  
+**📝 Last update:** September 3, 2025  
 **🏷️ Version:** Current Release  
 **👨‍💻 Maintainer:** lololem  
-**📧 Contact:** Voir repository GitHub
+**📧 Contact:** See GitHub repository
 
 ---
 
-*Cette documentation est un document vivant, mis à jour régulièrement avec l'évolution du projet DIAMANTS.*
+*This documentation is a living document, regularly updated with the evolution of the DIAMANTS project.*
