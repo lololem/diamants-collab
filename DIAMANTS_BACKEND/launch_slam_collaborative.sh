@@ -5,7 +5,7 @@
 # Main launcher for collaborative SLAM system
 # Integrates frontend and backend communication
 
-set -e  # Exit on error
+# Note: set -e removed to handle cleanup errors gracefully
 
 # Colors for output
 RED='\033[0;31m'
