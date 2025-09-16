@@ -1,3 +1,12 @@
+# Security & Configuration
+.env
+.env.local
+.env.production
+*.key
+*.pem
+secrets.yaml
+config.private.*
+
 # Python
 __pycache__/
 *.py[cod]
