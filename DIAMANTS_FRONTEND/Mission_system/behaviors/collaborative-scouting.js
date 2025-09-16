@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système de Scouting Collaboratif
+ * DIAMANTS - Système de Scouting Collaboratif
  * ==============================================
  * Intelligence collective pour exploration et couverture de terrain
  */

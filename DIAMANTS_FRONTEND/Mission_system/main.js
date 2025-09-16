@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Point d'entrée principal avec Vite et EZ-Tree authentique
+ * DIAMANTS - Point d'entrée principal avec Vite et EZ-Tree authentique
  * =======================================================================
  * Cache bust: 2025-09-13-14:55
  */
@@ -33,8 +33,8 @@ if (window.SILENT_MODE) {
     };
 }
 
-// DIAMANTS V3 - Chargement principal
-log('🔥 MAIN.JS STARTING - DIAMANTS V3 Loading...');
+// DIAMANTS - Chargement principal
+log('🔥 MAIN.JS STARTING - DIAMANTS Loading...');
 log('📍 main.js file loaded and executing');
 
 // Attendre que THREE.js soit disponible globalement

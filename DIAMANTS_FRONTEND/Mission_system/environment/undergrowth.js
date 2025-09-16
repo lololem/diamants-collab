@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système de sous-bois
+ * DIAMANTS - Système de sous-bois
  * ===================================
  * Fougères, petites plantes et végétation de sous-bois pour enrichir l'environnement forestier
  */

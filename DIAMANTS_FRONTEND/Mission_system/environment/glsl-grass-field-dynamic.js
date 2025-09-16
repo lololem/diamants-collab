@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système d'herbe GLSL Dynamique avec Gestion de Qualité
+ * DIAMANTS - Système d'herbe GLSL Dynamique avec Gestion de Qualité
  * ===================================================================
  * Génération dynamique d'herbe basée sur la position du joueur
  * - Chunks de 20x20 unités avec 5000 brins chacun

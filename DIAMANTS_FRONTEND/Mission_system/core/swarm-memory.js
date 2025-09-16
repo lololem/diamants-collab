@@ -1,5 +1,5 @@
 /**
- * SWARM_MEMORY - Système d'Intelligence Collective DIAMANTS V3
+ * SWARM_MEMORY - Système d'Intelligence Collective DIAMANTS
  * Extrait de SMA.html et adapté pour architecture modulaire propre
  * 
  * Responsabilités:

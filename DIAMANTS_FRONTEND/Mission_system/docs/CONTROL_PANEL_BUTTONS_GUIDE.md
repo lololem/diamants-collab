@@ -1,4 +1,4 @@
-# 🎛️ DIAMANTS V3 - Guide Complet des Boutons Interface
+# 🎛️ DIAMANTS - Guide Complet des Boutons Interface
 
 ## **📁 LOCALISATION**
 Le panneau de contrôle est intégré dans `index.html` (lignes 540-800+)
@@ -14,7 +14,7 @@ Le panneau de contrôle est intégré dans `index.html` (lignes 540-800+)
 
 ---
 
-## **🚁 DIAMANTS V3 STATUS PANEL**
+## **🚁 DIAMANTS STATUS PANEL**
 
 ### **Affichage Métrique** (pas de boutons)
 - **Status** : État du système (Active/Inactive)

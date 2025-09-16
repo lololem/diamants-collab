@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Améliorations Visuelles Crazyflie
+ * DIAMANTS - Améliorations Visuelles Crazyflie
  * ===============================================
  * Effets visuels et animations pour comportement authentique
  */

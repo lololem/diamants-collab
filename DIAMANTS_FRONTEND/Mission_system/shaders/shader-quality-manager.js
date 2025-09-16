@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Shader Quality Manager (Simplifié)
+ * DIAMANTS - Shader Quality Manager (Simplifié)
  * Gère la sélection dynamique des shaders selon la qualité demandée
  */
 

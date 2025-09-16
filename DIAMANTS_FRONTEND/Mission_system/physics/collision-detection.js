@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Système de Détection de Collisions
+ * DIAMANTS - Système de Détection de Collisions
  * ================================================
  * Détection physique optimisée avec boundary boxes intelligents
  */

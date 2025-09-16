@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Comportements de Vol Réalistes
+ * DIAMANTS - Comportements de Vol Réalistes
  * ============================================
  * Systèmes de vol authentiques pour Crazyflie avec physique réaliste
  */

@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Gestionnaire de Missions Multi-Agent
+ * DIAMANTS - Gestionnaire de Missions Multi-Agent
  * ==================================================
  * Système de missions basé sur l'architecture ROS2 de DIAMANTS_FRONTEND
  * Gestion des comportements collectifs et auto-organisation
