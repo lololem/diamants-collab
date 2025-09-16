@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAMANTS V3 - Crazyflie Gazebo Simulation (Vrais Mesh)</title>
+    <title>DIAMANTS - Crazyflie Gazebo Simulation (Vrais Mesh)</title>
     <link rel="icon" href="data:,">
     
     <!-- Fonctions globales IMMÉDIATEMENT disponibles -->
@@ -284,7 +284,7 @@
             padding-bottom: 3px;
         }
 
-        /* Mission Control theme for DIAMANTS V3 status panel */
+        /* Mission Control theme for DIAMANTS status panel */
         #status_panel.ros_panel {
             background: linear-gradient(180deg, rgba(30, 36, 46, 0.92), rgba(20, 26, 36, 0.92));
             border: 1.5px solid #00CCFF;
@@ -601,16 +601,16 @@
 
     <!-- Loading screen -->
     <div id="loading_screen" class="loading_status">
-        <h3>🚁 Chargement DIAMANTS V3 Gazebo</h3>
+        <h3>🚁 Chargement DIAMANTS Gazebo</h3>
         <p>Chargement des mesh Crazyflie...</p>
         <div id="loading_progress">0%</div>
     </div>
 
     <!-- Interface ROS2/Gazebo -->
     <div id="ros_interface">
-    <!-- DIAMANTS V3 Status Panel (themed like Mission Control) -->
+    <!-- DIAMANTS Status Panel (themed like Mission Control) -->
     <div id="status_panel" class="ros_panel">
-            <h3>🚁 DIAMANTS V3</h3>
+            <h3>🚁 DIAMANTS</h3>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
                 <div style="color: #00FF88; font-weight: bold;">Status: <span id="system_status">Active</span></div>
                 <div style="color: #FFAA00;">Drones: <span id="drone_count">0</span></div>
@@ -756,7 +756,7 @@
             <div class="topic_monitor collapsed" id="topic_monitor" onclick="toggleTopicMonitor()">
                 <div>[INFO] Multi-agent framework initialized</div>
                 <div>[INFO] Waiting for drone connections...</div>
-                <div>[DEBUG] DIAMANTS V3 - Gazebo Style avec Mesh Réels</div>
+                <div>[DEBUG] DIAMANTS - Gazebo Style avec Mesh Réels</div>
                 <div>[INFO] Initializing...</div>
             </div>
         </div>
@@ -887,7 +887,7 @@
 
     <!-- Status Display -->
     <div id="status_display">
-        🚁 DIAMANTS V3 - Gazebo Style avec Mesh Réels<br>
+        🚁 DIAMANTS - Gazebo Style avec Mesh Réels<br>
         <span id="system_status">Initializing...</span>
     </div>
 

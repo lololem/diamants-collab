@@ -1,4 +1,4 @@
-# 🎮 DIAMANTS V3 - SLAM Collaborative System Usage Guide
+# 🎮 DIAMANTS - SLAM Collaborative System Usage Guide
 
 ## ✅ System Status: OPERATIONAL
 

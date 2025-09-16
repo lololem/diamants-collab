@@ -674,5 +674,5 @@ SOFTWARE.
 
 ---
 
-**DIAMANTS V3** - Advanced Drone Swarm Intelligence and Autonomous Navigation Technology System
+**DIAMANTS** - Advanced Drone Swarm Intelligence and Autonomous Navigation Technology System
 *Building the future of collaborative robotics, one swarm at a time.*

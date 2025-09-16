@@ -1,5 +1,5 @@
 /**
- * Gestionnaire d'initialisation DIAMANTS V3
+ * Gestionnaire d'initialisation DIAMANTS
  * Coordonne le démarrage de tous les systèmes
  */
 

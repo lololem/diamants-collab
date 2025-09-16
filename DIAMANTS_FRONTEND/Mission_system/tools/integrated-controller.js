@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Contrôleur Principal Intégré
+ * DIAMANTS - Contrôleur Principal Intégré
  * ==========================================
  * Système unifié intégrant toutes les fonctionnalités migrées
  */
@@ -102,7 +102,7 @@ export class IntegratedDiamantsController {
      * Initialisation complète du système
      */
     async initializeSystem() {
-        logger.info('Controller', '🚀 Initialisation système DIAMANTS V3 intégré...');
+        logger.info('Controller', '🚀 Initialisation système DIAMANTS intégré...');
 
         try {
             // 1. Créer environnement
@@ -224,7 +224,7 @@ export class IntegratedDiamantsController {
             this.isRunning = true;
             this.startTime = Date.now();
 
-            logger.info('Controller', '✅ Système DIAMANTS V3 complètement initialisé');
+            logger.info('Controller', '✅ Système DIAMANTS complètement initialisé');
             // Notify listeners that the engine/controller is ready
             try { if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('diamants:engine-ready', { detail: { drones: this.drones.length } })); } catch (_) {}
             this.printSystemStatus();
@@ -706,7 +706,7 @@ export class IntegratedDiamantsController {
      * Affichage statut système
      */
     printSystemStatus() {
-        log('\n📊 === STATUT SYSTÈME DIAMANTS V3 ===');
+        log('\n📊 === STATUT SYSTÈME DIAMANTS ===');
         log(`🚁 Drones actifs: ${this.drones.length}/${this.config.droneCount}`);
         log(`🧠 Intelligence avancée: ${this.advancedIntelligence ? '✅' : '❌'}`);
         log(`✈️ Vol réaliste: ${this.flightBehaviors ? '✅' : '❌'}`);

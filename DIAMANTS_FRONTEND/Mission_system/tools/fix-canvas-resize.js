@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Fix Resize et Gestion Canvas
+ * DIAMANTS - Fix Resize et Gestion Canvas
  * ==========================================
  * Correction des problèmes de redimensionnement et rendu canvas
  */

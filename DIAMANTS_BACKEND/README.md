@@ -514,7 +514,7 @@ make help              # All available commands
 
 ---
 
-**DIAMANTS V3** - *Drone Intelligence for Advanced Mapping and Navigation Through Swarms*
+**DIAMANTS** - *Distributed Autonomous Multi-agents Systems*
 
 **Production-Ready Collaborative SLAM System** | **MIT Licensed** | **Security Hardened**
 
