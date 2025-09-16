@@ -62,7 +62,7 @@ fi
 if [ "$EXPRESS_MODE" = true ]; then
     echo -e "${PURPLE}"
     echo "🚁 ==============================================="
-    echo "   DIAMANTS V3 - CLONE & RUN EXPRESS"
+    echo "   DIAMANTS - CLONE & RUN EXPRESS"
     echo "   🚀 Démarrage automatique complet"
     echo "===============================================${NC}"
     echo ""
@@ -70,7 +70,7 @@ else
     # Banner normal
     echo -e "${PURPLE}"
     echo "🚁 ==============================================="
-    echo "   DIAMANTS V3 - CLONE & RUN MASTER LAUNCHER"
+    echo "   DIAMANTS - CLONE & RUN MASTER LAUNCHER"
     echo "   Collaborative Drone Swarm Platform" 
     echo "===============================================${NC}"
     echo ""
@@ -418,7 +418,7 @@ main() {
         show_status
         
         echo ""
-        log "🎉 DIAMANTS V3 démarré avec succès !"
+        log "🎉 DIAMANTS démarré avec succès !"
         echo -e "${GREEN}📡 API & WebSocket:${NC} http://localhost:8000"
         echo -e "${GREEN}🎮 Frontend:${NC} http://localhost:5173"
         echo -e "${GREEN}🤖 Backend SLAM:${NC} tmux attach -t slam_collab"
@@ -453,7 +453,7 @@ main() {
                 sleep 3
                 launch_backend
                 show_status
-                log "🎉 DIAMANTS V3 complet démarré !"
+                log "🎉 DIAMANTS complet démarré !"
                 ;;
             2)
                 setup_components

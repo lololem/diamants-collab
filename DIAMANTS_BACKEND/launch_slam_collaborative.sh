@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# 🚁 DIAMANTS V3 - Collaborative SLAM Launcher
+# 🚁 DIAMANTS - Collaborative SLAM Launcher
 # ============================================
 # Main launcher for collaborative SLAM system
 # Integrates frontend and backend communication
@@ -20,7 +20,7 @@ BACKEND_ROOT="$PROJECT_ROOT/DIAMANTS_BACKEND"
 SLAM_WS="$BACKEND_ROOT/slam_collaboratif/ros2_ws"
 FRONTEND_ROOT="$PROJECT_ROOT/DIAMANTS_FRONTEND/Mission_system"
 
-echo -e "${BLUE}🚁 DIAMANTS V3 - Collaborative SLAM System${NC}"
+echo -e "${BLUE}🚁 DIAMANTS - Collaborative SLAM System${NC}"
 echo -e "${BLUE}===========================================${NC}"
 
 # Clean any existing ROS2/Gazebo processes first (seulement si pas déjà fait)
