@@ -79,6 +79,15 @@ Extended capabilities showcasing various aspects of the DIAMANTS platform.
 - ✅ Emergent group behaviors
 - ✅ Scalable multi-drone coordination
 
+#### Stigmergy-Based Coordination Demo
+[![Watch Stigmergy Demo](https://img.youtube.com/vi/SyqeRwcbDO4/maxresdefault.jpg)](https://www.youtube.com/watch?v=SyqeRwcbDO4)
+
+**🧭 Stigmergy Features:**
+- ✅ Indirect coordination through environment
+- ✅ Pheromone-like trail mechanisms
+- ✅ Self-organizing pathfinding
+- ✅ Bio-inspired collective intelligence
+
 #### Real-time Mission Execution
 [![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
 
