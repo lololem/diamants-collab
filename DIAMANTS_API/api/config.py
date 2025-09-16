@@ -38,7 +38,7 @@ class Settings:
     log_file: str = "diamants_api.log"
     
     # Security (if needed)
-    secret_key: str = "diamants-secret-key-change-in-production"
+    secret_key: str = os.environ.get("DIAMANTS_SECRET_KEY", "your-secret-key-here")
     
     def __post_init__(self):
         """Charge les variables d'environnement"""

@@ -1,1 +1,0 @@
-cd /home/loic/Projects/AI_PROJECTS/DIAMANTS/DIAMANTS_FRONTEND/Mission_system && source ~/.nvm/nvm.sh && nvm use 16.15.0 && console-ninja npm run dev
