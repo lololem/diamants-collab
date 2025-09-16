@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Améliorateur de textures d'arbres
+ * DIAMANTS - Améliorateur de textures d'arbres
  * ===============================================
  * Système pour améliorer visuellement les textures et matériaux des arbres EZ-Tree
  */

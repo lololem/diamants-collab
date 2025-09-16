@@ -2,7 +2,7 @@
 <package format="3">
     <name>diamants_missions</name>
     <version>0.1.0</version>
-    <description>Mission system for DIAMANTS V3: scenario YAMLs and generic launch for ROS2/Gazebo.</description>
+    <description>Mission system for DIAMANTS: scenario YAMLs and generic launch for ROS2/Gazebo.</description>
     <maintainer email="maintainer@example.com">DIAMANTS Team</maintainer>
     <license>Apache-2.0</license>
 

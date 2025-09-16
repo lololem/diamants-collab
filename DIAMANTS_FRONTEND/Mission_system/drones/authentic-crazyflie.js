@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Crazyflie Authentique avec Modèles SDF
+ * DIAMANTS - Crazyflie Authentique avec Modèles SDF
  * ====================================================
  * Implémentation authentique basée sur les vraies spécifications SDF de DIAMANTS_FRONTEND
  * Utilise les vraies dimensions, masses et positions des moteurs

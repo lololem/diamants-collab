@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -22,7 +22,7 @@
 
 #!/usr/bin/env python3
 """
-Test simple du serveur web DIAMANTS V3
+Test simple du serveur web DIAMANTS
 ======================================
 Version simplifiée pour test sans ROS2
 """
@@ -47,7 +47,7 @@ templates_dir = current_dir / "templates"
 
 # Créer l'application FastAPI
 app = FastAPI(
-    title="🚁 DIAMANTS V3 Dashboard",
+    title="🚁 DIAMANTS Dashboard",
     description="Interface web pour contrôle essaim de drones",
     version="1.0.0"
 )
@@ -75,9 +75,9 @@ async def dashboard(request: Request):
     else:
         return HTMLResponse("""
         <html>
-            <head><title>DIAMANTS V3 Test</title></head>
+            <head><title>DIAMANTS Test</title></head>
             <body>
-                <h1>🚁 DIAMANTS V3 Dashboard Test</h1>
+                <h1>🚁 DIAMANTS Dashboard Test</h1>
                 <p>Serveur web démarré avec succès!</p>
                 <p>Chemin actuel: {}</p>
                 <p>Static dir: {}</p>
@@ -91,7 +91,7 @@ async def api_status():
     """API status pour test"""
     return {
         "status": "running",
-        "service": "DIAMANTS V3 Web Interface",
+        "service": "DIAMANTS Web Interface",
         "version": "1.0.0",
         "paths": {
             "current": str(current_dir),
@@ -114,10 +114,10 @@ async def swarm_status():
 @app.get("/test")
 async def test_page():
     """Page de test simple"""
-    return {"message": "DIAMANTS V3 Web Interface Test OK! 🚁💎"}
+    return {"message": "DIAMANTS Web Interface Test OK! 🚁💎"}
 
 if __name__ == "__main__":
-    print(f"🚀 Démarrage serveur web DIAMANTS V3")
+    print(f"🚀 Démarrage serveur web DIAMANTS")
     print(f"📂 Répertoire courant: {current_dir}")
     print(f"🎨 Static: {static_dir}")
     print(f"📄 Templates: {templates_dir}")

@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Intelligence Comportementale Collective
+ * DIAMANTS - Intelligence Comportementale Collective
  * ===================================================
  * Système d'intelligence distribué basé sur les formules DIAMANTS
  */

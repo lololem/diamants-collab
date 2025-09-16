@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - PID Controller
+ * DIAMANTS - PID Controller
  * ============================
  * A standard PID (Proportional-Integral-Derivative) controller.
  * Used for stabilizing drone attitude (roll, pitch, yaw) and altitude.

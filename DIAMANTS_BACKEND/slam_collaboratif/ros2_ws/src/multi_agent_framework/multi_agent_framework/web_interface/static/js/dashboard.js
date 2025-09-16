@@ -1,5 +1,5 @@
 /*
- * DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+ * DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
  * 
  * Copyright (c) 2025 DIAMANTS Project Contributors
  * 
@@ -23,7 +23,7 @@
  */
 
 /**
- * DIAMANTS V3 Dashboard Controller
+ * DIAMANTS Dashboard Controller
  * ================================
  * Contrôleur principal du dashboard web
  */
@@ -167,7 +167,7 @@ class DiamantDashboard {
             container.innerHTML = `
                 <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: linear-gradient(45deg, #0d1b2a, #1b263b); color: #90e0ef; text-align: center;">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">💎</div>
-                    <h3>Visualisation DIAMANTS V3</h3>
+                    <h3>Visualisation DIAMANTS</h3>
                     <p style="margin: 1rem 0; opacity: 0.8;">Chargement des formules authentiques...</p>
                     <div class="loading-spinner" style="margin-top: 1rem;"></div>
                 </div>

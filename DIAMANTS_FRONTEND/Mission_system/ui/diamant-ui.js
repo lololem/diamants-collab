@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Interface Utilisateur Complète
+ * DIAMANTS - Interface Utilisateur Complète
  * ============================================
  * Interface ROS2/Gazebo style avec contrôles DIAMANTS
  */
@@ -43,7 +43,7 @@ export class DiamantUI {
             this.setupBasicEventHandlers();
 
             this.isInitialized = true;
-            log('🎨 Interface DIAMANTS V3 initialisée');
+            log('🎨 Interface DIAMANTS initialisée');
         } catch (error) {
             error('❌ Erreur lors de l\'initialisation UI:', error);
             this.createFallbackInterface();
@@ -78,7 +78,7 @@ export class DiamantUI {
         `;
 
         overlayUI.innerHTML = `
-            <h3>🚁 DIAMANTS V3 Control</h3>
+            <h3>🚁 DIAMANTS Control</h3>
             
             <div id="system-metrics">
                 <div>Status: <span id="sim-status">Active</span></div>
@@ -190,7 +190,7 @@ export class DiamantUI {
             border-radius: 5px;
             z-index: 200;
         `;
-        fallback.textContent = 'UI simplifiée - DIAMANTS V3 actif';
+        fallback.textContent = 'UI simplifiée - DIAMANTS actif';
         document.body.appendChild(fallback);
     }
 
@@ -611,7 +611,7 @@ export class DiamantUI {
 
         mainUI.innerHTML = `
             <div class="ui-header">
-                <h2>🚁 DIAMANTS V3 - Intelligence Collective</h2>
+                <h2>🚁 DIAMANTS - Intelligence Collective</h2>
                 <div class="system-status" id="system-status">
                     <span class="status-indicator" id="status-indicator">●</span>
                     <span id="status-text">Initialisation...</span>

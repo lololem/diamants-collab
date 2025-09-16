@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -22,7 +22,7 @@
 
 #!/usr/bin/env python3
 """
-DIAMANTS V3 Web Server
+DIAMANTS Web Server
 =====================
 Serveur web FastAPI intégré pour interface utilisateur
 Compatible avec architecture ROS2 simplifiée
@@ -50,7 +50,7 @@ import uvicorn
 
 
 class DiamantWebServer(Node):
-    """Serveur web intégré pour DIAMANTS V3"""
+    """Serveur web intégré pour DIAMANTS"""
     
     def __init__(self, host: str = "localhost", port: int = 8080):
         super().__init__('diamant_web_server')
@@ -83,7 +83,7 @@ class DiamantWebServer(Node):
     def _create_app(self) -> FastAPI:
         """Créer application FastAPI"""
         app = FastAPI(
-            title="DIAMANTS V3 Web Interface",
+            title="DIAMANTS Web Interface",
             description="Interface web pour monitoring et contrôle des essaims",
             version="1.0.0"
         )
@@ -101,7 +101,7 @@ class DiamantWebServer(Node):
             """Page principale dashboard"""
             return templates.TemplateResponse("dashboard.html", {
                 "request": request,
-                "title": "DIAMANTS V3 Dashboard"
+                "title": "DIAMANTS Dashboard"
             })
         
         @app.get("/monitoring", response_class=HTMLResponse)
@@ -109,7 +109,7 @@ class DiamantWebServer(Node):
             """Page monitoring détaillé"""
             return templates.TemplateResponse("monitoring.html", {
                 "request": request,
-                "title": "DIAMANTS V3 Monitoring"
+                "title": "DIAMANTS Monitoring"
             })
         
         @app.get("/simulation", response_class=HTMLResponse)
@@ -117,7 +117,7 @@ class DiamantWebServer(Node):
             """Page simulation 3D"""
             return templates.TemplateResponse("simulation.html", {
                 "request": request,
-                "title": "DIAMANTS V3 Simulation"
+                "title": "DIAMANTS Simulation"
             })
         
         # API REST

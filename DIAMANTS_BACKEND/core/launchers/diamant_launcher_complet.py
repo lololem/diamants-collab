@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -22,7 +22,7 @@
 
 #!/usr/bin/env python3
 """
-DIAMANTS V3 - Launcher Intégré Complet
+DIAMANTS - Launcher Intégré Complet
 =====================================
 Lance Gazebo + RViz + Interface Web de manière coordonnée
 """
@@ -37,7 +37,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 class DiamantLauncher:
-    """Launcher intégré pour DIAMANTS V3"""
+    """Launcher intégré pour DIAMANTS"""
     
     def __init__(self):
     # Resolve repository root dynamically (…/ROS-GZ)
@@ -50,7 +50,7 @@ class DiamantLauncher:
         self.env = os.environ.copy()
         self.setup_environment()
         
-        print("🚀 DIAMANTS V3 Launcher Intégré")
+        print("🚀 DIAMANTS Launcher Intégré")
         print(f"📁 Workspace: {self.ros2_ws}")
     
     def setup_environment(self):
@@ -271,7 +271,7 @@ class DiamantLauncher:
     def launch_full_system(self):
         """Lancer système complet"""
         print("\n" + "="*60)
-        print("🚀 LANCEMENT SYSTÈME DIAMANTS V3 COMPLET")
+        print("🚀 LANCEMENT SYSTÈME DIAMANTS COMPLET")
         print("="*60)
         
         # 1. Vérifications préliminaires
@@ -308,7 +308,7 @@ class DiamantLauncher:
         
         # 8. Informations finales
         print("\n" + "="*60)
-        print("✅ SYSTÈME DIAMANTS V3 DÉMARRÉ")
+        print("✅ SYSTÈME DIAMANTS DÉMARRÉ")
         print("="*60)
         print(f"🌍 Gazebo: {'✅ Actif' if gazebo_process else '❌ Inactif'}")
         print(f"📊 RViz: {'✅ Actif' if rviz_process else '❌ Inactif'}")
@@ -323,7 +323,7 @@ class DiamantLauncher:
     
     def shutdown(self):
         """Arrêt propre du système"""
-        print("\n🛑 Arrêt système DIAMANTS V3...")
+        print("\n🛑 Arrêt système DIAMANTS...")
         
         self.running = False
         

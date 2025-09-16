@@ -1,10 +1,10 @@
 /**
- * DIAMANTS V3 - Point d'entrée principal avec Vite et EZ-Tree authentique
+ * DIAMANTS - Point d'entrée principal avec Vite et EZ-Tree authentique
  * =======================================================================
  */
 
 // LOGS DE TEST CONSOLE NINJA
-console.log('🚁 DIAMANTS V3 - Chargement du module principal');
+console.log('🚁 DIAMANTS - Chargement du module principal');
 console.log('📅 Date:', new Date().toISOString());
 console.log('🔧 User Agent:', navigator.userAgent);
 console.log('🌍 URL:', window.location.href);

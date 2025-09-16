@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -22,7 +22,7 @@
 
 #!/usr/bin/env python3
 """
-Mission de test DIAMANTS V3 - Visualisation Web
+Mission de test DIAMANTS - Visualisation Web
 ==============================================
 Crée des données de test pour valider l'interface web
 """

@@ -1,4 +1,4 @@
-# Mission Exploration Intelligente DIAMANTS V3
+# Mission Exploration Intelligente DIAMANTS
 # ============================================
 # Mission utilisant l'intelligence collective récupérée de V4
 # Coordiantion autonome et auto-organisation
@@ -6,7 +6,7 @@
 mission_name: "exploration_intelligente"
 description: "Mission d'exploration avec intelligence collective et auto-organisation"
 version: "1.0"
-author: "DIAMANTS V3 Team"
+author: "DIAMANTS Team"
 
 # === CONFIGURATION GLOBALE ===
 config:

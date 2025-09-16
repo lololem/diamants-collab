@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAMANTS V3 - Crazyflie Gazebo Simulation (Vrais Mesh)</title>
+    <title>DIAMANTS - Crazyflie Gazebo Simulation (Vrais Mesh)</title>
     <link rel="icon" href="data:,">
 
     <!-- CSS Anti-Split Forcé -->
@@ -348,7 +348,7 @@
 <body>
     <!-- Loading screen -->
     <div id="loading_screen" class="loading_status">
-        <h3>🚁 Chargement DIAMANTS V3 Gazebo</h3>
+        <h3>🚁 Chargement DIAMANTS Gazebo</h3>
         <p>Chargement des mesh Crazyflie...</p>
         <div id="loading_progress">0%</div>
     </div>
@@ -565,14 +565,14 @@
 
     <!-- Status Display -->
     <div id="status_display">
-        🚁 DIAMANTS V3 - Gazebo Style avec Mesh Réels<br>
+        🚁 DIAMANTS - Gazebo Style avec Mesh Réels<br>
         <span id="system_status">Initializing...</span>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
     <script>
-        // ===== DIAMANTS V3 - GAZEBO MESH AVEC ROS2 & INTELLIGENCE COLLECTIVE =====
+        // ===== DIAMANTS - GAZEBO MESH AVEC ROS2 & INTELLIGENCE COLLECTIVE =====
 
         // Vérification Three.js
         if (typeof THREE === 'undefined') {
@@ -2525,7 +2525,7 @@
                 { x: -0.031, y: -0.031, height: 0.0115, direction: 'cw' },  // Back-left
                 { x: 0.031, y: -0.031, height: 0.0115, direction: 'ccw' }   // Back-right
             ],
-            // Paramètres DIAMANTS V3
+            // Paramètres DIAMANTS
             magneticForce: 5.0,
             swarmRadius: 30,
             BOIDS: {
@@ -3170,7 +3170,7 @@
                 this.group = null;
                 this.labelSprite = null;
 
-                // ===== PROPRIÉTÉS DIAMANTS V3 COMPLÈTES =====
+                // ===== PROPRIÉTÉS DIAMANTS COMPLÈTES =====
                 this.phi = 0;           // Potentiel attractif φ
                 this.sigma = 0;         // Potentiel répulsif σ
                 this.gradient = new THREE.Vector3(0, 0, 0); // ∇(φ+σ)
@@ -3183,7 +3183,7 @@
                 this.scoutingEfficiency = 0.1;
                 this.collaborationScore = 0;
 
-                // Type de drone selon DIAMANTS V3
+                // Type de drone selon DIAMANTS
                 const droneTypes = [
                     { name: 'SCOUT', role: 'reconnaissance', size: 0.15, speed: 3.5, sensorRange: 8.0, color: 0x00FFAA },
                     { name: 'COORDINATOR', role: 'coordination', size: 0.18, speed: 3.0, sensorRange: 12.0, color: 0xFF6600 },
@@ -3192,7 +3192,7 @@
                 this.type = droneTypes[id % droneTypes.length];
                 this.typeName = this.type.name;
 
-                // Scouting boustrophédon selon DIAMANTS V3
+                // Scouting boustrophédon selon DIAMANTS
                 this.boustrophedonData = {
                     assigned: false,
                     row: -1,
@@ -4235,7 +4235,7 @@
             constructor(id, startPosition) {
                 super(id, startPosition);
 
-                // Scouting boustrophédon selon DIAMANTS V3
+                // Scouting boustrophédon selon DIAMANTS
                 this.boustrophedonData = {
                     assigned: false,
                     row: -1,
@@ -4624,7 +4624,7 @@
             }
 
             update(deltaTime, allDrones) {
-                // ===== CALCUL DIAMANTS V3 COMPLET =====
+                // ===== CALCUL DIAMANTS COMPLET =====
                 this.updateDIAMANTSAlgorithm(allDrones, deltaTime);
 
                 // États de vol avec physique réaliste  
@@ -4637,7 +4637,7 @@
             }
 
             updateDIAMANTSAlgorithm(allDrones, deltaTime = 0.016) {
-                // ===== CALCUL DIAMANTS V3 COMPLET (depuis victoire) =====
+                // ===== CALCUL DIAMANTS COMPLET (depuis victoire) =====
 
                 // 1. Calcul des potentiels φ (attractif) et σ (répulsif)
                 this.phi = 0;
@@ -4933,7 +4933,7 @@
                 }
             }
 
-            // === EXPLORATION FORCE DEPUIS DIAMANTS V3 ===
+            // === EXPLORATION FORCE DEPUIS DIAMANTS ===
             getExplorationForce(allDrones) {
                 // Pattern de recherche en essaim optimisé pour forêt dense
                 const pattern = SEARCH_PATTERNS ? SEARCH_PATTERNS[currentSearchPattern || 0] : 'grid';
@@ -5013,7 +5013,7 @@
                 return force;
             }
 
-            // === FORCE COLLABORATIVE DEPUIS DIAMANTS V3 ===
+            // === FORCE COLLABORATIVE DEPUIS DIAMANTS ===
             getCollaborativeScoutingForce(allDrones) {
                 const force = new THREE.Vector3();
                 const scoutingRange = 20;
@@ -5085,7 +5085,7 @@
                 return Math.ceil(Math.sqrt(totalDrones)) + 1;
             }
 
-            // === BOUSTROPHÉDON DEPUIS DIAMANTS V3 ===
+            // === BOUSTROPHÉDON DEPUIS DIAMANTS ===
             assignBoustrophedonSector() {
                 const totalRows = CONFIG.explorationGrid || 8;
                 this.boustrophedonData.row = this.id % totalRows;
@@ -7371,7 +7371,7 @@
                     initializeDrones();
                 }, 1000);
 
-                console.log('✅ DIAMANTS V3 simulation initialized successfully');
+                console.log('✅ DIAMANTS simulation initialized successfully');
             } catch (error) {
                 console.error('❌ Erreur lors de l\'initialisation:', error);
                 updateSystemStatus('❌ Erreur d\'initialisation');

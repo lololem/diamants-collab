@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Enhanced GLSL Grass Field with Quality Management
+ * DIAMANTS - Enhanced GLSL Grass Field with Quality Management
  * Version unifiée avec sélection dynamique de qualité
  */
 import * as THREE from 'three';

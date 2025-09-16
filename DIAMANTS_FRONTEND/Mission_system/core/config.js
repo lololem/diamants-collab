@@ -1,5 +1,5 @@
 /**
- * CONFIG - Configuration Système DIAMANTS V3
+ * CONFIG - Configuration Système DIAMANTS
  * Extrait et optimisé depuis SMA.html
  * 
  * Configuration centralisée pour performance et comportement réaliste
@@ -139,7 +139,7 @@ export const MESSAGE_TYPES = {
 
 // Validateur de configuration
 export function validateConfig() {
-    console.log('🔧 Validation configuration DIAMANTS V3...');
+    console.log('🔧 Validation configuration DIAMANTS...');
     
     const errors = [];
     

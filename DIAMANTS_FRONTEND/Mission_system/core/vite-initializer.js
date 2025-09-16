@@ -1,8 +1,8 @@
 /**
- * Alternative initializer for DIAMANTS V3 with Vite compatibility
+ * Alternative initializer for DIAMANTS with Vite compatibility
  */
 
-console.log('🚀 === DIAMANTS V3 VITE INITIALIZER ===');
+console.log('🚀 === DIAMANTS VITE INITIALIZER ===');
 
 // Import Three.js as module
 import * as THREE from 'three';

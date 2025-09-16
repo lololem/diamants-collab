@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Diagnostic Urgence Rendu et Meshes
+ * DIAMANTS - Diagnostic Urgence Rendu et Meshes
  * ================================================
  * Script pour résoudre les problèmes de scène vide et chargement meshes
  */
@@ -19,7 +19,7 @@ if (typeof error === 'undefined') {
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
 function diagnosticRenduUrgence() {
-    log('🚨 === DIAGNOSTIC URGENCE RENDU DIAMANTS V3 ===');
+    log('🚨 === DIAGNOSTIC URGENCE RENDU DIAMANTS ===');
     
     const diagnostics = {
         timestamp: new Date().toISOString(),
@@ -261,7 +261,7 @@ function creerUILogsVisible() {
         border-bottom: 1px solid #00ff00;
         padding-bottom: 5px;
     `;
-    header.textContent = '🎯 DIAMANTS V3 - Debug Logs';
+    header.textContent = '🎯 DIAMANTS - Debug Logs';
     
     // Zone de contenu des logs
     const logContent = document.createElement('div');

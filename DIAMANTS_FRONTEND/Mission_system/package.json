@@ -2,7 +2,7 @@
   "name": "diamants-mission-system-v1",
   "version": "1.0.0",
   "type": "module",
-  "description": "DIAMANTS V3 Mission System with EZ-Tree Integration",
+  "description": "DIAMANTS Mission System with EZ-Tree Integration",
   "main": "index.html",
   "directories": {
     "doc": "docs",

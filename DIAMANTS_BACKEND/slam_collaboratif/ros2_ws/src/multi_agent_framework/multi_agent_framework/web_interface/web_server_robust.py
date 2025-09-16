@@ -1,4 +1,4 @@
-# DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+# DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors
 # 
@@ -22,7 +22,7 @@
 
 #!/usr/bin/env python3
 """
-DIAMANTS V3 Web Server - Version Robuste
+DIAMANTS Web Server - Version Robuste
 ========================================
 Serveur web FastAPI avec intégration ROS2/Gazebo optionnelle
 Fonctionne en mode simulation si ROS2 n'est pas disponible
@@ -66,7 +66,7 @@ except ImportError:
 
 
 class DiamantWebServer(Node if ROS2_AVAILABLE else object):
-    """Serveur web DIAMANTS V3 avec intégration ROS2 optionnelle"""
+    """Serveur web DIAMANTS avec intégration ROS2 optionnelle"""
     
     def __init__(self, host: str = "0.0.0.0", port: int = 8080):
         if ROS2_AVAILABLE:
@@ -119,7 +119,7 @@ class DiamantWebServer(Node if ROS2_AVAILABLE else object):
     def setup_fastapi(self):
         """Configuration FastAPI"""
         self.app = FastAPI(
-            title="🚁 DIAMANTS V3 Dashboard",
+            title="🚁 DIAMANTS Dashboard",
             description="Interface web multi-agent SLAM avec Gazebo/RViz",
             version="1.0.0"
         )
@@ -525,7 +525,7 @@ class DiamantWebServer(Node if ROS2_AVAILABLE else object):
         <!DOCTYPE html>
         <html>
         <head>
-            <title>DIAMANTS V3 Dashboard</title>
+            <title>DIAMANTS Dashboard</title>
             <style>
                 body {{ font-family: Arial; background: #0d1b2a; color: #90e0ef; margin: 0; padding: 20px; }}
                 .header {{ text-align: center; margin-bottom: 30px; }}
@@ -535,7 +535,7 @@ class DiamantWebServer(Node if ROS2_AVAILABLE else object):
         </head>
         <body>
             <div class="header">
-                <h1>🚁 DIAMANTS V3 Dashboard</h1>
+                <h1>🚁 DIAMANTS Dashboard</h1>
                 <p>Interface Web Multi-Agent SLAM</p>
             </div>
             

@@ -1,5 +1,5 @@
 /**
- * DIAMANTS V3 - Drone Physics Simulation
+ * DIAMANTS - Drone Physics Simulation
  * ======================================
  * This class encapsulates the physics simulation for a single drone,
  * including aerodynamics, motor thrust, and PID-based stabilization.
