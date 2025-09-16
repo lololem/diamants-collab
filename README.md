@@ -17,7 +17,7 @@ See DIAMANTS in action! Watch our multi-drone collaborative system working seaml
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-[![Watch Live Demo](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
+[![Watch Backend Demo](https://img.youtube.com/vi/iYg9Jf1jv4Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=iYg9Jf1jv4Y)
 
 **🤖 Backend Features Showcase:**
 - ✅ 8 Crazyflie drones in Gazebo simulation
@@ -30,7 +30,7 @@ Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featu
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
 #### Frontend Interface Overview
-[![Watch Frontend Demo](https://img.youtube.com/vi/OZpGvoj5XEs/maxresdefault.jpg)](https://youtube.com/shorts/OZpGvoj5XEs?feature=share)
+[![Watch Frontend Demo](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
 
 **🌐 Frontend Features Showcase:**
 - ✅ Three.js + WebGL real-time 3D visualization
@@ -52,11 +52,23 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 ### 🚁 Additional System Features
 Extended capabilities showcasing various aspects of the DIAMANTS platform.
 
-#### Multi-Agent Coordination
-[![Demo 1](https://img.shields.io/badge/▶️%20Watch%20Multi%20Agent%20Demo-green?style=for-the-badge)](./DEMO/video/Other1.mp4)
+#### Multi-Agent Systems (SMA) Demo
+[![Watch SMA Demo](https://img.youtube.com/vi/1Av_o-9fzrE/maxresdefault.jpg)](https://www.youtube.com/watch?v=1Av_o-9fzrE)
 
-#### Swarm Intelligence Behaviors
-[![Demo 2](https://img.shields.io/badge/▶️%20Watch%20Swarm%20Intelligence-green?style=for-the-badge)](./DEMO/video/Other2.mp4)
+**🤖 SMA Features:**
+- ✅ Distributed agent coordination
+- ✅ Emergent swarm behaviors
+- ✅ Real-time multi-agent communication
+- ✅ Collective decision making
+
+#### Gradient-Based Navigation Demo
+[![Watch Gradient Demo](https://img.youtube.com/vi/ElABxOde6ak/maxresdefault.jpg)](https://www.youtube.com/watch?v=ElABxOde6ak)
+
+**🎯 Gradient Navigation Features:**
+- ✅ Gradient-based path planning
+- ✅ Obstacle avoidance algorithms
+- ✅ Dynamic field navigation
+- ✅ Smooth trajectory optimization
 
 #### Real-time Mission Execution
 [![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
