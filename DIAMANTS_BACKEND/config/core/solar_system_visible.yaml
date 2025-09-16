@@ -1,0 +1,215 @@
+# Configuration du système solaire - DIAMANTS V3 - ÉCHELLE VISIBLE
+# ===========================================
+# Fichier de configuration centralisé pour le système solaire
+# DISTANCES RÉDUITES À 0.001 POUR MOUVEMENT ULTRA-VISIBLE !
+
+# Configuration générale
+general:
+  # Facteur d'accélération temporelle pour mouvement TRÈS visible
+  # Augmenté à 2 milliards pour mouvement rapide et visible
+  # Facteur ~700x plus élevé pour atteindre 1 m/s de vitesse visible
+  time_acceleration: 2000000000.0
+
+  # Echelle des distances (0.001 = 1/1000ème pour mouvement ULTRA visible)
+  # Réduction drastique pour voir les planètes bouger rapidement
+  distance_scale: 0.001
+
+  # Pas de temps très réduit pour stabilité avec accélération ultra-élevée
+  dt: 0.00001
+
+  # Facteur d'amplification des forces pour Gazebo (ajusté pour accélération 2e9)
+  gazebo_scale: 2000000000.0
+
+  # Facteur d'amplification des vitesses pour mouvement visible
+  velocity_scale: 1.0
+
+# Configuration physique
+physics:
+  # Constante gravitationnelle (m³/kg/s²)
+  G: 6.67430e-11
+
+  # Produit gravitationnel du Soleil (m³/s²)
+  GM_SUN: 1.32712440018e20
+
+  # Softening gravitationnel (évite singularités)
+  softening: 1e-9
+
+  # Méthode d'intégration (LEAPFROG pour correspondre au code)
+  integration_method: "LEAPFROG"
+
+  # Moteur gravitationnel par défaut (LEAPFROG pour correspondre au code)
+  default_engine: "LEAPFROG"
+
+  # Précision numérique (nombre d'itérations)
+  numerical_precision: 50
+
+# Configuration des corps célestes
+# DISTANCES RÉDUITES À L'ÉCHELLE 0.001 POUR MOUVEMENT VISIBLE !
+celestial_bodies:
+  sun:
+    name: "sun"
+    mass: 1.989e30 # Masse réelle du Soleil en kg
+    position: [0.0, 0.0, 0.0]
+    velocity: [0.0, 0.0, 0.0]
+    radius: 100.0
+    static: false # Inclure dans les calculs gravitationnels
+
+  mercury:
+    name: "mercury"
+    mass: 3.301e23 # Masse réelle de Mercure en kg
+    position: [57900.0, 0.0, 0.0] # 5.79e10 * 0.001 = 57.9 km (VISIBLE!)
+    velocity: [0.0, 47400.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 0.38
+    static: false
+    inclination: 7.0 # degrés
+    eccentricity: 0.206
+    longitude_ascending_node: 48.3
+
+  venus:
+    name: "venus"
+    mass: 4.867e24 # Masse réelle de Vénus en kg
+    position: [108000.0, 0.0, 0.0] # 1.08e11 * 0.001 = 108 km (VISIBLE!)
+    velocity: [0.0, 35000.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 0.95
+    static: false
+    inclination: 3.4
+    eccentricity: 0.007
+    longitude_ascending_node: 76.7
+
+  earth:
+    name: "earth"
+    mass: 5.972e24 # Masse réelle de la Terre en kg
+    position: [149600.0, 0.0, 0.0] # 1.496e11 * 0.001 = 149.6 km (VISIBLE!)
+    velocity: [0.0, 29800.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 1.0
+    static: false
+    inclination: 0.0
+    eccentricity: 0.017
+    longitude_ascending_node: 0.0
+
+  mars:
+    name: "mars"
+    mass: 6.417e23 # Masse réelle de Mars en kg
+    position: [228000.0, 0.0, 0.0] # 2.28e11 * 0.001 = 228 km (VISIBLE!)
+    velocity: [0.0, 24100.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 0.53
+    static: false
+    inclination: 1.9
+    eccentricity: 0.094
+    longitude_ascending_node: 49.6
+
+  jupiter:
+    name: "jupiter"
+    mass: 1.898e27 # Masse réelle de Jupiter en kg
+    position: [778500.0, 0.0, 0.0] # 7.785e11 * 0.001 = 778.5 km (VISIBLE!)
+    velocity: [0.0, 13100.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 11.21
+    static: false
+    inclination: 1.3
+    eccentricity: 0.049
+    longitude_ascending_node: 100.5
+
+  saturn:
+    name: "saturn"
+    mass: 5.683e26 # Masse réelle de Saturne en kg
+    position: [1432000.0, 0.0, 0.0] # 1.432e12 * 0.001 = 1432 km (VISIBLE!)
+    velocity: [0.0, 9700.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 9.45
+    static: false
+    inclination: 2.5
+    eccentricity: 0.057
+    longitude_ascending_node: 113.7
+
+  uranus:
+    name: "uranus"
+    mass: 8.681e25 # Masse réelle d'Uranus en kg
+    position: [2867000.0, 0.0, 0.0] # 2.867e12 * 0.001 = 2867 km (VISIBLE!)
+    velocity: [0.0, 6800.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 4.01
+    static: false
+    inclination: 0.8
+    eccentricity: 0.046
+    longitude_ascending_node: 74.0
+
+  neptune:
+    name: "neptune"
+    mass: 1.024e26 # Masse réelle de Neptune en kg
+    position: [4515000.0, 0.0, 0.0] # 4.515e12 * 0.001 = 4515 km (VISIBLE!)
+    velocity: [0.0, 5400.0, 0.0] # Vitesse réelle * velocity_scale
+    radius: 3.88
+    static: false
+    inclination: 1.8
+    eccentricity: 0.009
+    longitude_ascending_node: 131.8
+
+# Configuration du visualiseur d'orbites
+visualization:
+  # Couleurs des planètes (RGB)
+  colors:
+    mercury: [255, 165, 0] # Orange
+    venus: [255, 215, 0] # Or
+    earth: [0, 100, 255] # Bleu
+    mars: [255, 69, 0] # Rouge
+    jupiter: [255, 140, 0] # Orange foncé
+    saturn: [255, 215, 0] # Jaune
+    uranus: [64, 224, 208] # Turquoise
+    neptune: [0, 0, 255] # Bleu foncé
+
+  # Paramètres des orbites
+  orbit_segments: 100 # Nombre de segments pour les ellipses
+  orbit_alpha: 0.5 # Transparence des orbites
+  marker_scale: [2.0, 2.0, 2.0] # Échelle des marqueurs
+
+# Configuration Gazebo
+gazebo:
+  # Nom du monde Gazebo
+  world_name: "solar_system_diamants"
+
+  # Plugin de physique
+  physics_plugin: "gz-physics-bullet-featherstone-plugin"
+
+  # Paramètres de simulation
+  max_step_size: 0.001
+  real_time_factor: 1.0
+  real_time_update_rate: 1000
+
+# Configuration ROS2
+ros2:
+  # Domaine ROS2
+  domain_id: 42
+
+  # Topics de force
+  force_topic_template: "/apply_force_{}"
+
+  # Services
+  apply_wrench_service: "/apply_link_wrench"
+
+  # Namespaces
+  physics_namespace: "/physics"
+  visualization_namespace: "/visualization"
+
+# Configuration des logs
+logging:
+  # Niveau de log (DEBUG, INFO, WARNING, ERROR)
+  level: "INFO"
+
+  # Fichiers de log
+  physics_log: "/tmp/gravity_engine.log"
+  bridge_log: "/tmp/gazebo_bridge.log"
+  visualization_log: "/tmp/orbit_visualizer.log"
+
+  # Rotation des logs
+  max_file_size: "10MB"
+  backup_count: 5
+
+# Configuration des tests
+testing:
+  # Durée des tests (secondes)
+  test_duration: 60
+
+  # Seuils de validation
+  min_movement_threshold: 0.1 # mètres
+  max_energy_drift: 0.01 # pourcentage
+
+  # Fréquence des vérifications
+  check_frequency: 10 # Hz

@@ -1,0 +1,76 @@
+# === CONFIGURATION SLAM COLLABORATIF - 4 DRONES ===
+# Configuration optimisée pour simulation avec 4 drones Crazyflie
+# Paramètres équilibrés entre performance et précision pour environnement simulé
+# Auteur: Projet DIAMANTS, 2025
+
+# Configuration de l'essaim
+swarm:
+  robot_prefixes: ['crazyflie', 'crazyflie1', 'crazyflie2', 'crazyflie3']  # Identifiants des drones
+  max_robots: 4              # Limite maximale de robots dans l'essaim
+  use_sim_time: true         # Utiliser le temps de simulation Gazebo
+
+# === SYSTÈME DE PHÉROMONES NUMÉRIQUES ===
+# Simulation de la stigmergie pour persistance des découvertes
+pheromones:
+  increment: 10              # Ajout de phéromones sur nouvelle découverte (+10)
+  decrement: 3              # Réduction lors de contradiction (-3) 
+  evaporation: 0.2          # Évaporation naturelle (20% par cycle)
+  max_value: 80             # Saturation maximale des phéromones
+  min_value: 0              # Seuil minimal (en dessous = oubli)
+  obstacle_bonus: 8         # Bonus pour détection d'obstacles (+8)
+  free_penalty: 15          # Pénalité pour contradiction espace libre (-15)
+
+# === STABILITÉ ET VALIDATION ===
+# Mécanismes pour éviter les oscillations et faux-positifs
+stability:
+  state_change_max: 15       # Changements max par cellule avant stabilisation
+  min_cluster_size: 2        # Taille minimale des clusters d'obstacles
+  observation_threshold: 5   # Seuil d'observations avant validation
+
+# === MORPHOLOGIE MATHÉMATIQUE ===
+# Filtrage par opérations morphologiques pour nettoyer la carte
+morphology:
+  enable: true               # Activer le filtrage morphologique
+  kernel_size: 3            # Taille du noyau de convolution (3x3)
+  iterations: 1             # Nombre d'itérations de filtrage
+  erosion_threshold: 50     # Seuil pour opération d'érosion
+
+# === LISSAGE TEMPOREL ===
+# Moyennage sur plusieurs cycles pour stabilité
+temporal:
+  smoothing_window: 3        # Fenêtre de lissage (3 derniers cycles)
+  fusion_history: 5         # Historique des fusions conservé
+  stability_window: 2       # Fenêtre pour analyse de stabilité
+
+# === POIDS DE FUSION ===
+# Pondération des différentes approches de fusion
+fusion_weights:
+  merged: 0.5               # Poids de la carte principale (50%)
+  validated: 0.3            # Poids des données validées (30%)
+  consensus: 0.15           # Poids du consensus multi-robots (15%)
+  union: 0.05               # Poids de l'union simple (5%)
+
+# === FILTRES AVANCÉS ===
+# Activations des différents systèmes de filtrage
+filters:
+  use_kalman: false         # Filtrage de Kalman (désactivé pour simulation légère)
+  use_fusion: true          # Fusion bayésienne activée
+  anti_false_positive: true # Protection contre les faux-positifs
+
+# === CONSENSUS MULTI-ROBOTS ===
+# Paramètres pour validation collaborative
+consensus:
+  min_robots: 2             # Minimum 2 robots pour consensus
+  tolerance: 0.3            # Tolérance spatiale (30cm)
+
+# === PERFORMANCE ===
+# Limitations pour optimisation du système
+performance:
+  max_update_rate: 5.0      # Fréquence maximale de mise à jour (5Hz)
+  memory_limit_mb: 256      # Limite mémoire par processus (256MB)
+  parallel_processing: false
+
+logging:
+  enable_csv: false  # Désactivé pour simulation
+  debug_level: "info"
+  log_frequency: 20

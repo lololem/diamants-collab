@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DIAMANTS V3 — Physics Smoke Test</title>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.167.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.167.0/examples/jsm/"
+      }
+    }
+  </script>
+  <style>html,body{margin:0;height:100%;background:#0b1220;color:#cfe9ff;font-family:system-ui}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { AuthenticCrazyflie } from '../drones/authentic-crazyflie.js';
+    window.THREE = THREE;
+
+    const app = document.getElementById('app');
+    const r = new THREE.WebGLRenderer({ antialias:true });
+    r.setSize(window.innerWidth, window.innerHeight);
+    r.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    app.appendChild(r.domElement);
+    const scene = new THREE.Scene();
+    const cam = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+    cam.position.set(6,4,6);
+    const controls = new OrbitControls(cam, r.domElement); controls.target.set(0,1.5,0); controls.update();
+    scene.add(new THREE.AmbientLight(0x334466, 0.8));
+    const sun = new THREE.DirectionalLight(0xdbeafe, 0.9); sun.position.set(10,15,8); scene.add(sun);
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(40,40), new THREE.MeshStandardMaterial({color:0x19324a, roughness:0.95}));
+    g.rotation.x = -Math.PI/2; g.receiveShadow = true; scene.add(g);
+
+  const drone = new AuthenticCrazyflie({ id: 'phys_cf', position: {x:0,y:0.05,z:0}, scene });
+  // Drive motion via the built-in state machine: stay IDLE, set a higher target altitude
+  drone.targetAltitude = 2.0;
+  // Let updateMission() transition IDLE -> TAKEOFF and set targetPosition.y automatically
+
+    const clock = new THREE.Clock();
+    function loop(){
+      const dt = clock.getDelta();
+  // Let the internal controller/mixer handle thrust toward targetAltitude
+  drone.update(dt, [], [], null);
+      controls.update();
+      r.render(scene, cam);
+      requestAnimationFrame(loop);
+    }
+    loop();
+
+    addEventListener('resize', ()=>{ cam.aspect = innerWidth/innerHeight; cam.updateProjectionMatrix(); r.setSize(innerWidth, innerHeight); });
+  </script>
+</body>
+</html>

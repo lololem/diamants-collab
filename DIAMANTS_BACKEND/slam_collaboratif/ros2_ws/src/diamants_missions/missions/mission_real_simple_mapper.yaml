@@ -1,0 +1,8 @@
+# Real hardware mission using Crazyswarm2 backend + simple mapper
+
+includes:
+  - package: crazyflie_ros2_multiranger_bringup
+    launch_file: simple_mapper_real.launch.py
+
+# Additional nodes can be appended or overridden here if needed
+nodes: []

@@ -1,0 +1,88 @@
+# Configuration ULTRA-ROBUSTE pour fusion de cartes multi-drones
+# Garantit un rendu EXACT entre Gazebo et RViz
+# Anti-faux positifs MAXIMUM, suppression fiable, alignement parfait
+
+/**:
+  ros__parameters:
+    # Configuration essaim
+    swarm:
+      robot_prefixes: "crazyflie,crazyflie1,crazyflie2,crazyflie3,crazyflie4,crazyflie5,crazyflie6,crazyflie7"
+      max_robots: 8
+      use_sim_time: true
+
+    # ZONES D'OR ULTRA-STRICTES
+    golden_zones:
+      enable: true
+      
+      # SEUILS ULTRA-STRICTS
+      creation_threshold: 3          # 3+ drones MINIMUM pour créer
+      validation_threshold: 4        # 4+ drones pour validation
+      disappear_threshold: 5         # 5+ drones pour supprimer (très strict)
+      
+      # TIMEOUTS LONGS pour stabilité maximale
+      creation_timeout: 30.0         # 30s de stabilité pour création
+      consensus_timeout: 600.0       # 10min pour zones consensus
+      validated_timeout: 1200.0      # 20min pour zones validées
+      
+      # CONFIANCE ULTRA-ÉLEVÉE
+      min_confidence: 0.8            # 80% minimum
+      validation_confidence: 0.9     # 90% pour validation
+      
+      # ANTI-FAUX POSITIFS
+      suppression_cooldown: 60.0     # 1min de cooldown suppression
+      golden_cell_value: 75          # Valeur zones d'or (orange RViz)
+  consensus_timeout: 600.0       # 10min pour consensus
+  validated_timeout: 1200.0      # 20min pour zones validées
+  
+  # CONFIANCE ÉLEVÉE
+  min_confidence: 0.8           # Confiance minimum 80%
+  validation_confidence: 0.9    # Confiance validation 90%
+  
+  # VISUALISATION
+  golden_cell_value: 75
+  topic_golden_zones: '/map_golden_zones'
+
+# Stigmergie ÉQUILIBRÉE
+pheromones:
+  increment: 15
+  evaporation: 0.3
+  max_value: 100
+  min_value: 0
+
+# Consensus STRICT
+consensus:
+  min_robots: 3              # 3+ robots minimum pour consensus
+  tolerance: 0.6             # 60% de tolérance
+
+# Fusion pondérée ÉQUILIBRÉE
+fusion_weights:
+  stigmergy: 0.4            # Poids stigmergie
+  consensus: 0.3            # Poids consensus
+  union: 0.2                # Poids union
+  coverage: 0.1             # Poids couverture
+
+# Lissage temporel MODÉRÉ
+temporal:
+  smoothing_window: 5
+
+# Topics ROS2
+topics:
+  input_maps: '/map'
+  output_merged: 'map_merged'
+  output_weighted: 'map_fusion_weighted'
+  output_coverage_image: 'coverage_image'
+
+# Configuration simulation et visualisation
+simulation:
+  gazebo_world: 'crazyflie_simulation_multi_crazy.launch.py'
+  enable_physics: true
+
+visualization:
+  rviz_config: 'ultra_robust_sim_mapping.rviz'
+
+# Logging et debug
+logging:
+  debug_level: 'info'
+  log_frequency: 10
+  enable_csv: false
+  csv_path: '/tmp'

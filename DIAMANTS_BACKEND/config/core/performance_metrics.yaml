@@ -1,0 +1,44 @@
+# Performance Metrics for DIAMANTS V3 Universe
+# Métriques de performance pour évaluation système
+
+system_performance:
+  cpu_metrics:
+    target_usage: 50 # % max target
+    warning_threshold: 80 # %
+    critical_threshold: 95 # %
+
+  memory_metrics:
+    target_usage: 60 # % max target
+    warning_threshold: 85 # %
+    critical_threshold: 95 # %
+
+  network_metrics:
+    max_latency: 100 # ms
+    min_bandwidth: 10 # Mbps
+    packet_loss_threshold: 1 # %
+
+agent_performance:
+  navigation:
+    target_speed: 1.5 # m/s
+    precision_radius: 0.1 # m
+    path_efficiency: 0.8 # ratio
+
+  exploration:
+    coverage_rate: 0.7 # ratio per minute
+    map_quality_score: 0.85 # min quality
+    discovery_efficiency: 0.6 # new areas/time
+
+  coordination:
+    formation_accuracy: 0.9 # position accuracy
+    communication_success: 0.95 # message delivery rate
+    collision_avoidance: 1.0 # must be perfect
+
+mission_metrics:
+  completion_rate: 0.9 # minimum acceptable
+  time_efficiency: 0.8 # compared to baseline
+  resource_efficiency: 0.7 # energy/computation
+
+quality_metrics:
+  uptime_target: 0.99 # 99% uptime
+  error_rate_max: 0.05 # 5% max error rate
+  recovery_time_max: 30 # seconds

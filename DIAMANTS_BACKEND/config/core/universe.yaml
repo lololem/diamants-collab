@@ -1,0 +1,167 @@
+# Configuration Univers DIAMANTS V3
+# Fichier de configuration principal pour l'orchestration des agents
+
+universe:
+  name: "DIAMANTS_BACKEND_Universe"
+  version: "1.0.0"
+  environment: "development"
+
+  # Configuration du noyau
+  core:
+    orchestrator:
+      enabled: true
+      max_agents: 64
+      heartbeat_interval: 5.0
+      coordination_frequency: 10.0
+
+    state_manager:
+      persistence: true
+      backup_interval: 300
+      state_file: "/tmp/diamants_universe_state.json"
+
+    universe_manager:
+      auto_scaling: true
+      resource_monitoring: true
+      fault_tolerance: true
+
+  # Configuration des agents
+  agents:
+    default_behavior: "exploration"
+    max_instances_per_type: 16
+
+    strategic:
+      enabled: true
+      decision_frequency: 2.0
+      planning_horizon: 300
+
+    tactical:
+      enabled: true
+      reaction_time: 0.5
+      adaptation_rate: 0.1
+
+    operational:
+      enabled: true
+      execution_frequency: 20.0
+      precision_threshold: 0.05
+
+  # Configuration simulation
+  simulation:
+    physics_engine: "gazebo"
+    time_step: 0.001
+    real_time_factor: 1.0
+
+    worlds:
+      default: "crazyflie_multi_world"
+      available:
+        - "crazyflie_multi_world"
+        - "forest_environment"
+        - "urban_scenario"
+        - "warehouse_mapping"
+
+    scenarios:
+      default: "basic_swarm_exploration"
+      available:
+        - "basic_swarm_exploration"
+        - "collaborative_mapping"
+        - "search_and_rescue"
+        - "formation_flight"
+
+  # Configuration coordination
+  coordination:
+    protocol: "ros2_dds"
+    consensus_algorithm: "raft"
+
+    communication:
+      topic_prefix: "/diamants_universe"
+      qos_profile: "reliable"
+      compression: true
+
+    synchronization:
+      global_clock: true
+      time_sync_tolerance: 0.01
+
+  # Configuration environnements
+  environments:
+    development:
+      debug_mode: true
+      logging_level: "DEBUG"
+      telemetry_enabled: true
+
+    testing:
+      debug_mode: false
+      logging_level: "INFO"
+      test_suite_enabled: true
+
+    production:
+      debug_mode: false
+      logging_level: "WARN"
+      performance_monitoring: true
+
+  # Configuration monitoring
+  monitoring:
+    enabled: true
+    metrics_port: 8080
+    dashboard_port: 3000
+
+    metrics:
+      - "agent_performance"
+      - "system_resources"
+      - "communication_latency"
+      - "mission_progress"
+
+    alerts:
+      enabled: true
+      thresholds:
+        cpu_usage: 80
+        memory_usage: 85
+        network_latency: 100
+
+  # Configuration sécurité
+  security:
+    authentication: true
+    encryption: "AES256"
+    access_control: "RBAC"
+
+    certificates:
+      ca_cert: "/etc/diamants/ca.crt"
+      server_cert: "/etc/diamants/server.crt"
+      server_key: "/etc/diamants/server.key"
+
+# Configuration ROS2 spécifique
+ros2:
+  domain_id: 42
+  middleware: "fastdds"
+
+  qos_profiles:
+    reliable:
+      reliability: "RELIABLE"
+      durability: "TRANSIENT_LOCAL"
+      history: "KEEP_LAST"
+      depth: 10
+
+    best_effort:
+      reliability: "BEST_EFFORT"
+      durability: "VOLATILE"
+      history: "KEEP_LAST"
+      depth: 1
+
+# Configuration intégration DIAMANTS V3
+integration:
+  slam_collaborative:
+    enabled: true
+    map_merger: true
+    publishers: 8
+
+  gazebo:
+    enabled: true
+    gui: true
+    world_file: "crazyflie_multi_world.sdf"
+
+  rviz:
+    enabled: true
+    config_file: "multi_mapping.rviz"
+
+  framework_multi_agent:
+    enabled: true
+    coordinator: "intelligent_coordinator"
+    agents_count: 8

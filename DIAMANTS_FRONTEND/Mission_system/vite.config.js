@@ -1,0 +1,43 @@
+import { defineConfig } from 'vite';
+import path from 'path';
+
+// Use a user-writable cache directory under HOME to avoid EACCES
+const home = process.env.HOME || process.env.USERPROFILE || process.cwd();
+const userCacheDir = path.resolve(home, '.cache/vite/diamants-mission-v1');
+
+export default defineConfig({
+  root: '.',
+  cacheDir: userCacheDir,
+  publicDir: 'public',
+  resolve: {
+    alias: {
+  // Use the prebuilt ES module bundle to avoid JSON import issues
+  '@ez-tree': path.resolve(__dirname, 'third-party/ez-tree/build/ez-tree.es.js'),
+  '@dgreenheck/ez-tree': path.resolve(__dirname, 'third-party/ez-tree/build/ez-tree.es.js'),
+  '@ez-tree-app': path.resolve(__dirname, 'third-party/ez-tree/src/app'),
+      '@': path.resolve(__dirname, './'),
+    },
+  },
+  server: {
+  port: 5550,
+    host: true,
+    hmr: true,
+  open: '/index.html',
+  // Laisser Vite choisir un autre port si le 5550 est occupé
+  strictPort: false
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: true,
+    rollupOptions: {
+      input: {
+  main: path.resolve(__dirname, 'index.html'),
+  sampleIndex: path.resolve(__dirname, 'sample/index.html'),
+  sampleSMA: path.resolve(__dirname, 'sample/SMA.html'),
+  // Use lowercase filename to match Linux filesystem
+  sampleCrazyflie: path.resolve(__dirname, 'sample/crazyflie.html')
+      }
+    }
+  },
+  assetsInclude: ['**/*.frag', '**/*.vert', '**/*.json', '**/*.glb', '**/*.gltf', '**/*.jpg', '**/*.png']
+});

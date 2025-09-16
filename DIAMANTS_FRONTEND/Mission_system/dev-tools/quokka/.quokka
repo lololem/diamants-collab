@@ -1,0 +1,8 @@
+{
+  "babel": false,
+  "typescript": false,
+  "env": {
+    "type": "node",
+    "runner": "node"
+  }
+}

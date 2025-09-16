@@ -1,0 +1,25 @@
+#!/bin/bash
+# Script Console Ninja pour DIAMANTS Mission System V1
+# Usage: bash commande
+
+echo "🥷 Console Ninja - DIAMANTS Mission System V1"
+echo "=============================================="
+
+# 1) Forcer la version de Node supportée par Console Ninja
+source ~/.nvm/nvm.sh
+nvm use v16.15.0 || nvm install v16.15.0
+echo "✅ Node version: $(node -v)"
+
+# 2) Stopper Vite éventuels (tous ports)
+pkill -f "vite" 2>/dev/null || true
+echo "🛑 Processus Vite arrêtés"
+
+# 3) Vérifier la présence de Console Ninja (extension VS Code)
+echo "🥷 Utilisation de Console Ninja (extension VS Code)"
+
+# 4) Lancer Vite avec Console Ninja via npm run dev
+echo "🚀 Démarrage Console Ninja avec npm run dev..."
+echo "📍 Port automatique (5550-5599)"
+echo "🥷 Logs visibles dans VS Code Console Ninja"
+
+console-ninja npm run dev

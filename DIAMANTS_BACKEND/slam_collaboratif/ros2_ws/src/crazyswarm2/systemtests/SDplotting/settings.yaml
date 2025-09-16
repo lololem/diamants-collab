@@ -1,0 +1,447 @@
+---
+# general settings
+data_dir: logs
+data_file: figure8
+# data_file: log129
+info_dir: info
+info_file: infofigure8.yaml
+event_name: 
+- fixedFrequency
+- estPosition
+start_time:    # s (w.r.t log start time)
+end_time:     # s (w.r.t log start time)
+output_dir: reports
+figures_max:
+skip_data:
+- timestamp
+
+# title settings
+title_settings:
+- data_dir
+- data_file
+- info_dir
+- info_file
+- event_name
+- output_dir
+- start_time
+- end_time
+
+# figure settings for event fixedFrequency
+figures_fixedFrequency:
+- title: UAV Positions 
+  type: 2d subplots
+  marker: line
+  marker_kwargs:
+    linewidth: 0.5
+  structure:
+  - x_axis: [timestamp]
+    y_axis: [stateEstimate.x]
+    legend: [ekf]
+    x_label: "$t [s]$"
+    y_label: "$x [m]$"
+  - x_axis: [timestamp]
+    y_axis: [stateEstimate.y]
+    legend: [ekf]
+    x_label: "$t [s]$"
+    y_label: "$y [m]$"
+  - x_axis: [timestamp]
+    y_axis: [stateEstimate.z]
+    legend: [ekf]
+    x_label: "$t [s]$"
+    y_label: "$z [m]$"
+- title: 3D Trajectory
+  type: 3d
+  marker: line
+  marker_kwargs:
+    linewidth: 0.5
+  x_label: $x [m]$
+  y_label: $y [m]$
+  z_label: $z [m]$
+  structure:
+  - - stateEstimate.x
+    - stateEstimate.y
+    - stateEstimate.z
+    - ekf
+- title: 2D Trajectory
+  type: 2d subplots
+  marker: line
+  marker_kwargs:
+    linewidth: 0.5
+  structure:
+  - x_axis: [stateEstimate.x]
+    y_axis: [stateEstimate.y]
+    legend: [ekf]
+    x_label: "$x [m]$"
+    y_label: "$y [m]$"
+
+# figure settings for event estPosition
+figures_estPosition:
+- title: UAV Positions 
+  type: 2d subplots
+  marker: line
+  marker_kwargs:
+    linewidth: 0.5
+  structure:
+  - x_axis: [timestamp]
+    y_axis: [locSrv.x]
+    legend: [mocap]
+    x_label: "$t [s]$"
+    y_label: "$x [m]$"
+  - x_axis: [timestamp]
+    y_axis: [locSrv.y]
+    legend: [mocap]
+    x_label: "$t [s]$"
+    y_label: "$y [m]$"
+  - x_axis: [timestamp]
+    y_axis: [locSrv.z]
+    legend: [mocap]
+    x_label: "$t [s]$"
+    y_label: "$z [m]$"
+- title: 3D Trajectory
+  type: 3d
+  marker: line
+  marker_kwargs:
+    linewidth: 0.5
+  x_label: $x [m]$
+  y_label: $y [m]$
+  z_label: $z [m]$
+  structure:
+  - - locSrv.x
+    - locSrv.y
+    - locSrv.z
+    - mocap
+- title: 2D Trajectory
+  type: 2d subplots
+  marker: line
+  marker_kwargs:
+    linewidth: 0.5
+  structure:
+  - x_axis: [locSrv.x]
+    y_axis: [locSrv.y]
+    legend: [mocap]
+    x_label: "$x [m]$"
+    y_label: "$y [m]$"
+
+
+# unit settings
+convert_units:
+  timestamp: 0.001
+  stateEstimate.x: 0.001
+  stateEstimate.y: 0.001
+  stateEstimate.z: 0.001
+  # stateEstimateZ.x: 0.001
+  # stateEstimateZ.y: 0.001
+  # stateEstimateZ.z: 0.001
+  # stateEstimateZ.vx: 0.001
+  # stateEstimateZ.vy: 0.001
+  # stateEstimateZ.vz: 0.001
+  # ctrltargetZ.x: 0.001
+  # ctrltargetZ.y: 0.001
+  # ctrltargetZ.z: 0.001
+  # ctrltargetZ.vx: 0.001
+  # ctrltargetZ.vy: 0.001
+  # ctrltargetZ.vz: 0.001
+  # ctrlLee.rpyx: 57.2957795131
+  # ctrlLee.rpydx: 57.2957795131
+  # ctrlLee.rpyy: 57.2957795131
+  # ctrlLee.rpydy: 57.2957795131
+  # ctrlLee.rpyz: 57.2957795131
+  # ctrlLee.rpydz: 57.2957795131
+  # ctrlLee.omegax: 57.2957795131
+  # ctrlLee.omegarx: 57.2957795131
+  # ctrlLee.omegay: 57.2957795131
+  # ctrlLee.omegary: 57.2957795131
+  # ctrlLee.omegaz: 57.2957795131
+  # ctrlLee.omegarz: 57.2957795131
+  # acc.x: 1.0
+  # acc.y: 1.0
+  # acc.z: 1.0
+  # stateEstimateZ.px: 0.001
+  # stateEstimateZ.py: 0.001
+  # stateEstimateZ.pz: 0.001
+  # stateEstimateZ.pvx: 0.001
+  # stateEstimateZ.pvy: 0.001
+  # stateEstimateZ.pvz: 0.001 
+  locSrv.x: 1.0
+  locSrv.y: 1.0
+  locSrv.z: 1.0
+  # locSrv.qx: 1.0
+  # locSrv.qy: 1.0
+  # locSrv.qz: 1.0
+  # locSrv.qw: 1.0
+ 
+# units for the report:
+#   timestamp: s
+#   stateEstimateZ.x: m
+#   stateEstimateZ.y: m
+#   stateEstimateZ.z: m
+#   stateEstimateZ.vx: m/s
+#   stateEstimateZ.vy: m/s
+#   stateEstimateZ.vz: m/s
+#   ctrltargetZ.x: m
+#   ctrltargetZ.y: m
+#   ctrltargetZ.z: m
+#   ctrltargetZ.vx: m/s
+#   ctrltargetZ.vy: m/s
+#   ctrltargetZ.vz: m/s
+#   ctrlLee.rpyx: °
+#   ctrlLee.rpyy: °
+#   ctrlLee.rpyz: °
+#   ctrlLee.rpydx: °
+#   ctrlLee.rpydy: °
+#   ctrlLee.rpydz: °
+#   ctrlLee.omegax: °/s
+#   ctrlLee.omegay: °/s
+#   ctrlLee.omegaz: °/s
+#   ctrlLee.omegarx: °/s
+#   ctrlLee.omegary: °/s
+#   ctrlLee.omegarz: °/s
+#   ctrlLee.thrustSI: N
+#   ctrlLee.torquex: Nm
+#   ctrlLee.torquey: Nm
+#   ctrlLee.torquez: Nm
+#   acc.x: m/s^2
+#   acc.y: m/s^2
+#   acc.z: m/s^2
+#   stateEstimate.px: m
+#   stateEstimate.py: m
+#   stateEstimate.pz: m
+#   stateEstimate.pvx: m/s
+#   stateEstimate.pvy: m/s
+#   stateEstimate.pvz: m/s
+#   locSrv.x: m
+#   locSrv.y: m
+#   locSrv.z: m
+#   locSrv.qw: 
+#   locSrv.qx: 
+#   locSrv.qy: 
+#   locSrv.qz: 
+
+# info for adding additional data (fmi: data_helper.py)
+# (1) type: linspace  -> takes data and returns data with more points in between (needs step)
+# (2) type: poly      -> takes data and returns data of a fitted polynomial, or its derivative (needs derivative, degree)
+# (3) type: cs        -> takes data and returns data of a cubic spline, or its derivative (needs derivative)
+# (4) type: bs        -> takes data and returns data of a b-spline, or its derivative (needs derivative, smoothing)
+# (5) type: custom    -> processes data to compute and return new custom data vectors (based on target string list)
+# additional_data:
+#   # ==================================================
+#   # fitting: new time vector
+#   # ==================================================
+#   - source: timestamp
+#     target: fitTimestamp
+#     type: linspace
+#     step: 0.0001
+#   # ==================================================
+#   # fitting with new length
+#   # ==================================================
+#   - source: stateEstimateZ.px
+#     target: fitZ.px
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#   - source: stateEstimateZ.py
+#     target: fitZ.py
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#   - source: stateEstimateZ.pz
+#     target: fitZ.pz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#   - source: stateEstimateZ.px
+#     target: fitZ.pvx
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#   - source: stateEstimateZ.py
+#     target: fitZ.pvy
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#   - source: stateEstimateZ.pz
+#     target: fitZ.pvz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#   - source: stateEstimateZ.px
+#     target: fitZ.pax
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#   - source: stateEstimateZ.py
+#     target: fitZ.pay
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#   - source: stateEstimateZ.pz
+#     target: fitZ.paz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#   # ==================================================
+#   # fitting with original length
+#   # ==================================================
+#   - source: ctrlLee.rpyx
+#     target: fitZOriginalLength.rpyx
+#     type: bs
+#     smoothing: 10
+#     # degree:
+#     derivative: 0
+#     original_length: True
+#   - source: ctrlLee.rpyy
+#     target: fitZOriginalLength.rpyy
+#     type: bs
+#     smoothing: 10
+#     # degree:
+#     derivative: 0
+#     original_length: True
+#   - source: ctrlLee.rpyz
+#     target: fitZOriginalLength.rpyz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#     original_length: True
+#   - source: ctrlLee.rpyx
+#     target: fitZOriginalLength.omegax
+#     type: bs
+#     smoothing: 10
+#     # degree:
+#     derivative: 1
+#     original_length: True
+#   - source: ctrlLee.rpyy
+#     target: fitZOriginalLength.omegay
+#     type: bs
+#     smoothing: 10
+#     # degree:
+#     derivative: 1
+#     original_length: True
+#   - source: ctrlLee.rpyz
+#     target: fitZOriginalLength.omegaz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#     original_length: True
+#   - source: ctrlLee.rpyx
+#     target: fitZOriginalLength.alphax
+#     type: bs
+#     smoothing: 10
+#     # degree:
+#     derivative: 2
+#     original_length: True
+#   - source: ctrlLee.rpyy
+#     target: fitZOriginalLength.alphay
+#     type: bs
+#     smoothing: 10
+#     # degree:
+#     derivative: 2
+#     original_length: True
+#   - source: ctrlLee.rpyz
+#     target: fitZOriginalLength.alphaz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#     original_length: True
+#   - source: stateEstimateZ.px
+#     target: fitZOriginalLength.px
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#     original_length: True
+#   - source: stateEstimateZ.py
+#     target: fitZOriginalLength.py
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#     original_length: True
+#   - source: stateEstimateZ.pz
+#     target: fitZOriginalLength.pz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 0
+#     original_length: True
+#   - source: stateEstimateZ.px
+#     target: fitZOriginalLength.pvx
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#     original_length: True
+#   - source: stateEstimateZ.py
+#     target: fitZOriginalLength.pvy
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#     original_length: True
+#   - source: stateEstimateZ.pz
+#     target: fitZOriginalLength.pvz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 1
+#     original_length: True
+#   - source: stateEstimateZ.px
+#     target: fitZOriginalLength.pax
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#     original_length: True
+#   - source: stateEstimateZ.py
+#     target: fitZOriginalLength.pay
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#     original_length: True
+#   - source: stateEstimateZ.pz
+#     target: fitZOriginalLength.paz
+#     type: bs
+#     smoothing: 1
+#     # degree:
+#     derivative: 2
+#     original_length: True
+#   # ==================================================
+#   # custom data with original length respectively
+#   # ==================================================
+#   - type: custom
+#     target: 
+#     - error.px
+#     - error.py
+#     - error.pz
+#     - error.pvx
+#     - error.pvy
+#     - error.pvz
+#     - error.cpx
+#     - error.cpy
+#     - error.cpz
+#     - error.pwx
+#     - error.pwy
+#     - error.pwz
+#     - error.rpyx
+#     - error.rpyy
+#     - error.rpyz
+#     - error.wx
+#     - error.wy
+#     - error.wz
+#     - residual.f
+#     - residual.tx
+#     - residual.ty
+#     - residual.tz
+#   # ==================================================

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚁 DIAMANTS V3 Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+</head>
+
+<body class="dashboard-body">
+    <div id="app">
+        <!-- Header Navigation -->
+        <header class="dashboard-header">
+            <div class="logo-section">
+                <h1>💎 DIAMANTS V3</h1>
+                <span class="subtitle">Multi-Agent SLAM Dashboard</span>
+            </div>
+
+            <nav class="dashboard-nav">
+                <a href="/" class="nav-item active">📊 Dashboard</a>
+            </nav>
+
+            <div class="status-indicator">
+                <div id="connection-status" class="status-dot offline"></div>
+                <span id="connection-text">Déconnecté</span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Content -->
+        <main class="dashboard-main">
+            <!-- Stats Overview -->
+            <section class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🚁</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="active-drones">0</div>
+                        <div class="stat-label">Drones Actifs</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🧠</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="intelligence-score">0.0</div>
+                        <div class="stat-label">Intelligence Collective</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🗺️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="coverage-area">0%</div>
+                        <div class="stat-label">Couverture Zone</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-content">
+                        <div class="stat-value" id="mission-time">00:00</div>
+                        <div class="stat-label">Temps Mission</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Control Panel & Visualization -->
+            <div class="main-content-grid">
+                <!-- Control Panel -->
+                <section class="control-panel">
+                    <h3>🎮 Contrôles Essaim</h3>
+
+                    <div class="control-group">
+                        <h4>Actions Mission</h4>
+                        <button id="start-mission" class="action-btn primary">▶️ Démarrer Mission</button>
+                        <button id="pause-mission" class="action-btn secondary">⏸️ Pause</button>
+                        <button id="stop-mission" class="action-btn danger">⏹️ Arrêter</button>
+                    </div>
+
+                    <div class="control-group">
+                        <h4>Modes Exploration</h4>
+                        <select id="exploration-mode" class="control-select">
+                            <option value="autonomous">🤖 Autonome</option>
+                            <option value="guided">🎯 Guidé</option>
+                            <option value="manual">🕹️ Manuel</option>
+                        </select>
+                    </div>
+
+                    <div class="control-group">
+                        <h4>Paramètres Vitesse</h4>
+                        <div class="slider-control">
+                            <label for="speed-slider">Vitesse: <span id="speed-value">1.0</span> m/s</label>
+                            <input type="range" id="speed-slider" min="0.1" max="3.0" step="0.1" value="1.0">
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <h4>Formation</h4>
+                        <div class="formation-buttons">
+                            <button class="formation-btn" data-formation="line">📏 Ligne</button>
+                            <button class="formation-btn" data-formation="circle">⭕ Cercle</button>
+                            <button class="formation-btn" data-formation="triangle">🔺 Triangle</button>
+                            <button class="formation-btn" data-formation="grid">⚏ Grille</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3D Visualization -->
+                <section class="visualization-panel">
+                    <h3>🌐 Visualisation 3D Temps Réel</h3>
+                    <div id="threejs-container" class="threejs-container">
+                        <!-- Three.js scene will be rendered here -->
+                        <div class="loading-overlay">
+                            <div class="loading-spinner"></div>
+                            <p>Initialisation visualisation 3D...</p>
+                        </div>
+                    </div>
+
+                    <div class="visualization-controls">
+                        <button id="reset-camera" class="viz-btn">📷 Reset Caméra</button>
+                        <button id="toggle-trails" class="viz-btn">✨ Traînées</button>
+                        <button id="toggle-grid" class="viz-btn">⚏ Grille</button>
+                        <button id="fullscreen-viz" class="viz-btn">🔳 Plein écran</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Real-time Data Tables -->
+            <div class="data-grid">
+                <!-- Drone Status Table -->
+                <section class="data-panel">
+                    <h3>🚁 État Drones</h3>
+                    <div class="table-container">
+                        <table id="drones-table" class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Position</th>
+                                    <th>Batterie</th>
+                                    <th>État</th>
+                                    <th>Mission</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Dynamic content -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Swarm Intelligence Panel -->
+                <section class="data-panel">
+                    <h3>🧠 Intelligence Collective</h3>
+                    <div class="intelligence-metrics">
+                        <div class="metric-row">
+                            <span class="metric-label">Score Global:</span>
+                            <div class="metric-bar">
+                                <div id="global-score-bar" class="progress-bar"></div>
+                                <span id="global-score-text">0.0</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Coordination:</span>
+                            <div class="metric-bar">
+                                <div id="coordination-bar" class="progress-bar"></div>
+                                <span id="coordination-text">0.0</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Efficacité:</span>
+                            <div class="metric-bar">
+                                <div id="efficiency-bar" class="progress-bar"></div>
+                                <span id="efficiency-text">0.0</span>
+                            </div>
+                        </div>
+
+                        <div class="metric-row">
+                            <span class="metric-label">Adaptation:</span>
+                            <div class="metric-bar">
+                                <div id="adaptation-bar" class="progress-bar"></div>
+                                <span id="adaptation-text">0.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/js/three.min.js"></script>
+    <script src="/static/js/websocket-client.js"></script>
+    <script src="/static/js/3d-visualization.js"></script>
+    <script src="/static/js/dashboard.js"></script>
+
+    <script>
+        // Initialize dashboard when page loads
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('🚀 Initialisation Dashboard DIAMANTS V3');
+
+            // Initialize WebSocket connection
+            if (typeof DiamantWebSocketClient !== 'undefined') {
+                const wsClient = new DiamantWebSocketClient();
+                window.wsClient = wsClient;
+
+                // Initialize 3D visualization
+                if (typeof DiamantVisualization !== 'undefined') {
+                    const visualization = new DiamantVisualization('threejs-container');
+                    window.visualization = visualization;
+
+                    // Connect WebSocket to visualization
+                    // 1) Single drone update
+                    wsClient.onMessage('drone_position', (payload) => {
+                        visualization.updateDronePosition(payload);
+                    });
+
+                    // 2) Bulk positions from server (derived from initial_data/data_update)
+                    wsClient.onMessage('drone_positions', (allPositions) => {
+                        Object.values(allPositions).forEach(droneData => {
+                            visualization.updateDronePosition(droneData);
+                        });
+                    });
+
+                    // 3) Fallback: parse raw server frames
+                    wsClient.onMessage('*', (raw) => {
+                        if (raw?.type === 'initial_data' || raw?.type === 'data_update') {
+                            const positions = raw?.data?.drone_positions || {};
+                            Object.entries(positions).forEach(([id, pos]) => {
+                                visualization.updateDronePosition({
+                                    drone_id: id,
+                                    position: { x: pos.x || 0, y: pos.y || 0, z: pos.z || 0 }
+                                });
+                            });
+                        }
+                    });
+                }
+
+                // Initialize dashboard controls
+                if (typeof DiamantDashboard !== 'undefined') {
+                    const dashboard = new DiamantDashboard(wsClient);
+                    window.dashboard = dashboard;
+
+                    // Seed initial counts from API as fallback (in case first WS frame is late)
+                    fetch('/api/swarm/status')
+                        .then(r => r.json())
+                        .then(s => {
+                            const ids = Object.keys(s.drone_positions || {});
+                            if (ids.length && dashboard.elements?.activeDrones) {
+                                dashboard.elements.activeDrones.textContent = ids.length;
+                            }
+                        })
+                        .catch(() => { });
+                }
+            } else {
+                console.error('❌ DiamantWebSocketClient non trouvé');
+            }
+        });
+    </script>
+</body>
+
+</html>

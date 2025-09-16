@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIAMANTS V3 - Crazyflie Gazebo Simulation (Vrais Mesh)</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Fonctions globales IMMÉDIATEMENT disponibles -->
+    <script>
+        // Mode silencieux et fonctions de logging - PREMIER CHARGEMENT
+        window.SILENT_MODE = true; // RÉACTIVÉ pour stopper le déluge de logs
+        
+        // Créer les fonctions de logging globales sur window ET comme variables globales
+        window.log = ((...args) => { if (!window.SILENT_MODE) console.log(...args); });
+        window.warn = ((...args) => { 
+            // BLOQUER COMPLÈTEMENT les warnings de collision répétitifs
+            const msgStr = args.join(' ').toLowerCase();
+            if (msgStr.includes('risque collision') || msgStr.includes('collision entre')) {
+                return; // Silence total pour éviter le déluge
+            }
+            console.warn(...args); 
+        }); 
+        window.error = ((...args) => { console.error(...args); }); // Gardons les erreurs
+        
+        // SÉCURISÉ: Exposer les fonctions comme variables globales sans eval()
+        // Approche sécurisée pour créer des variables globales
+        window.log = window.log;
+        window.warn = window.warn;
+        window.error = window.error;
+        
+        // Cache bust: 2025-09-13-14:50
+        
+        // Double sécurité: exposer aussi via this (équivalent à window en contexte global)
+        this.log = window.log;
+        this.warn = window.warn;
+        this.error = window.error;
+        
+        console.log('✅ Fonctions de logging globales initialisées');
+        console.log('✅ Variables globales log, warn, error créées');
+        // MAINTENIR SILENT_MODE = true pour réduire tous les logs
+        // window.SILENT_MODE = false; // COMMENTÉ - gardons SILENT_MODE = true
+        
+        // Test réduit pour s'assurer que les fonctions sont accessibles (sans error qui pose problème)
+        try {
+            log('✅ Système de logging activé');
+            warn('⚠️ Mode debug activé');
+        } catch (e) {
+            console.error('❌ Erreur test fonctions globales:', e);
+        }
+    </script>
+
+    <!-- Import map MUST come before any module/preload scripts -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <!-- WebGL Detection and Fix Script -->
+    <script>
+        // Mode silencieux global - FORCE À TRUE pour silence complet
+        if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
+        
+        // Fonctions de log globales pour éviter les redéclarations
+        if (typeof window.log === 'undefined') {
+            window.log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
+            window.warn = (...args) => { if (!window.SILENT_MODE) console.warn(...args); };
+            window.error = (...args) => { if (!window.SILENT_MODE) console.error(...args); };
+        }
+        
+        (function() {
+            window.log('🔍 Vérification WebGL...');
+            
+            // Test basic WebGL availability
+            const canvas = document.createElement('canvas');
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            
+            if (!gl) {
+                window.error('❌ WebGL non disponible');
+                document.addEventListener('DOMContentLoaded', function() {
+                    document.body.innerHTML = `
+                        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                                    background: #1a1a2e; color: #00FFFF; padding: 20px; border-radius: 10px; 
+                                    font-family: monospace; text-align: center; border: 2px solid #00CCFF;">
+                            <h2>🛑 WebGL Indisponible</h2>
+                            <p>Solutions :</p>
+                            <ul style="text-align: left; margin: 10px 0;">
+                                <li>Redémarrez votre navigateur</li>
+                                <li>Activez WebGL dans chrome://flags/</li>
+                                <li>Essayez un autre navigateur (Chrome, Firefox)</li>
+                                <li>Videz le cache (Ctrl+Shift+R)</li>
+                            </ul>
+                            <button onclick="location.reload()" style="margin-top: 10px; padding: 10px; background: #00CCFF; color: #1a1a2e; border: none; border-radius: 5px; cursor: pointer;">
+                                🔄 Réessayer
+                            </button>
+                        </div>
+                    `;
+                });
+                return;
+            } else {
+                log('✅ WebGL disponible');
+                // Test WebGL context creation
+                const info = gl.getExtension('WEBGL_debug_renderer_info');
+                if (info) {
+                    log('GPU:', gl.getParameter(info.UNMASKED_RENDERER_WEBGL));
+                }
+            }
+        })();
+    </script>
+
+    <!-- CSS Anti-Split Forcé -->
+    <style>
+        /* FORCER PLEIN ECRAN - ANTI SPLIT RADICAL */
+        html {
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+
+        body::before {
+            content: '';
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            z-index: -1000 !important;
+        }
+
+        /* Masquer toute interface système */
+        ::-webkit-scrollbar {
+            display: none !important;
+        }
+
+        * {
+            user-select: none;
+            -webkit-user-drag: none;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            background: linear-gradient(45deg, #1a1a2e, #16213e, #0f3460);
+            color: #00FFFF;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            overflow: hidden;
+            /* Force refresh marker */
+        }
+
+        /* Interface ROS2/Gazebo-like */
+        #ros_interface {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 220px !important;
+            height: 100vh !important;
+            background: linear-gradient(180deg, rgba(40, 44, 52, 0.95), rgba(25, 30, 40, 0.95));
+            backdrop-filter: blur(8px);
+            border-right: 2px solid #00CCFF;
+            z-index: 999999 !important;
+            overflow-y: auto;
+            padding: 6px;
+            box-sizing: border-box;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+        }
+
+        /* Force pour empêcher tout recouvrement du panneau */
+        #ros_interface::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            z-index: 1000000 !important;
+            pointer-events: none;
+        }
+
+        /* S'assurer que tous les enfants du panneau restent au-dessus */
+        #ros_interface * {
+            z-index: 1000001 !important;
+            position: relative;
+        }
+
+        /* Anti-recouvrement : masquer ou repositionner les bandeaux flottants */
+        div[style*="position: fixed"]:not(#ros_interface):not(#toggle_panel):not(#canvas_container):not(#tactical-minimap):not(#diamants-ui-overlay),
+        div[style*="position: absolute"]:not(#ros_interface *),
+        .status-banner,
+        .floating-banner,
+        .overlay-banner {
+            top: 60px !important;
+            left: 240px !important;
+            width: auto !important;
+            max-width: calc(100vw - 260px) !important;
+            z-index: 50 !important;
+        }
+
+        /* Masquer spécifiquement les bandeaux de statut qui interfèrent */
+        [class*="status"]:not(#ros_interface *),
+        [id*="status"]:not(#ros_interface *) {
+            top: 60px !important;
+            left: 240px !important;
+        }
+
+        /* Désactiver l'overlay UI externe si présent (on a notre panneau intégré) */
+        #diamants-ui-overlay {
+            display: none !important;
+        }
+
+        .diamants-interface {
+            display: none !important;
+        }
+
+        /* ✅ MASQUAGE PAR DÉFAUT - Interface pure au démarrage */
+        #debug-logs-ui,
+        #controle-rapide,
+        #sar-overlay,
+        .debug-panel,
+        .console-panel,
+        .logs-panel {
+            display: none !important;
+        }
+
+        /* ✅ MASQUER LE PANNEAU DE CONTRÔLE AU DÉMARRAGE (laisser le toggle le réafficher) */
+        #ros_interface {
+            display: none;
+        }
+
+        /* ✅ MASQUER LOADING SCREEN ET MINIMAP AU DÉMARRAGE */
+        #loading_screen,
+        #minimap,
+        #tactical-minimap {
+            display: none !important;
+        }
+
+        /* Contrôle strict de la mini-carte tactique créée par l'UI */
+        #tactical-minimap {
+            position: fixed !important;
+            top: 12px !important;
+            right: 12px !important;
+            width: 240px !important;
+            height: auto !important;
+            z-index: 120 !important;
+            cursor: pointer;
+            display: none !important; /* ✅ Masqué par défaut au démarrage */
+        }
+
+        #tactical-minimap.collapsed {
+            height: 34px !important;
+            /* juste le header visible */
+            overflow: hidden !important;
+        }
+
+        .ros_panel {
+            background: rgba(60, 70, 80, 0.8);
+            border: 1px solid #00AAFF;
+            border-radius: 6px;
+            margin: 6px 0;
+            padding: 8px;
+        }
+
+        .ros_panel h3 {
+            margin: 0 0 6px 0;
+            color: #00FFFF;
+            font-size: 12px;
+            text-transform: uppercase;
+            border-bottom: 1px solid #00AAFF;
+            padding-bottom: 3px;
+        }
+
+        /* Mission Control theme for DIAMANTS V3 status panel */
+        #status_panel.ros_panel {
+            background: linear-gradient(180deg, rgba(30, 36, 46, 0.92), rgba(20, 26, 36, 0.92));
+            border: 1.5px solid #00CCFF;
+            border-radius: 10px;
+            box-shadow: 0 0 14px rgba(0, 204, 255, 0.18), inset 0 0 0 1px rgba(0, 255, 255, 0.06);
+        }
+        #status_panel.ros_panel h3 {
+            margin: 0 0 8px;
+            color: #b6f3ff;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-shadow: 0 0 6px rgba(0,255,200,0.2);
+        }
+
+        .mission_control {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin: 6px 0;
+        }
+
+        .btn_ros {
+            padding: 6px 8px;
+            background: linear-gradient(45deg, #1e3a8a, #3b82f6);
+            color: white;
+            border: 1px solid #60a5fa;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn_ros:hover {
+            background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .btn_ros.active {
+            background: linear-gradient(45deg, #059669, #10b981);
+            border-color: #34d399;
+        }
+
+        .drone_status {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            margin: 3px 0;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            border-left: 3px solid #00FF88;
+            font-size: 11px;
+        }
+
+        .drone_status.inactive {
+            border-left-color: #FF4444;
+            opacity: 0.6;
+        }
+
+        .metric_display {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 10px;
+        }
+
+        .metric_item {
+            background: rgba(0, 0, 0, 0.6);
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .metric_value {
+            color: #00FF88;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .ros_button {
+            background: linear-gradient(45deg, #00AAFF, #0088CC);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 4px 2px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+
+        .ros_button:hover {
+            background: linear-gradient(45deg, #00CCFF, #00AAFF);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 170, 255, 0.4);
+        }
+
+        .ros_button.emergency {
+            background: linear-gradient(45deg, #FF4444, #CC2222);
+        }
+
+        .ros_button.emergency:hover {
+            background: linear-gradient(45deg, #FF6666, #FF4444);
+        }
+
+        .topic_monitor {
+            font-family: 'Roboto Mono', monospace;
+            font-size: 9px;
+            background: rgba(0, 20, 40, 0.9);
+            padding: 8px;
+            border-radius: 6px;
+            margin: 5px 0;
+            border-left: 3px solid #FFD700;
+            max-height: 120px;
+            overflow-y: auto;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #00AAFF;
+        }
+
+        .topic_monitor:hover {
+            background: rgba(0, 30, 60, 0.9);
+            border-left: 3px solid #00FFFF;
+        }
+
+        .topic_monitor.collapsed {
+            max-height: 25px;
+            overflow: hidden;
+        }
+
+        .topic_monitor.collapsed::after {
+            content: ' ▼ Cliquer pour développer';
+            color: #FFD700;
+            font-style: italic;
+        }
+
+        .topic_monitor:not(.collapsed)::after {
+            content: ' ▲ Cliquer pour réduire';
+            color: #FFD700;
+            font-style: italic;
+            display: block;
+            text-align: right;
+            margin-top: 5px;
+        }
+
+        .collision_warning {
+            background: linear-gradient(45deg, rgba(255, 0, 0, 0.2), rgba(255, 100, 0, 0.2));
+            border: 1px solid #FF4444;
+            color: #FF8888;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 0.8;
+            }
+
+            50% {
+                opacity: 1.0;
+            }
+        }
+
+        .emergence_indicator {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 5px 0;
+            overflow: hidden;
+        }
+
+        .emergence_bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00FF88, #00FFFF, #FFD700);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .metric_bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .metric_fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00FF88, #00CCFF);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+
+        #canvas_container {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 10 !important;
+            overflow: hidden !important;
+            background: linear-gradient(135deg, #0f2847, #1e3a5f, #2d4b73);
+            border: none;
+        }
+
+        /* Ajustement quand le panneau est visible */
+        #canvas_container.panel-visible {
+            left: 220px !important;
+            width: calc(100vw - 220px) !important;
+            border: 1px solid rgba(0, 170, 255, 0.3);
+        }
+
+        /* Masquer le vieux bandeau de statut pour éviter tout recouvrement */
+        #status_display {
+            display: none !important;
+        }
+
+        /* Bouton pour masquer/afficher le panneau */
+        #toggle_panel {
+            position: fixed !important;
+            top: 10px !important;
+            left: 10px !important;
+            width: 50px !important;
+            height: 50px !important;
+            background: rgba(0, 170, 255, 0.9) !important;
+            color: white !important;
+            border: 2px solid #00FFFF !important;
+            border-radius: 8px !important;
+            cursor: pointer !important;
+            z-index: 200 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 20px !important;
+            font-weight: bold !important;
+            transition: all 0.3s ease !important;
+        }
+
+        /* Position du bouton quand le panneau est visible */
+        #toggle_panel.panel-visible {
+            left: 230px !important;
+        }
+
+        #toggle_panel:hover {
+            background: rgba(0, 170, 255, 1) !important;
+            transform: scale(1.1) !important;
+        }
+
+        .panel_hidden {
+            transform: translateX(-100%) !important;
+            transition: transform 0.3s ease !important;
+        }
+
+        /* Minimap - Toujours visible et bien positionnée */
+        #minimap {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 220px;
+            height: 220px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid #00AAFF;
+            border-radius: 8px;
+            z-index: 150;
+            display: block;
+        }
+
+        #minimap canvas {
+            width: calc(100% - 10px);
+            height: calc(100% - 35px);
+            margin: 5px;
+            border-radius: 6px;
+            background: #87CEEB;
+        }
+
+        #minimap h4 {
+            margin: 0;
+            padding: 5px;
+            background: rgba(0, 170, 255, 0.8);
+            color: white;
+            font-size: 12px;
+            text-align: center;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .loading_status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: #00FFFF;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00AAFF;
+            text-align: center;
+            z-index: 300;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- DIAMANTS Forest container -->
+    <!-- Bouton pour masquer/afficher le panneau -->
+    <button id="toggle_panel" onclick="togglePanel()" title="Afficher le panneau">►</button>
+
+    <!-- Loading screen -->
+    <div id="loading_screen" class="loading_status">
+        <h3>🚁 Chargement DIAMANTS V3 Gazebo</h3>
+        <p>Chargement des mesh Crazyflie...</p>
+        <div id="loading_progress">0%</div>
+    </div>
+
+    <!-- Interface ROS2/Gazebo -->
+    <div id="ros_interface">
+    <!-- DIAMANTS V3 Status Panel (themed like Mission Control) -->
+    <div id="status_panel" class="ros_panel">
+            <h3>🚁 DIAMANTS V3</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
+                <div style="color: #00FF88; font-weight: bold;">Status: <span id="system_status">Active</span></div>
+                <div style="color: #FFAA00;">Drones: <span id="drone_count">0</span></div>
+                <div style="color: #FF6699;">Intel: <span id="total_intelligence_display">0.0</span></div>
+                <div style="color: #66CCFF;">Emerge: <span id="emergence_display">0.0</span></div>
+            </div>
+        </div>
+
+        <!-- Mission Control Panel -->
+        <div class="ros_panel">
+            <h3>🚁 Mission Control</h3>
+            <div class="mission_control">
+                <button class="btn_ros" onclick="launchMission()">Launch Mission</button>
+                <button class="btn_ros" onclick="emergencyLand()">Emergency Land</button>
+                <button class="btn_ros" onclick="resetSwarm()">Reset Swarm</button>
+                <button class="btn_ros" onclick="changePattern()">🌟 Pattern</button>
+                <button class="btn_emergency" onclick="forceDronesUp()" style="background: #FF4444; color: white; font-weight: bold;">🚨 UP!</button>
+            </div>
+            <div class="mission_control">
+                <button class="btn_ros" onclick="toggleDebugLogs()" id="btn-toggle-logs">📋 Show Logs</button>
+                <button class="btn_ros" onclick="clearDebugLogs()">🧹 Clear Logs</button>
+            </div>
+            
+            <!-- ✅ NOUVEAU: Contrôles d'affichage Debug -->
+            <div class="mission_control">
+                <button class="btn_ros" onclick="toggleDebugPanels()" id="btn-toggle-debug">🛠️ Show Debug</button>
+                <button class="btn_ros" onclick="toggleConsoleNinja()" id="btn-toggle-ninja">🥷 Console</button>
+                <button class="btn_ros" onclick="toggleCollisionDebug()" id="btn-collision-debug">🔲 Show Collisions</button>
+            </div>
+            <div style="margin: 6px 0;">
+                <button class="btn_ros" onclick="togglePanel()"
+                    style="width: 100%; background: linear-gradient(45deg, #dc2626, #ef4444); font-size: 11px; font-weight: bold;">
+                    🖼️ PLEIN ÉCRAN
+                </button>
+            </div>
+            <div>
+                <label>Mission Type:</label>
+                <select id="mission_type"
+                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                    <option value="exploration">Exploration</option>
+                    <option value="mapping">SLAM Mapping</option>
+                    <option value="surveillance">Surveillance</option>
+                    <option value="formation_flight">Formation Flight</option>
+                </select>
+            </div>
+            <div>
+                <label>Pattern: <span class="value" id="currentPattern">grid</span></label>
+            </div>
+        </div>
+
+        <!-- Drone Status Panel -->
+        <div class="ros_panel">
+            <h3>🤖 Drone Status (/odom topics)</h3>
+            <div id="drone_status_list">
+                <!-- Populated dynamically -->
+            </div>
+        </div>
+
+        <!-- DIAMANTS Metrics Panel -->
+        <div class="ros_panel">
+            <h3>🧠 DIAMANTS Intelligence Metrics</h3>
+            <div class="metric_display">
+                <div class="metric_item">
+                    <div>Total I(t)</div>
+                    <div class="metric_value" id="total_intelligence">0.0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Emergence</div>
+                    <div class="metric_value" id="emergence_level">0.0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Cohesion</div>
+                    <div class="metric_value" id="cohesion_index">0.0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Coordination</div>
+                    <div class="metric_value" id="coordination_score">0.0</div>
+                </div>
+            </div>
+            <div class="emergence_indicator">
+                <div class="emergence_bar" id="emergence_bar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- Mission Metrics Panel -->
+        <div class="ros_panel">
+            <h3>🎯 Mission Progress</h3>
+            <div class="metrics_grid">
+                <div class="metric_item">
+                    <div>Coverage</div>
+                    <div class="metric_value" id="mission_coverage">0.0%</div>
+                </div>
+                <div class="metric_item">
+                    <div>Targets</div>
+                    <div class="metric_value" id="targets_discovered">0/0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Efficiency</div>
+                    <div class="metric_value" id="mission_efficiency">0.0%</div>
+                </div>
+                <div class="metric_item">
+                    <div>Speed</div>
+                    <div class="metric_value" id="exploration_speed">0.00 zones/min</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Camera Controls Panel -->
+        <div class="ros_panel">
+            <h3>📹 Camera Controls</h3>
+            <div class="mission_control">
+                <button class="btn_ros" onclick="resetCamera()">Reset View</button>
+                <button class="btn_ros" onclick="topView()">Top View</button>
+                <button class="btn_ros" onclick="toggleFollowMode()">Follow Mode</button>
+                <button class="btn_ros" onclick="zoomToSwarm()">View All</button>
+            </div>
+            <div>
+                <label>Select Drone to Follow:</label>
+                <select id="drone_selector" onchange="selectDroneToFollow()"
+                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                    <option value="">No Selection</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Anti-Collision System -->
+        <div class="ros_panel">
+            <h3>⚠️ Anti-Collision DIAMANTS</h3>
+            <div id="collision_warnings">
+                <div style="font-size: 10px; color: #888;">No collision warnings</div>
+            </div>
+            <div style="margin: 10px 0;">
+                <label>Safety Distance (m):</label>
+                <input type="range" id="safety_distance" min="1" max="10" value="3" style="width: 100%;"
+                    onchange="updateSafetyDistance(this.value)">
+                <span id="safety_distance_value">3.0m</span>
+            </div>
+        </div>
+
+        <!-- Topic Monitor -->
+        <div class="ros_panel">
+            <h3>📡 ROS2 Topics Monitor</h3>
+            <div class="topic_monitor collapsed" id="topic_monitor" onclick="toggleTopicMonitor()">
+                <div>[INFO] Multi-agent framework initialized</div>
+                <div>[INFO] Waiting for drone connections...</div>
+                <div>[DEBUG] DIAMANTS V3 - Gazebo Style avec Mesh Réels</div>
+                <div>[INFO] Initializing...</div>
+            </div>
+        </div>
+
+        <!-- Swarm Formation Panel -->
+        <div class="ros_panel">
+            <h3>🔢 Formation Control</h3>
+            <div class="mission_control">
+                <button class="btn_ros" onclick="setFormation('line')">Line</button>
+                <button class="btn_ros" onclick="setFormation('circle')">Circle</button>
+                <button class="btn_ros" onclick="setFormation('triangle')">Triangle</button>
+                <button class="btn_ros" onclick="setFormation('grid')">Grid</button>
+            </div>
+        </div>
+
+        <!-- Flight Control Panel -->
+        <div class="ros_panel">
+            <h3>🚁 Flight Control</h3>
+            <div class="mission_control">
+                <button class="btn_ros" onclick="takeoffAllDrones()">🛫 Takeoff All</button>
+                <button class="btn_ros" onclick="startMissionManual()">🎯 Start Mission</button>
+                <button class="btn_ros" onclick="landAllDrones()">🛬 Land All</button>
+                <button class="btn_ros" onclick="stopAllDrones()">⏹️ Stop All</button>
+                <button class="btn_ros" onclick="testSingleExploration()">🎯 Test Explorer</button>
+            </div>
+            <div>
+                <label>Flight Altitude (m):</label>
+                <input type="range" id="altitude_slider" min="0.5" max="5.0" step="0.1" value="2.0"
+                    style="width: 100%; margin: 5px 0;" oninput="updateAltitudeDisplay(this.value)">
+                <span id="altitude_display" style="color: #00FFFF;">2.0m</span>
+            </div>
+            <div style="margin-top: 10px;">
+                <label>Exploration Bounds:</label>
+                <div style="display: flex; gap: 10px; margin: 5px 0;">
+                    <div>
+                        <label style="font-size: 10px;">X:</label>
+                        <input type="number" id="bounds_x" value="20" min="5" max="50" step="5"
+                            style="width: 60px; padding: 2px; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                    </div>
+                    <div>
+                        <label style="font-size: 10px;">Y:</label>
+                        <input type="number" id="bounds_y" value="20" min="5" max="50" step="5"
+                            style="width: 60px; padding: 2px; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Drone Modes -->
+        <div class="ros_panel">
+            <h3>🌟 Drone Modes</h3>
+            <div>
+                <label>Mode:</label>
+                <select id="mode_select"
+                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
+                    <option value="grid">Grid</option>
+                    <option value="boustrophedon">Boustrophedon</option>
+                    <option value="spiral">Spiral</option>
+                    <option value="coverage">Coverage</option>
+                    <option value="follow_leader">Follow Leader</option>
+                    <option value="random">Random</option>
+                </select>
+                <button class="btn_ros" onclick="applyMode()">Apply Mode</button>
+            </div>
+        </div>
+
+        <!-- Intelligence Collective Panel -->
+        <div class="ros_panel">
+            <h3>🧠 Intelligence Collective</h3>
+            <div class="metric_display">
+                <div class="metric_item">
+                    <div>Stigmergie</div>
+                    <div class="metric_value" id="stigmergy_value">0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Consensus</div>
+                    <div class="metric_value" id="consensus_value">0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Communication</div>
+                    <div class="metric_value" id="communication_value">0.0</div>
+                </div>
+                <div class="metric_item">
+                    <div>Adaptation</div>
+                    <div class="metric_value" id="adaptation_value">0%</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Metrics Bars -->
+        <div class="ros_panel">
+            <h3>📊 DIAMANTS Metrics</h3>
+            <div class="metric_value">Phi (φ): <span id="phi_value">0.00</span></div>
+            <div class="metric_bar">
+                <div id="phi_bar" class="metric_fill" style="width: 0%"></div>
+            </div>
+
+            <div class="metric_value">Sigma (σ): <span id="sigma_value">0.00</span></div>
+            <div class="metric_bar">
+                <div id="sigma_bar" class="metric_fill" style="width: 0%"></div>
+            </div>
+
+            <div class="metric_value">Emergence: <span id="emergence_value">0.00</span></div>
+            <div class="metric_bar">
+                <div id="emergence_bar" class="metric_fill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- System Panel -->
+        <div class="ros_panel">
+            <h3>⚙️ System</h3>
+            <div class="metric_value">Status: <span style="color: #00FF88;">GAZEBO</span></div>
+            <div class="metric_value">FPS: <span id="fps_display">60</span></div>
+            <div class="metric_value">Mesh: <span style="color: #FFAA00;">COLLADA</span></div>
+            <button class="ros_button" onclick="toggleMinimap()">📋 Minimap</button>
+            <button class="ros_button" onclick="toggleSAROverlay()">🧭 SAR Lanes</button>
+        </div>
+    </div>
+
+    <!-- Zone de rendu 3D -->
+    <div id="canvas_container"></div>
+
+    <!-- Minimap -->
+    <div id="minimap">
+        <h4>🎯 Tactical Overview - Mission Intel</h4>
+        <canvas id="minimap_canvas" width="180" height="170"></canvas>
+    </div>
+
+    <!-- Status Display -->
+    <div id="status_display">
+        🚁 DIAMANTS V3 - Gazebo Style avec Mesh Réels<br>
+        <span id="system_status">Initializing...</span>
+    </div>
+
+    <!-- Vite manages module loading; legacy bootstrap removed -->
+    <!-- Debug utilities can be added as modules if needed -->
+
+
+    
+    <!-- 🛠️ OUTILS DEBUG VS CODE - DÉSACTIVÉS pour interface propre -->
+    <!-- <script src="./tools/debug/debug-vscode-tools.js"></script> -->
+    
+    <!-- (debug) test-controls supprimé pour interface propre -->
+    
+    <!-- Validation finale des fonctions de logging avant chargement des scripts -->
+    <script>
+        // Vérification et restauration des fonctions de logging si nécessaire
+        if (typeof log === 'undefined' || typeof warn === 'undefined' || typeof error === 'undefined') {
+            console.warn('⚠️ Fonctions globales manquantes, restauration...');
+            window.log = window.log || ((...args) => { if (!window.SILENT_MODE) console.log(...args); });
+            window.warn = window.warn || ((...args) => { if (!window.SILENT_MODE) console.warn(...args); });
+            window.error = window.error || ((...args) => { if (!window.SILENT_MODE) console.error(...args); });
+            
+            // Force la création des variables globales
+            try {
+                // SÉCURISÉ: Créer des variables globales sans eval
+                window.log = window.log;
+                window.warn = window.warn; 
+                window.error = window.error;
+                console.log('✅ Fonctions de logging restaurées');
+            } catch (e) {
+                console.error('❌ Impossible de créer les variables globales:', e);
+            }
+        } else {
+            console.log('✅ Fonctions de logging déjà disponibles');
+        }
+    </script>
+    
+    <!-- 🚨 DIAGNOSTIC RENDU ET MESHES URGENCE -->
+    <script src="./tools/development/diagnostic-rendu-urgence.js"></script>
+
+    <!-- Fix scripts moved under module entry if needed (Vite) -->
+    
+    <!-- 🎯 CONSOLE NINJA TEST - DÉSACTIVÉ pour interface propre -->
+    <!-- <script src="./dev-tools/console-ninja/console-ninja-test.js"></script> -->
+
+    <!-- THREE.js Bootstrap - Chargement forcé avec exposition globale -->
+    <script type="module" src="./tools/three-bootstrap.js"></script>
+    
+    <!-- Gestionnaire d'initialisation -->
+    <script src="./tools/diamants-initializer.js"></script>
+    
+    <!-- Diagnostic et réparation -->
+    <script src="./scripts/diagnostic-repair.js"></script>
+
+    <!-- Simple drone animation system -->
+    <script src="./tools/simple-drone-animation.js"></script>
+    
+    <!-- Authentic Drone Swarm Manager -->
+    <script src="./tools/authentic-drone-swarm.js"></script>
+    
+    <!-- Point d'entrée principal pour Vite -->
+    <!-- Re-enabled main.js for proper GitHub functioning -->
+    <script type="module" src="./main.js"></script>
+
+    <!-- Cleanup stray appended script: keep only minimal debug helpers if needed -->
+    <script>
+        // Configuration globale avec logging
+        window.CONFIG = {
+            meshPath: './assets/crazyflie/meshes/',
+            logLevel: 'INFO',
+            enablePerformanceLogging: true,
+            enableUILogging: true
+        };
+
+        // Fonction togglePanel simplifiée
+        function togglePanel() {
+            const panel = document.getElementById('ros_interface');
+            const canvas = document.getElementById('canvas_container');
+            const button = document.getElementById('toggle_panel');
+
+            if (!panel || !canvas || !button) return;
+
+            const isHidden = panel.style.display === 'none' || !panel.style.display;
+
+            if (isHidden) {
+                panel.style.display = 'block';
+                canvas.classList.add('panel-visible');
+                button.classList.add('panel-visible');
+                button.innerHTML = '◄';
+            } else {
+                panel.style.display = 'none';
+                canvas.classList.remove('panel-visible');
+                button.classList.remove('panel-visible');
+                button.innerHTML = '►';
+            }
+        }
+
+        // Fonctions UI basiques
+        function toggleMinimap() {
+            const m = document.getElementById('minimap');
+            if (m) m.style.display = m.style.display !== 'block' ? 'block' : 'none';
+        }
+
+        function toggleSAROverlay() {
+            log('SAR overlay toggle');
+        }
+
+        function toggleTopicMonitor() {
+            const monitor = document.getElementById('topic_monitor');
+            if (monitor) monitor.classList.toggle('collapsed');
+        }
+    </script>
+
+    <!-- Fonctions UI temporaires pour test -->
+    <script>
+        log('🔧 Chargement des fonctions UI...');
+        
+        // 🚁 SOLUTION DIRECTE: MOUVEMENT IMMÉDIAT DES DRONES
+        let directDroneMovement = false;
+        let animationStartTime = 0;
+        let droneObjects = [];
+        
+        // Test simple pour vérifier que les fonctions marchent
+        if (typeof window.launchMission === 'undefined') {
+            window.launchMission = function() {
+                alert('🚀 Launch Mission clicked!'); // DEBUG: Test si la fonction est appelée
+                console.log('🚀 Launch Mission function called'); // DEBUG: Log dans la console
+                
+                if (typeof window.log === 'function') {
+                    window.log('🚀 PATTERN COMPLET: Décollage + Formation à 5m+');
+                } else {
+                    console.log('🚀 PATTERN COMPLET: Décollage + Formation à 5m+');
+                }
+            
+            // ÉTAPE 1: Forcer l'altitude à 5m+ pour tous les drones
+            if (window.diamantsSystem?.integratedController) {
+                const controller = window.diamantsSystem.integratedController;
+                
+                // DÉCOLLAGE FORCÉ À 5M+
+                controller.drones.forEach((drone, index) => {
+                    if (drone.mesh) {
+                        const targetAltitude = 5.0 + (index * 0.3); // 5m minimum + espacement
+                        window.log(`🚁 Décollage drone ${drone.id} vers ${targetAltitude}m`);
+                        
+                        // Animation directe vers la bonne altitude
+                        const mesh = drone.mesh;
+                        const startY = mesh.position.y;
+                        const startTime = Date.now();
+                        
+                        function animateUp() {
+                            const elapsed = Date.now() - startTime;
+                            const progress = Math.min(elapsed / 2000, 1.0); // 2 secondes
+                            const currentY = startY + (targetAltitude - startY) * progress;
+                            
+                            mesh.position.y = currentY;
+                            
+                            if (progress < 1.0) {
+                                requestAnimationFrame(animateUp);
+                            } else {
+                                window.log(`✅ Drone ${drone.id} à ${targetAltitude}m`);
+                            }
+                        }
+                        
+                        animateUp();
+                    }
+                });
+            }
+            
+            // ÉTAPE 2: Formation après 3 secondes
+            setTimeout(() => {
+                if (window.setFormation) {
+                    const patterns = ['grid', 'line', 'circle', 'triangle'];
+                    const current = document.getElementById('currentPattern')?.textContent || 'grid';
+                    const index = patterns.indexOf(current);
+                    const next = patterns[(index + 1) % patterns.length];
+                    window.log(`📐 Formation ${next} à 5m+ activée`);
+                    window.setFormation(next);
+                }
+            }, 3000);
+            };
+        }
+        
+        // Fonction startDirectDroneAnimation pour les anciens scripts
+        
+        // � FONCTION DE DEBUG : Force la création des boundary boxes
+        window.forceCreateCollisionBoxes = function() {
+            console.warn('🔧 FORCE CREATE COLLISION BOXES - DEBUG FUNCTION');
+            
+            // Chercher les drones dans tous les endroits possibles
+            let dronesFound = [];
+            
+            if (window.drones && window.drones.length > 0) {
+                dronesFound = window.drones;
+                console.warn(`✅ Trouvé ${dronesFound.length} drones dans window.drones`);
+            } else if (window.authenticSwarm && window.authenticSwarm.drones) {
+                dronesFound = window.authenticSwarm.drones;
+                console.warn(`✅ Trouvé ${dronesFound.length} drones dans window.authenticSwarm.drones`);
+            } else if (window.diamantsSystem && window.diamantsSystem.drones) {
+                dronesFound = window.diamantsSystem.drones;
+                console.warn(`✅ Trouvé ${dronesFound.length} drones dans window.diamantsSystem.drones`);
+            }
+            
+            console.warn(`🔍 Total drones trouvés: ${dronesFound.length}`);
+            
+            dronesFound.forEach((drone, index) => {
+                console.warn(`🔧 Drone ${index}: id=${drone.id}, createCollisionBox=${typeof drone.createCollisionBox}`);
+                if (drone.createCollisionBox) {
+                    try {
+                        drone.createCollisionBox();
+                        console.warn(`✅ Boundary box forcée pour ${drone.id}`);
+                    } catch (error) {
+                        console.warn(`❌ Erreur création boundary box ${drone.id}:`, error);
+                    }
+                }
+            });
+        };
+        
+        // �🚁 ANIMATION DIRECTE DE SECOURS - FORCE LE MOUVEMENT DES DRONES
+        function startDirectDroneAnimation() {
+            log('🚁 Démarrage de l\'animation directe des drones...');
+            
+            // Rechercher tous les objets qui ressemblent à des drones dans la scène
+            function findAndAnimateDrones() {
+                if (window.diamantsSystem && window.diamantsSystem.scene) {
+                    const scene = window.diamantsSystem.scene;
+                    
+                    // Rechercher des meshes de drones existants
+                    droneObjects = [];
+                    scene.traverse(function(child) {
+                        if (child.name && (
+                            child.name.includes('drone') || 
+                            child.name.includes('crazyflie') || 
+                            child.name.includes('Drone') ||
+                            child.name.includes('Crazyflie')
+                        )) {
+                            droneObjects.push(child);
+                        }
+                        
+                        // Chercher aussi par type de mesh
+                        if (child.isMesh && child.geometry) {
+                            // Si c'est un petit objet complexe, c'est probablement un drone
+                            try {
+                                const bbox = new THREE.Box3().setFromObject(child);
+                                const size = bbox.getSize(new THREE.Vector3());
+                                if (size.x < 2 && size.y < 2 && size.z < 2 && size.x > 0.1) {
+                                    droneObjects.push(child);
+                                }
+                            } catch (e) { /* ignore */ }
+                        }
+                    });
+                    
+                    log(`🔍 Trouvé ${droneObjects.length} objets drones potentiels`);
+                    
+                    // Si on n'a pas trouvé de drones, créer des cubes simples
+                    if (droneObjects.length === 0) {
+                        log('🚁 Création de drones de test...');
+                        for (let i = 0; i < 4; i++) {
+                            const geometry = new THREE.BoxGeometry(0.8, 0.3, 0.8);
+                            const material = new THREE.MeshLambertMaterial({ 
+                                color: 0x00ff88,
+                                wireframe: false 
+                            });
+                            const drone = new THREE.Mesh(geometry, material);
+                            drone.position.set(
+                                (Math.random() - 0.5) * 10,
+                                3 + Math.random() * 2,
+                                (Math.random() - 0.5) * 10
+                            );
+                            drone.name = `testDrone${i}`;
+                            scene.add(drone);
+                            droneObjects.push(drone);
+                        }
+                        log('✅ Créé 4 drones de test');
+                    }
+                    
+                    // Animation des drones trouvés
+                    function animateDrones() {
+                        if (!directDroneMovement) return;
+                        
+                        const time = (Date.now() - animationStartTime) / 1000;
+                        
+                        droneObjects.forEach((drone, index) => {
+                            if (!drone.position) return;
+                            
+                            // Pattern d'exploration circulaire
+                            const radius = 8 + index * 2;
+                            const speed = 0.4 + index * 0.15;
+                            const angleOffset = (index / droneObjects.length) * Math.PI * 2;
+                            
+                            const angle = time * speed + angleOffset;
+                            
+                            drone.position.x = Math.cos(angle) * radius;
+                            drone.position.z = Math.sin(angle) * radius;
+                            drone.position.y = 3 + Math.sin(time * 2 + index) * 0.8; // Variation altitude
+                            
+                            // Rotation pour orienter le drone
+                            if (drone.rotation) {
+                                drone.rotation.y = angle + Math.PI/2;
+                            }
+                        });
+                        
+                        // Log de progression
+                        if (Math.floor(time * 2) % 60 === 0) { // Toutes les 30 secondes
+                            log(`🚁 Animation drones: ${droneObjects.length} drones en mouvement depuis ${time.toFixed(1)}s`);
+                        }
+                        
+                        requestAnimationFrame(animateDrones);
+                    }
+                    
+                    animateDrones();
+                    log('🎯 Animation des drones démarrée!');
+                } else {
+                    // Réessayer dans 1 seconde
+                    log('⏳ Attente initialisation scène...');
+                    setTimeout(findAndAnimateDrones, 1000);
+                }
+            }
+            
+            findAndAnimateDrones();
+        }
+        
+        window.emergencyLand = function() {
+            log('🛑 Emergency Land clicked - Arrêt mouvement direct');
+            directDroneMovement = false;
+            
+            // Faire atterrir les drones
+            droneObjects.forEach((drone, index) => {
+                if (drone.position) {
+                    // Animation d'atterrissage
+                    let landingAnimation = function() {
+                        if (drone.position.y > 0.5) {
+                            drone.position.y -= 0.05; // Descendre lentement
+                            requestAnimationFrame(landingAnimation);
+                        }
+                    };
+                    landingAnimation();
+                }
+            });
+            
+            log('🛬 Drones en cours d\'atterrissage');
+        };
+        
+        window.resetSwarm = function() {
+            log('🔄 Reset Swarm clicked');
+            alert('🔄 Reset Swarm');
+        };
+        
+        // SOLUTION D'URGENCE: Forcer tous les drones à 8m+ immédiatement
+        window.forceDronesUp = function() {
+            window.log('🚨 REMONTÉE D\'URGENCE: Tous les drones à 8m+');
+            
+            if (window.drones && window.drones.length > 0) {
+                window.drones.forEach((drone, index) => {
+                    if (drone.mesh) {
+                        const emergencyAltitude = 8.5 + (index * 0.3);
+                        window.log(`🚁 URGENCE: ${drone.id} → ${emergencyAltitude}m`);
+                        
+                        // Force position immédiate
+                        drone.mesh.position.y = emergencyAltitude;
+                        
+                        // Mettre à jour la position cible
+                        if (drone.targetPosition) {
+                            drone.targetPosition.y = emergencyAltitude;
+                        } else {
+                            drone.targetPosition = {
+                                x: drone.mesh.position.x,
+                                y: emergencyAltitude,
+                                z: drone.mesh.position.z
+                            };
+                        }
+                        
+                        // Forcer l'état FLYING
+                        if (drone.setState) {
+                            drone.setState('FLYING');
+                        }
+                        drone.state = 'FLYING';
+                    }
+                });
+            }
+            
+            // Vérifier les drones alternatifs
+            if (window.diamantsSystem?.integratedController?.drones) {
+                window.diamantsSystem.integratedController.drones.forEach((drone, index) => {
+                    if (drone.mesh) {
+                        const emergencyAltitude = 8.5 + (index * 0.3);
+                        window.log(`🚁 URGENCE ALT: ${drone.id} → ${emergencyAltitude}m`);
+                        drone.mesh.position.y = emergencyAltitude;
+                    }
+                });
+            }
+        };
+
+        // changePattern défini dans drone-panel-controller.js
+        // SOLUTION COMPLÈTE: Pattern button fait décollage + formation à 5m+
+        if (typeof window.changePattern === 'undefined') {
+            window.changePattern = function() {
+                window.log('🚀 PATTERN COMPLET: Décollage + Formation à 5m+');
+                
+                // ÉTAPE 1: Forcer l'altitude à 5m+ pour tous les drones
+                if (window.diamantsSystem?.integratedController) {
+                    const controller = window.diamantsSystem.integratedController;
+                    
+                    // DÉCOLLAGE FORCÉ À 5M+
+                    controller.drones.forEach((drone, index) => {
+                        if (drone.mesh) {
+                            const targetAltitude = 5.0 + (index * 0.3); // 5m minimum + espacement
+                            window.log(`🚁 Décollage drone ${drone.id} vers ${targetAltitude}m`);
+                            
+                            // Animation directe vers la bonne altitude
+                            const mesh = drone.mesh;
+                            const startY = mesh.position.y;
+                            const startTime = Date.now();
+                            
+                            function animateUp() {
+                                const elapsed = Date.now() - startTime;
+                                const progress = Math.min(elapsed / 2000, 1.0); // 2 secondes
+                                const currentY = startY + (targetAltitude - startY) * progress;
+                                
+                                mesh.position.y = currentY;
+                                
+                                if (progress < 1.0) {
+                                    requestAnimationFrame(animateUp);
+                                } else {
+                                    window.log(`✅ Drone ${drone.id} à ${targetAltitude}m`);
+                                }
+                            }
+                            
+                            animateUp();
+                        }
+                    });
+                }
+                
+                // ÉTAPE 2: Formation après 3 secondes
+                setTimeout(() => {
+                    if (window.setFormation) {
+                        const patterns = ['grid', 'line', 'circle', 'triangle'];
+                        const current = document.getElementById('currentPattern')?.textContent || 'grid';
+                        const index = patterns.indexOf(current);
+                        const next = patterns[(index + 1) % patterns.length];
+                        window.log(`📐 Formation ${next} à 5m+ activée`);
+                        window.setFormation(next);
+                    }
+                }, 3000);
+            };
+        }
+        
+        window.toggleDebugLogs = function() {
+            log('📋 Toggle Debug Logs');
+            alert('📋 Toggle Debug Logs');
+        };
+        
+        window.clearDebugLogs = function() {
+            log('🧹 Clear Debug Logs');  
+            alert('🧹 Clear Debug Logs');
+        };
+        
+        window.toggleDebugPanels = function() {
+            log('🛠️ Toggle Debug Panels');
+            alert('🛠️ Toggle Debug Panels');
+        };
+        
+        log('✅ Fonctions UI chargées');
+    </script>
+
+    <!-- Charger le contrôleur du panneau -->
+    <script src="./tools/drone-panel-controller.js"></script>
+
+    <!-- Charger la forêt EZ-Tree (authentic) -->
+    <!-- <script type="module" src="./forest_authentic.js"></script> -->
+</body>
+</html>
