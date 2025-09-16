@@ -10,6 +10,32 @@ This project is a 'playground' for developers, creating a robust bridge between 
 
 DIAMANTS's objective is to tackle a major technical challenge: achieving emergent collective behaviors in open, modular, and interoperable code. We aim to demonstrate that distributed intelligence is not a theoretical concept, but a robust, documented, and reusable software artifact for the community.
 
+## 🚨 URGENT: Community Help Needed | Aide de la Communauté Recherchée
+
+**🔥 CRITICAL MISSION: Wildfire Fighting in VAR Region, France**
+**🔥 MISSION CRITIQUE : Lutte contre les incendies dans le VAR, France**
+
+This platform is being developed with a vital objective: **creating an autonomous drone system to fight wildfires** that frequently devastate the VAR region in France. Forest fires represent a major danger to populations, wildlife, and the Mediterranean environment.
+
+Cette plateforme est développée avec un objectif vital : **créer un système de drones autonomes pour éteindre les incendies** qui ravagent fréquemment la région du VAR en France. Les feux de forêt représentent un danger majeur pour les populations, la faune, et l'environnement méditerranéen.
+
+### 🆘 We NEED YOU! | Nous avons besoin de VOUS !
+
+The project still has **critical anomalies** that prevent operational deployment. Your expertise can save lives and protect our forests:
+
+Le projet comporte encore des **anomalies critiques** qui empêchent le déploiement opérationnel. Votre expertise peut sauver des vies et protéger nos forêts :
+
+- **🐛 Bug fixes** | **Corrections de bugs** : Multi-drone system stabilization | Stabilisation du système multi-drones
+- **🧪 Field testing** | **Tests terrain** : Algorithm coordination validation | Validation des algorithmes de coordination  
+- **⚡ Optimizations** | **Optimisations** : Real-time performance improvements | Amélioration des performances temps réel
+- **🔧 Integration** | **Intégration** : ROS2/Frontend/Hardware coordination | Coordination ROS2/Frontend/Hardware
+- **📚 Documentation** | **Documentation** : Emergency deployment guides | Guides de déploiement d'urgence
+
+**🌲 Every contribution can help preserve our forests and save lives.**
+**🌲 Chaque contribution peut aider à préserver nos forêts et sauver des vies.**
+
+[![Join the Mission | Rejoindre la mission](https://img.shields.io/badge/🚁%20JOIN%20THE%20MISSION%20|%20REJOINDRE%20LA%20MISSION-red?style=for-the-badge&logo=github)](https://github.com/lololem/diamants-collab/issues)
+
 ## 🎬 System Demonstrations
 
 See DIAMANTS in action! Watch our multi-drone collaborative system working seamlessly from simulation to real-world deployment.
@@ -311,8 +337,7 @@ This project is licensed under the PolyForm Noncommercial License 1.0.0 - see th
 ## 📞 Contact & Support
 
 - **Issues**: [GitHub Issues](https://github.com/lololem/diamants-collab/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/lololem/diamants-collab/discussions)
-- **Email**: [Contact maintainers](mailto:contact@diamants-project.org)
+- **Email**: [Contact maintainers](mailto:loic.lemasle@gmail.com)
 
 ---
 
