@@ -14,44 +14,23 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 See DIAMANTS in action! Watch our multi-drone collaborative system working seamlessly from simulation to real-world deployment.
 
-> **⚠️ Video Integration Notice**: 
-> 
-> For **native video playback** directly in README (without downloading):
-> 1. The videos need to be uploaded directly in GitHub's web editor (not stored in repository)
-> 2. GitHub generates `user-images.githubusercontent.com` URLs that support native playback
-> 3. Repository files like `./DEMO/video/...` cannot be played natively in README
-> 
-> **Current viewing options**:
-> - **📁 Browse videos**: Go to [DEMO/video/](./DEMO/video/) folder and click any video
-> - **⬇️ Download**: Use the download button on GitHub's video file page  
-> - **💻 Local**: Clone with `git lfs pull` to get videos locally
-> - **🔗 Direct links**: Click the badges below to open video files
-
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-[![Backend Demo](https://img.shields.io/badge/🎬_Open-Backend_Demo-red?style=for-the-badge&logo=youtube)](./DEMO/video/Backend.mp4)
+[![Watch Live Demo](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
 
 **🤖 Backend Features Showcase:**
 - ✅ 8 Crazyflie drones in Gazebo simulation
-- ✅ Real-time collaborative SLAM mapping  
-- ✅ TMUX orchestration (13 specialized windows)
+- ✅ Real-time collaborative SLAM mapping
+- ✅ TMUX orchestration (13 specialized windows)  
 - ✅ ROS2 Jazzy + Gazebo Garden integration
 - ✅ Multi-agent path planning and coordination
 
-**File**: [Backend.mp4](./DEMO/video/Backend.mp4) • **Size**: ~25MB
-
 ### 🌐 Frontend - 3D Visualization Interface
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
-[![Frontend Demo 1](https://img.shields.io/badge/🎬_Watch-Frontend_Demo_1-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
-
-[![Frontend Demo 2](https://img.shields.io/badge/🎬_Watch-Frontend_Demo_2-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
-
-### 🌐 Frontend - 3D Visualization Interface
-Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
-
-[![Frontend Demo 1](https://img.shields.io/badge/🎬_Watch-Frontend_Demo_1-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
+#### Frontend Interface Overview
+[![Watch Frontend Demo](https://img.youtube.com/vi/OZpGvoj5XEs/maxresdefault.jpg)](https://youtube.com/shorts/OZpGvoj5XEs?feature=share)
 
 **🌐 Frontend Features Showcase:**
 - ✅ Three.js + WebGL real-time 3D visualization
@@ -60,22 +39,8 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 - ✅ Vite development server integration
 - ✅ Modern responsive UI design
 
-**File**: [Frontend1.mp4](./DEMO/video/Frontend1.mp4) • **Size**: ~164MB
-
 #### Advanced Visualization Features  
-
-[![Frontend Demo 2](https://img.shields.io/badge/🎬_Watch-Advanced_Features-green?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
-- ✅ Three.js + WebGL real-time 3D visualization
-- ✅ WebSocket communication with ROS2 backend
-- ✅ Interactive mission planning interface
-- ✅ Vite development server integration
-- ✅ Modern responsive UI design
-
-**File**: [Frontend1.mp4](./DEMO/video/Frontend1.mp4) • **Size**: ~164MB
-
-#### Advanced Visualization Features  
-
-[![Frontend Demo 2](https://img.shields.io/badge/🎬_Watch-Advanced_Features-green?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
+[![Frontend Demo 2](https://img.shields.io/badge/▶️%20Watch%20Advanced%20Features-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
 
 **🎮 Advanced Features:**
 - ✅ Advanced shader effects and lighting
@@ -84,19 +49,26 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 - ✅ WebSocket integration demonstration
 - ✅ Multi-viewport rendering
 
-**File**: [Fontend2.mp4](./DEMO/video/Fontend2.mp4) • **Size**: ~84MB
-
 ### 🚁 Additional System Features
 Extended capabilities showcasing various aspects of the DIAMANTS platform.
 
-| Feature | Demo | Description |
-|---------|------|-------------|
-| **Multi-Agent Coordination** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other1.mp4) | Coordinated swarm behaviors and formation flying |
-| **Swarm Intelligence** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other2.mp4) | Emergent collective intelligence patterns |
-| **Mission Execution** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other3.mp4) | Real-time mission planning and execution |
-| **SLAM Integration** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other4.mp4) | Advanced mapping and localization |
-| **System Performance** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other5.mp4) | Performance metrics and optimization |
-| **Complete Workflow** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other6.mp4) | End-to-end system demonstration |
+#### Multi-Agent Coordination
+[![Demo 1](https://img.shields.io/badge/▶️%20Watch%20Multi%20Agent%20Demo-green?style=for-the-badge)](./DEMO/video/Other1.mp4)
+
+#### Swarm Intelligence Behaviors
+[![Demo 2](https://img.shields.io/badge/▶️%20Watch%20Swarm%20Intelligence-green?style=for-the-badge)](./DEMO/video/Other2.mp4)
+
+#### Real-time Mission Execution
+[![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
+
+#### Advanced SLAM Integration
+[![Demo 4](https://img.shields.io/badge/▶️%20Watch%20SLAM%20Integration-green?style=for-the-badge)](./DEMO/video/Other4.mp4)
+
+#### System Performance Monitoring
+[![Demo 5](https://img.shields.io/badge/▶️%20Watch%20Performance%20Monitoring-green?style=for-the-badge)](./DEMO/video/Other5.mp4)
+
+#### Complete Workflow Demonstration
+[![Demo 6](https://img.shields.io/badge/▶️%20Watch%20Complete%20Workflow-green?style=for-the-badge)](./DEMO/video/Other6.mp4)
 
 ## ✨ Key Features & Technical Challenges
 
