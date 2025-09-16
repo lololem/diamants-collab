@@ -14,127 +14,81 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 See DIAMANTS in action! Watch our multi-drone collaborative system working seamlessly from simulation to real-world deployment.
 
+> **📹 How to view videos**: Click on the video badges below. GitHub will open the video file where you can:
+> - **Stream directly**: Use GitHub's built-in video player (works for most video formats)
+> - **Download**: Click the download button to save the video locally
+> - **Alternative**: Clone the repository with `git lfs pull` to get all video files locally
+
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-<video width="100%" controls>
-  <source src="./DEMO/video/Backend.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Backend.mp4">Download Backend Demo</a>
-</video>
+[![Backend Demo](https://img.shields.io/badge/🎬_Watch-Backend_Demo-red?style=for-the-badge&logo=youtube)](./DEMO/video/Backend.mp4)
 
-<details>
-<summary>🎥 Backend Demo Details (Click to expand)</summary>
+**🤖 Backend Features Showcase:**
+- ✅ 8 Crazyflie drones in Gazebo simulation
+- ✅ Real-time collaborative SLAM mapping  
+- ✅ TMUX orchestration (13 specialized windows)
+- ✅ ROS2 Jazzy + Gazebo Garden integration
+- ✅ Multi-agent path planning and coordination
 
-```
-🤖 Backend Features Showcase:
-✅ 8 Crazyflie drones in Gazebo simulation
-✅ Real-time collaborative SLAM mapping  
-✅ TMUX orchestration (13 specialized windows)
-✅ ROS2 Jazzy + Gazebo Garden integration
-✅ Multi-agent path planning and coordination
-```
-
-**File**: [Backend.mp4](./DEMO/video/Backend.mp4) • **Size**: ~25MB • **Duration**: Demo of complete backend workflow
-</details>
+**File**: [Backend.mp4](./DEMO/video/Backend.mp4) • **Size**: ~25MB
 
 ### 🌐 Frontend - 3D Visualization Interface
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
-#### Frontend Interface Overview
+[![Frontend Demo 1](https://img.shields.io/badge/🎬_Watch-Frontend_Demo_1-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
 
-<video width="100%" controls>
-  <source src="./DEMO/video/Frontend1.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Frontend1.mp4">Download Frontend Demo 1</a>
-</video>
+[![Frontend Demo 2](https://img.shields.io/badge/🎬_Watch-Frontend_Demo_2-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
 
-<details>
-<summary>🎥 Frontend Demo 1 Details (Click to expand)</summary>
+### 🌐 Frontend - 3D Visualization Interface
+Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
-```
-🌐 Frontend Interface Features:
-✅ Three.js + WebGL 3D visualization
-✅ Real-time drone position tracking
-✅ Interactive mission planning interface
-✅ Vite development server integration
-✅ Modern responsive UI design
-```
+[![Frontend Demo 1](https://img.shields.io/badge/🎬_Watch-Frontend_Demo_1-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
 
-**File**: [Frontend1.mp4](./DEMO/video/Frontend1.mp4) • **Size**: ~164MB • **Duration**: Complete interface walkthrough
-</details>
+**🌐 Frontend Features Showcase:**
+- ✅ Three.js + WebGL real-time 3D visualization
+- ✅ WebSocket communication with ROS2 backend
+- ✅ Interactive mission planning interface
+- ✅ Vite development server integration
+- ✅ Modern responsive UI design
+
+**File**: [Frontend1.mp4](./DEMO/video/Frontend1.mp4) • **Size**: ~164MB
 
 #### Advanced Visualization Features  
 
-<video width="100%" controls>
-  <source src="./DEMO/video/Fontend2.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Fontend2.mp4">Download Frontend Demo 2</a>
-</video>
+[![Frontend Demo 2](https://img.shields.io/badge/🎬_Watch-Advanced_Features-green?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
+- ✅ Three.js + WebGL real-time 3D visualization
+- ✅ WebSocket communication with ROS2 backend
+- ✅ Interactive mission planning interface
+- ✅ Vite development server integration
+- ✅ Modern responsive UI design
 
-<details>
-<summary>🎥 Frontend Demo 2 Details (Click to expand)</summary>
+**File**: [Frontend1.mp4](./DEMO/video/Frontend1.mp4) • **Size**: ~164MB
 
-```
-🎮 Advanced Features:
-✅ Advanced shader effects and lighting
-✅ Real-time performance monitoring
-✅ Dynamic camera controls
-✅ WebSocket integration demonstration
-✅ Multi-viewport rendering
-```
+#### Advanced Visualization Features  
 
-**File**: [Fontend2.mp4](./DEMO/video/Fontend2.mp4) • **Size**: ~84MB • **Duration**: Advanced features showcase
-</details>
+[![Frontend Demo 2](https://img.shields.io/badge/🎬_Watch-Advanced_Features-green?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
+
+**🎮 Advanced Features:**
+- ✅ Advanced shader effects and lighting
+- ✅ Real-time performance monitoring
+- ✅ Dynamic camera controls
+- ✅ WebSocket integration demonstration
+- ✅ Multi-viewport rendering
+
+**File**: [Fontend2.mp4](./DEMO/video/Fontend2.mp4) • **Size**: ~84MB
 
 ### 🚁 Additional System Features
 Extended capabilities showcasing various aspects of the DIAMANTS platform.
 
-#### Multi-Agent Coordination
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other1.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other1.mp4">Download Multi-Agent Demo</a>
-</video>
-
-#### Swarm Intelligence Behaviors
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other2.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other2.mp4">Download Swarm Intelligence Demo</a>
-</video>
-
-#### Real-time Mission Execution
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other3.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other3.mp4">Download Mission Execution Demo</a>
-</video>
-
-#### Advanced SLAM Integration
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other4.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other4.mp4">Download SLAM Integration Demo</a>
-</video>
-
-#### System Performance Monitoring
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other5.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other5.mp4">Download Performance Monitoring Demo</a>
-</video>
-
-#### Complete Workflow Demonstration
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other6.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other6.mp4">Download Complete Workflow Demo</a>
-</video>
-
-#### Complete Workflow Demonstration
-
-<video width="100%" controls>
-  <source src="./DEMO/video/Other6.mp4" type="video/mp4">
-  Your browser does not support the video tag. <a href="./DEMO/video/Other6.mp4">Download Complete Workflow Demo</a>
-</video>
+| Feature | Demo | Description |
+|---------|------|-------------|
+| **Multi-Agent Coordination** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other1.mp4) | Coordinated swarm behaviors and formation flying |
+| **Swarm Intelligence** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other2.mp4) | Emergent collective intelligence patterns |
+| **Mission Execution** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other3.mp4) | Real-time mission planning and execution |
+| **SLAM Integration** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other4.mp4) | Advanced mapping and localization |
+| **System Performance** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other5.mp4) | Performance metrics and optimization |
+| **Complete Workflow** | [![Demo](https://img.shields.io/badge/🎬-Watch-orange?style=flat-square)](./DEMO/video/Other6.mp4) | End-to-end system demonstration |
 
 ## ✨ Key Features & Technical Challenges
 
