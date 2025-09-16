@@ -1,45 +1,52 @@
 # 🚁 DIAMANTS API
 
-**Plateforme de simulation collaborative de drones avec intégration ROS2 Jazzy**
+**Advanced FastAPI service for collaborative drone simulation with ROS2 Jazzy integration**
 
-> ✅ **Architecture unifiée** avec WebSocket Service principal et API REST FastAPI
+> ✅ **Unified architecture** with primary WebSocket Service and FastAPI REST endpoints
 
-## 🚀 Démarrage Rapide
+## 🚀 Quick Start
 
-### Prérequis
-- **Ubuntu 24.04** (recommandé)
+### Prerequisites
+- **Ubuntu 24.04** (recommended)
 - **ROS2 Jazzy** 
 - **Python 3.12**
 - **Node.js 16+**
 
-### Installation & Démarrage
+### Installation & Launch
 
 ```bash
-# 1. Installation des dépendances (première fois)
-./scripts/setup/setup-dependencies.sh
+# Clone the collaborative repository
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab
 
-# 2. Démarrage de DIAMANTS
-./start.sh
+# 1. Install dependencies (first time)
+cd DIAMANTS_API
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
 
-# 3. Vérification du statut
-./check.sh
+# 2. Launch DIAMANTS API
+python launcher.py
+
+# 3. Status verification
+./status.sh
 ```
 
-### Arrêt
+### Shutdown
 
 ```bash
 ./stop.sh
 ```
 
-## 📡 Services Disponibles
+## 📡 Available Services
 
-| Service | URL | Description | Statut |
+| Service | URL | Description | Status |
 |---------|-----|-------------|--------|
-| **API REST** | `http://localhost:8000` | Interface principale FastAPI | ✅ Actif |
-| **Documentation** | `http://localhost:8000/docs` | Documentation interactive Swagger | ✅ Actif |
-| **WebSocket Service** | `ws://localhost:8765` | Service WebSocket unifié ROS2-Web | ✅ Actif |
+| **REST API** | `http://localhost:8000` | FastAPI main interface | ✅ Active |
+| **Documentation** | `http://localhost:8000/docs` | Interactive Swagger documentation | ✅ Active |
+| **WebSocket Service** | `ws://localhost:8765` | Unified ROS2-Web WebSocket service | ✅ Active |
 
-## 🎯 Architecture Unifiée
+## 🎯 Unified Architecture
 
 ```
 DIAMANTS API (Port 8000)
