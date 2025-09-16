@@ -1,4 +1,46 @@
-# � DIAMANTS: Distributed Autonomous Multi## 🚀 Quick Start
+# 💎 DIAMANTS: Distributed Autonomous Multi-Agent Systems
+
+[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+
+**DIAMANTS is an open-source platform for the simulation and execution of distributed intelligence. Our philosophy: code once, and deploy everywhere—in simulation and in the real world.**
+
+This project is a 'playground' for developers, creating a robust bridge between high-level intent (the swarm's strategy) and low-level execution (each drone's physical commands). It's a space to code distributed intelligence, test it in a credible simulation, and push it directly to real-world swarms.
+
+## 🎯 Vision
+
+DIAMANTS's objective is to tackle a major technical challenge: achieving emergent collective behaviors in open, modular, and interoperable code. We aim to demonstrate that distributed intelligence is not a theoretical concept, but a robust, documented, and reusable software artifact for the community.
+
+## ✨ Key Features & Technical Challenges
+
+### 🌱 Open Source by Design
+
+Our entire ecosystem is built on recognized open standards. No proprietary lock-in.
+
+**Main Stack:**
+- **Backend & Simulation**: ROS 2, Gazebo, PX4/ArduPilot, MAVROS
+- **Frontend & Visualization**: Vite, Three.js, Babylon.js, WebGL, Node.js
+
+**Goal**: To foster an ecosystem where every developer can contribute, test, and enrich the platform.
+
+### 🌐 Radical Interoperability
+
+A defined mission must be understood by any agent, regardless of its hardware or middleware.
+- **Universal Missions**: Mission definitions in YAML/JSON
+- **Unified APIs**: Design of agnostic interfaces and mission translators
+
+### 🧠 From Simple Rules to Collective Intelligence
+
+The scientific core of the project is the study of emergence from simple interactions.
+- **Explored Algorithms**: Stigmergy, consensus algorithms, social forces (Lennard-Jones type)
+- **Challenge**: To code simple behavioral bricks and observe the emergence of a credible collective intelligence
+
+### 🔄 Seamless Sim-to-Real Workflow
+
+Simulation is a mirror of reality. Zero throwaway code.
+- **High-Fidelity Simulation**: The high-level code produces command streams via ROS 2 that are translated identically for the simulator and for physical agents
+- **Continuous Validation**: Every line of code is validated in simulation and then executed without any modification on the real hardware
+
+## 🚀 Quick Start � DIAMANTS: Distributed Autonomous Multi## 🚀 Quick Start
 
 ### Prerequisites
 - **Ubuntu 24.04** (recommended)
