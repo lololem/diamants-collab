@@ -70,6 +70,15 @@ Extended capabilities showcasing various aspects of the DIAMANTS platform.
 - ✅ Dynamic field navigation
 - ✅ Smooth trajectory optimization
 
+#### Swarm Coordination Demo
+[![Watch Swarm Demo](https://img.youtube.com/vi/L8V64LajM2w/maxresdefault.jpg)](https://www.youtube.com/watch?v=L8V64LajM2w)
+
+**🐝 Swarm Features:**
+- ✅ Collective swarm intelligence
+- ✅ Distributed formation control
+- ✅ Emergent group behaviors
+- ✅ Scalable multi-drone coordination
+
 #### Real-time Mission Execution
 [![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
 
