@@ -100,7 +100,7 @@ def generate_launch_description():
             executable='rviz2',
             name='rviz2',
             output='screen',
-            arguments=['-d', '~/Projects/AI_PROJECTS/DIAMANTS/DIAMANTS_BACKEND/config/rviz_stigmergie_config.rviz'],
+            arguments=['-d', '$(find-pkg-share slam_map_merge)/../../../../../config/rviz_stigmergie_config.rviz'],
             condition=IfCondition(LaunchConfiguration('rviz'))
         )
     ])
