@@ -20,7 +20,7 @@ By participating in this project, you agree to abide by our Code of Conduct. Be 
 ## 🚀 Getting Started
 
 1. **Fork** the repository
-2. **Clone** your fork: `git clone https://github.com/yourusername/diamants.git`
+2. **Clone** your fork: `git clone https://github.com/yourusername/diamants-collab.git`
 3. **Set up** development environment (see [Development Setup](#development-setup))
 4. **Create** a feature branch: `git checkout -b feature/amazing-feature`
 5. **Make** your changes
