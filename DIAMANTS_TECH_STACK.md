@@ -188,7 +188,7 @@ Core_Components:
 ### **Communication Bridge**
 ```yaml
 WebSocket_Bridge:
-  main_script: "ros2_backend/diamants_unified_bridge.py"
+  main_script: "backend/diamants_unified_bridge.py"
   deprecated_scripts:
     - "crazyflie_bridge.py"
     - "improved_crazyflie_bridge.py"
@@ -370,7 +370,7 @@ DIAMANTS/
 │       ├── package.json           # Dépendances NPM
 │       └── .nvmrc                 # Version Node.js
 │
-├── ros2_backend/                   # Backend ROS2
+├── backend/                        # Backend ROS2
 │   ├── diamants_unified_bridge.py # Bridge principal
 │   ├── crazyflie_bridge.py        # (deprecated)
 │   └── improved_crazyflie_bridge.py # (deprecated)

@@ -13,7 +13,14 @@ from unittest.mock import Mock, patch
 
 # Add system paths for ROS2
 sys.path.append('/opt/ros/jazzy/lib/python3.12/site-packages')
-ros2_ws_path = '/home/loic/Projects/AI_PROJECTS/DIAMANTS/DIAMANTS_BACKEND/slam_collaboratif/ros2_ws/install'
+import os
+import sys
+
+# Get the directory of this file
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Go up to DIAMANTS_API, then to project root, then to backend workspace  
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
+ros2_ws_path = os.path.join(project_root, 'DIAMANTS_BACKEND', 'slam_collaboratif', 'ros2_ws', 'install')
 if os.path.exists(ros2_ws_path):
     sys.path.append(f"{ros2_ws_path}/lib/python3.12/site-packages")
 

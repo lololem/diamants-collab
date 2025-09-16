@@ -8,7 +8,7 @@ Le script TMUX fonctionne maintenant parfaitement ! Le problème était une inco
 
 ### 1. Launch Full System
 ```bash
-cd $HOME/Projects/AI_PROJECTS/DIAMANTS/DIAMANTS_BACKEND
+cd DIAMANTS_BACKEND
 ./launch_slam_collaborative.sh
 ```
 

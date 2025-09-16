@@ -123,7 +123,7 @@ ROS2_TOPICS = {
 
 ```bash
 # Tests complets avec ROS2
-cd /home/loic/Projects/AI_PROJECTS/DIAMANTS/DIAMANTS_API
+cd DIAMANTS_API
 source /opt/ros/jazzy/setup.bash
 python -m pytest tests/ -v
 

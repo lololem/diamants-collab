@@ -4,7 +4,7 @@ Test d'intégration complète de l'API DIAMANTS avec ROS2
 """
 import asyncio
 import pytest
-import rclpy
+import rclpy  # type: ignore
 import requests
 import time
 import threading
@@ -50,9 +50,6 @@ class TestDiamantsAPI:
             'source /opt/ros/jazzy/setup.bash && source venv/bin/activate && python launcher.py'
         ]
         
-        # Get current working directory as API root
-        api_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        
         cls.api_process = Popen(cmd, env=env, stdout=PIPE, stderr=PIPE, 
                                cwd=api_root)
     
@@ -72,7 +69,13 @@ class TestDiamantsAPI:
         
         raise Exception("API non disponible après 30 secondes")
     
-    def test_api_status(self):
+    import os
+
+# Get current working directory as API root
+api_root = os.path.dirname(os.path.abspath(__file__))
+
+# Function definition needs to be found first
+def test_api_status():
         """Test l'endpoint status"""
         response = requests.get('http://localhost:8000/api/status')
         assert response.status_code == 200
