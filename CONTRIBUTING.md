@@ -1,6 +1,6 @@
-# 🤝 Contributing to DIAMANTS V3
+# 🤝 Contributing to DIAMANTS
 
-Thank you for your interest in contributing to **DIAMANTS V3**! This document provides guidelines for contributing to this PolyForm Noncommercial-licensed collaborative SLAM project.
+Thank you for your interest in contributing to **DIAMANTS**! This document provides guidelines for contributing to this PolyForm Noncommercial-licensed collaborative SLAM project.
 
 ## 📋 Table of Contents
 
@@ -347,7 +347,7 @@ For new file types, manually add the appropriate header:
 
 ```javascript
 /*
- * DIAMANTS V3 - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
+ * DIAMANTS - Distributed Autonomous Multi-agents Systems for Drone Swarms
  * 
  * Copyright (c) 2025 DIAMANTS Project Contributors
  * 
@@ -577,6 +577,6 @@ Contributors will be recognized in:
 
 ---
 
-**Thank you for contributing to DIAMANTS V3!** 🚁✨
+**Thank you for contributing to DIAMANTS!** 🚁✨
 
 Your contributions help advance collaborative autonomous systems and open-source robotics.
