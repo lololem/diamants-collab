@@ -66,7 +66,7 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 - ✅ Modern responsive UI design
 
 #### Advanced Visualization Features  
-[![Frontend Demo 2](https://img.shields.io/badge/▶️%20Watch%20Advanced%20Features-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
+[![Frontend Demo 1](https://img.shields.io/badge/▶️%20Watch%20Advanced%20Features-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
 
 **🎮 Advanced Features:**
 - ✅ Advanced shader effects and lighting
