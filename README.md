@@ -14,40 +14,117 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 See DIAMANTS in action! Watch our multi-drone collaborative system working seamlessly from simulation to real-world deployment.
 
+> 💡 **Tip**: Click the badges below to download and watch the videos, or view them directly in the [DEMO/video/](./DEMO/video/) folder.
+
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Backend.mp4
+[![Backend Demo](https://img.shields.io/badge/▶️%20Watch%20Backend%20Demo-red?style=for-the-badge)](./DEMO/video/Backend.mp4)
+
+<details>
+<summary>🎥 Preview Backend Demo (Click to expand)</summary>
+
+```
+🤖 Backend Features Showcase:
+✅ 8 Crazyflie drones in Gazebo simulation
+✅ Real-time collaborative SLAM mapping  
+✅ TMUX orchestration (13 specialized windows)
+✅ ROS2 Jazzy + Gazebo Garden integration
+✅ Multi-agent path planning and coordination
+```
+
+**File**: [Backend.mp4](./DEMO/video/Backend.mp4) • **Size**: ~25MB • **Duration**: Demo of complete backend workflow
+</details>
 
 ### 🌐 Frontend - 3D Visualization Interface
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
 #### Frontend Interface Overview
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Frontend1.mp4
+[![Frontend Demo 1](https://img.shields.io/badge/▶️%20Watch%20Frontend%20Demo%201-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
+
+<details>
+<summary>🎥 Preview Frontend Demo 1 (Click to expand)</summary>
+
+```
+🌐 Frontend Interface Features:
+✅ Three.js + WebGL 3D visualization
+✅ Real-time drone position tracking
+✅ Interactive mission planning interface
+✅ Vite development server integration
+✅ Modern responsive UI design
+```
+
+**File**: [Frontend1.mp4](./DEMO/video/Frontend1.mp4) • **Size**: ~164MB • **Duration**: Complete interface walkthrough
+</details>
 
 #### Advanced Visualization Features  
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Fontend2.mp4
+[![Frontend Demo 2](https://img.shields.io/badge/▶️%20Watch%20Frontend%20Demo%202-blue?style=for-the-badge)](./DEMO/video/Fontend2.mp4)
+
+<details>
+<summary>🎥 Preview Frontend Demo 2 (Click to expand)</summary>
+
+```
+🎮 Advanced Features:
+✅ Advanced shader effects and lighting
+✅ Real-time performance monitoring
+✅ Dynamic camera controls
+✅ WebSocket integration demonstration
+✅ Multi-viewport rendering
+```
+
+**File**: [Fontend2.mp4](./DEMO/video/Fontend2.mp4) • **Size**: ~84MB • **Duration**: Advanced features showcase
+</details>
 
 ### 🚁 Additional System Features
 Extended capabilities showcasing various aspects of the DIAMANTS platform.
 
 #### Multi-Agent Coordination
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Other1.mp4
+[![Demo 1](https://img.shields.io/badge/▶️%20Watch%20Multi%20Agent%20Demo-green?style=for-the-badge)](./DEMO/video/Other1.mp4)
 
 #### Swarm Intelligence Behaviors
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Other2.mp4
+[![Demo 2](https://img.shields.io/badge/▶️%20Watch%20Swarm%20Intelligence-green?style=for-the-badge)](./DEMO/video/Other2.mp4)
 
 #### Real-time Mission Execution
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Other3.mp4
+[![Demo 3](https://img.shields.io/badge/▶️%20Watch%20Mission%20Execution-green?style=for-the-badge)](./DEMO/video/Other3.mp4)
 
 #### Advanced SLAM Integration
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Other4.mp4
+[![Demo 4](https://img.shields.io/badge/▶️%20Watch%20SLAM%20Integration-green?style=for-the-badge)](./DEMO/video/Other4.mp4)
 
 #### System Performance Monitoring
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Other5.mp4
+[![Demo 5](https://img.shields.io/badge/▶️%20Watch%20Performance%20Monitoring-green?style=for-the-badge)](./DEMO/video/Other5.mp4)
 
 #### Complete Workflow Demonstration
-https://github.com/lololem/diamants-collab/assets/DEMO/video/Other6.mp4
+[![Demo 6](https://img.shields.io/badge/▶️%20Watch%20Complete%20Workflow-green?style=for-the-badge)](./DEMO/video/Other6.mp4)
+
+## ✨ Key Features & Technical Challenges
+
+### 🌱 Open Source by Design
+
+Our entire ecosystem is built on recognized open standards. No proprietary lock-in.
+
+**Main Stack:**
+- **Backend & Simulation**: ROS 2, Gazebo, PX4/ArduPilot, MAVROS
+- **Frontend & Visualization**: Vite, Three.js, Babylon.js, WebGL, Node.js
+
+**Goal**: To foster an ecosystem where every developer can contribute, test, and enrich the platform.
+
+### 🌐 Radical Interoperability
+
+A defined mission must be understood by any agent, regardless of its hardware or middleware.
+- **Universal Missions**: Mission definitions in YAML/JSON
+- **Unified APIs**: Design of agnostic interfaces and mission translators
+
+### 🧠 From Simple Rules to Collective Intelligence
+
+The scientific core of the project is the study of emergence from simple interactions.
+- **Explored Algorithms**: Stigmergy, consensus algorithms, social forces (Lennard-Jones type)
+- **Challenge**: To code simple behavioral bricks and observe the emergence of a credible collective intelligence
+
+### 🔄 Seamless Sim-to-Real Workflow
+
+Simulation is a mirror of reality. Zero throwaway code.
+- **High-Fidelity Simulation**: The high-level code produces command streams via ROS 2 that are translated identically for the simulator and for physical agents
+- **Continuous Validation**: Every line of code is validated in simulation and then executed without any modification on the real hardware
 
 ## ✨ Key Features & Technical Challenges
 
