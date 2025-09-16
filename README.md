@@ -1,33 +1,166 @@
 # 🚁 DIAMANTS - Distributed Intelligence for Autonomous Multi-Agent Navigation and Tactical Systems
 
-[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.r## ✅ Statut Architecture v2.0
+[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-PolyForm Noncommercial-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
 
-**✅ SYSTÈME ENTIÈREMENT REFACTORISÉ** - Architecture unifiée et simplifiée !
+> **Advanced multi-drone collaborative SLAM system featuring real-time swarm intelligence, authentic physics simulation, and distributed mapping for autonomous navigation in complex environments.**
 
-- ✅ **API unifiée** : Un seul point d'entrée (launcher.py) avec FastAPI + WebSocket Service
-- ✅ **Configuration centralisée** : Dataclass remplace Pydantic pour fiabilité  
-- ✅ **Tests complets** : Suite pytest avec support ROS2 et mocks
-- ✅ **Type checking** : Support Pylance complet avec imports conditionnels
-- ✅ **Architecture clean** : Élimination duplications, 6 fichiers essentiels à la racine
-- ✅ **Performance optimisée** : Un seul WebSocket Service au lieu de multiples bridges
+## 🎯 Overview
 
-### 🔥 Améliorations Majeures
+DIAMANTS is a production-ready platform for **collaborative autonomous drone operations** combining:
 
-| Avant v2.0 | Après v2.0 | Bénéfice |
-|-------------|-------------|----------|
-| ❌ 2+ WebSocket bridges | ✅ 1 Service unifié | Performance + Simplicité |
-| ❌ Pydantic BaseSettings | ✅ Dataclass config | Fiabilité + Type safety |
-| ❌ Imports non typés | ✅ Type checking complet | Développement robuste |  
-| ❌ Scripts éparpillés | ✅ 6 fichiers essentiels | Maintenance facilitée |
-| ❌ Tests fragmentés | ✅ Suite pytest unifiée | Qualité assurée |
+- **🤖 Multi-Agent SLAM**: 8-drone collaborative mapping with stigmergy-based fusion
+- **🎮 Real-time 3D Visualization**: WebGL-powered interface with authentic Crazyflie physics
+- **🔗 ROS2 Integration**: Complete Jazzy ecosystem with modern message protocols
+- **🧠 Swarm Intelligence**: Bio-inspired collective decision-making algorithms
+- **⚡ High Performance**: Unified WebSocket service with optimized data flow
 
-## 🔍 Diagnostic & Résolution Problèmes
+## � Quick Start
 
-### 🆘 Problèmes Courants
+### Prerequisites
+- **Ubuntu 24.04** (recommended)
+- **ROS2 Jazzy** ([installation guide](https://docs.ros.org/en/jazzy/Installation.html))
+- **Python 3.12+**
+- **Node.js 16+**
 
-#### 🔌 Services inactifs
+### Installation
+
 ```bash
-# Vérification complète système
+# Clone the collaborative repository
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab
+
+# One-command launch (interactive menu)
+./launch_diamants.sh
+```
+
+### Component Launch
+
+```bash
+# Complete system (recommended)
+./launch_diamants.sh  # Select option 6: "Complete System"
+
+# Individual components
+./launch_diamants.sh  # Option 1: Backend + SLAM
+./launch_diamants.sh  # Option 2: API Service  
+./launch_diamants.sh  # Option 3: Frontend Interface
+```
+
+## 🏗️ Architecture Overview
+
+### System Components
+
+```
+DIAMANTS System Architecture
+├── 🔧 DIAMANTS_API/          # FastAPI + WebSocket Service
+│   ├── api/                   # REST API endpoints
+│   ├── services/             # WebSocket & ROS2 integration
+│   └── launcher.py           # Unified entry point
+├── 🤖 DIAMANTS_BACKEND/      # ROS2 SLAM System
+│   ├── slam_collaboratif/    # Multi-agent SLAM workspace
+│   ├── config/               # ROS2 configurations
+│   └── launch_slam_collaborative.sh
+├── 🎮 DIAMANTS_FRONTEND/     # 3D Visualization Interface
+│   └── Mission_system/       # WebGL application
+└── 📋 Root Scripts/          # System management
+    ├── launch_diamants.sh    # Interactive launcher
+    ├── stop_diamants.sh      # Clean shutdown
+    └── check_ros_processes.sh # System diagnostics
+```
+
+## 🌟 Key Features
+
+### 🧠 **Collaborative Intelligence**
+- **Stigmergy-based coordination**: Bio-inspired pheromone communication
+- **Real-time map fusion**: Dynamic merging of individual SLAM maps
+- **Distributed decision making**: Autonomous task allocation and path planning
+
+### � **Advanced Simulation**
+- **Authentic physics**: Accurate Crazyflie 2.0 flight dynamics
+- **Provençal environment**: Mediterranean forest with procedural generation
+- **Real-time rendering**: 60fps WebGL visualization with advanced shaders
+
+### 🔧 **Production Ready**
+- **Automated orchestration**: TMUX-based multi-component management
+- **Comprehensive testing**: pytest suite with ROS2 integration
+- **Type safety**: Full Pylance support with conditional imports
+- **Monitoring tools**: Real-time diagnostics and performance metrics
+
+## 📡 Service Endpoints
+
+| Component | URL | Description |
+|-----------|-----|-------------|
+| **API Documentation** | `http://localhost:8000/docs` | Interactive Swagger UI |
+| **WebSocket Service** | `ws://localhost:8765` | Real-time drone communication |
+| **3D Interface** | `http://localhost:5550` | Mission control interface |
+| **RViz Visualization** | ROS2 launch | SLAM map visualization |
+
+## �️ Development
+
+### Environment Setup
+```bash
+# Configure Python environment
+cd DIAMANTS_API
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Build ROS2 workspace
+cd DIAMANTS_BACKEND/slam_collaboratif/ros2_ws
+colcon build
+
+# Install frontend dependencies
+cd DIAMANTS_FRONTEND/Mission_system
+npm install
+```
+
+### Testing
+```bash
+# API tests
+cd DIAMANTS_API
+python -m pytest tests/ -v
+
+# System integration test
+./check_ros_processes.sh
+
+# Frontend development
+cd DIAMANTS_FRONTEND/Mission_system
+npm run dev
+```
+
+## 📚 Documentation
+
+- **[API Reference](DIAMANTS_API/README.md)** - FastAPI service documentation
+- **[Backend Guide](DIAMANTS_BACKEND/README.md)** - ROS2 SLAM system setup
+- **[Frontend Manual](DIAMANTS_FRONTEND/Mission_system/README.md)** - 3D interface development
+- **[Contributing Guidelines](CONTRIBUTING.md)** - Development workflow
+
+## 🚦 System Status
+
+### ✅ Architecture v2.0 - Production Ready
+
+**Major Improvements:**
+- ✅ **Unified API**: Single entry point with FastAPI + WebSocket Service
+- ✅ **Centralized configuration**: Dataclass replaces Pydantic for reliability
+- ✅ **Complete testing**: pytest suite with ROS2 support and mocks
+- ✅ **Type checking**: Full Pylance support with conditional imports
+- ✅ **Clean architecture**: Eliminated duplications, 6 essential root files
+- ✅ **Optimized performance**: Single WebSocket Service instead of multiple bridges
+
+| Before v2.0 | After v2.0 | Benefit |
+|-------------|-------------|---------|
+| ❌ Multiple WebSocket bridges | ✅ Unified Service | Performance + Simplicity |
+| ❌ Pydantic BaseSettings | ✅ Dataclass config | Reliability + Type safety |
+| ❌ Untyped imports | ✅ Complete type checking | Robust development |  
+| ❌ Scattered scripts | ✅ 6 essential files | Simplified maintenance |
+| ❌ Fragmented tests | ✅ Unified pytest suite | Quality assurance |
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+#### 🔌 Service Status Check
+```bash
+./check_ros_processes.sh       # Complete system diagnostics
 cd DIAMANTS_API/
 ./check.sh                           # Statut rapide unifié
 

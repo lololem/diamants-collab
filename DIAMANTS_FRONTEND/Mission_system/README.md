@@ -1,47 +1,81 @@
-# 🚁 DIAMANTS V3 Frontend - Mission System
+# 🎮 DIAMANTS Frontend - Mission System
 
-Advanced real-time 3D drone swarm simulation with authentic Crazyflie 2.0 physics, ROS2 integration, and collective intelligence for collaborative autonomous missions.
+**Advanced 3D visualization interface for collaborative drone simulation with WebGL rendering**
 
-## 🎯 System Overview
+[![Three.js](https://img.shields.io/badge/Three.js-WebGL-red)](https://threejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-16+-green)](https://nodejs.org/)
+[![Vite](https://img.shields.io/badge/Vite-5.0-purple)](https://vitejs.dev/)
 
-**DIAMANTS Frontend** provides a complete real-time 3D simulation environment featuring:
-- **Authentic Physics**: Realistic Crazyflie 2.0 flight dynamics with proper aerodynamics
-- **WebGL Rendering**: High-performance THREE.js-based 3D visualization
-- **ROS2 Bridge**: Real-time communication with backend SLAM system
-- **Provençal Environment**: Immersive Mediterranean forest with procedural generation
-- **Swarm Intelligence**: Advanced collective behavior algorithms
-- **Real-time Debugging**: Console Ninja integration for development
+## 🚀 Quick Start
 
-## ⚡ Quick Start
+### Prerequisites
+- **Node.js 16+** and npm
+- **Modern web browser** with WebGL support
+- **DIAMANTS Backend** running (for full functionality)
 
-### 🚀 Development Server
+### Installation & Launch
+
 ```bash
-cd DIAMANTS_FRONTEND/Mission_system
-npm install                    # Install dependencies
-npm run dev                    # Start development server (port 5550)
-npm run debug                  # Advanced debugging with Console Ninja
+# Clone the collaborative repository
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab/DIAMANTS_FRONTEND/Mission_system
+
+# 1. Install dependencies
+npm install
+
+# 2. Start development server
+npm run dev
+
+# 3. Open in browser
+# Visit http://localhost:5173
 ```
 
-### 🎮 Alternative Launch Methods
-```bash
-# From project root (recommended)
-cd /path/to/DIAMANTS
-./run.sh                       # Interactive launcher with all components
-# Select option 3: "Frontend + Backend + API"
+## 🎯 System Architecture
 
-# Direct Vite server
-npx vite --port 5550 --host    # Direct Vite development server
+```
+DIAMANTS Frontend
+├── 🎮 Three.js WebGL Rendering Engine
+├── 🌐 Real-time WebSocket Communication
+├── 🤖 Drone State Management System
+├── 📊 Mission Control Interface
+└── ⚡ Vite Development Environment
 ```
 
-### 🔗 Integration with Backend
-```bash
-# Complete system launch (recommended)
-cd DIAMANTS_BACKEND
-make launch-tmux               # Start ROS2 SLAM system first
-# Then launch frontend in another terminal
-cd DIAMANTS_FRONTEND/Mission_system
-npm run dev                    # Frontend connects automatically to WebSocket
-```
+## 🛠️ Available Commands
+
+| Command | Purpose | Description |
+|---------|---------|-------------|
+| `npm install` | Install dependencies | Download and install all required packages |
+| `npm run dev` | Development server | Start Vite dev server with hot reload |
+| `npm run build` | Production build | Create optimized production bundle |
+| `npm run preview` | Preview build | Serve production build locally |
+
+## � Key Features
+
+### 3D Visualization
+- **Real-time 3D rendering** with Three.js WebGL
+- **Interactive drone models** with accurate physics simulation
+- **Dynamic environment mapping** with collaborative SLAM integration
+- **Multi-camera perspectives** for comprehensive monitoring
+
+### Mission Control
+- **Drone fleet management** with individual and swarm controls
+- **Mission planning interface** with waypoint system
+- **Real-time telemetry display** for all active drones
+- **Collaborative task coordination** between multiple agents
+
+### Communication Bridge
+- **WebSocket integration** with DIAMANTS Backend
+- **ROS2 message translation** for seamless data flow
+- **Real-time state synchronization** across all components
+- **Error handling and reconnection** for robust operation
+
+## 🔧 Configuration
+
+- `vite.config.js` - Vite build configuration and development settings
+- `core/config.js` - Application configuration and WebSocket endpoints
+- `assets/` - 3D models, textures, and visual resources
+- `shaders/` - Custom WebGL shaders for advanced rendering
 
 ## 🎯 Core Features
 
