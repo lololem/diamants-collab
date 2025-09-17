@@ -377,10 +377,23 @@
             transform: scale(1.05);
         }
 
+        .minimap_button.active {
+            background: rgba(255, 165, 0, 0.8) !important;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            border-color: #ff8800;
+        }
+
         #minimap_zoom_level {
             color: #00FFFF;
             font-size: 10px;
             font-weight: bold;
+        }
+
+        #stigmergie_status {
+            color: #555;
+            font-size: 8px;
+            margin-top: 2px;
+            text-align: center;
         }
 
         .loading_status {
@@ -634,6 +647,8 @@
             <span id="minimap_zoom_level">Zoom: 1.0x</span>
             <button class="minimap_button" onclick="adjustMinimapZoom(0.5)">🔍+</button>
             <button class="minimap_button" onclick="resetMinimapView()">📍</button>
+            <button class="minimap_button" onclick="toggleStigmergie()" id="stigmergie_button" title="Activer la visualisation stigmergie">🧬</button>
+            <div id="stigmergie_status">Stigmergie: OFF</div>
         </div>
     </div>
 
@@ -667,6 +682,8 @@
         let colladaLoader = null;
         let minimapCanvas, minimapCtx;
         let minimapVisible = true;
+        let groundMesh = null; // Référence au mesh du sol pour calcul de hauteur
+        let treeObstacles = []; // Liste des obstacles d'arbres pour collision
         
         // Minimap zoom and view controls
         let minimapZoom = 1.0;
@@ -674,6 +691,67 @@
         let minimapOffsetY = 0;
         let minimapMaxZoom = 3.0;
         let minimapMinZoom = 0.5;
+
+        // Fonction pour calculer la hauteur du terrain à une position donnée
+        function getGroundHeightAt(x, z) {
+            // Reproduire exactement le calcul de hauteur utilisé pour générer le terrain
+            const h = Math.sin(x * 0.01) * 1.2 + Math.cos(z * 0.008) * 1.0 + Math.sin(x * 0.05 + z * 0.03) * 0.3;
+            return h;
+        }
+
+        // Fonction pour calculer la hauteur de collision d'atterrissage (sol + marge de sécurité)
+        function getLandingHeightAt(x, z) {
+            const groundHeight = getGroundHeightAt(x, z);
+            return groundHeight + 0.5; // 50cm au-dessus du sol réel pour être bien visible
+        }
+
+        // Fonction pour vérifier collision avec les arbres
+        function checkTreeCollision(position, radius = 0.3) {
+            for (let tree of treeObstacles) {
+                const distance = Math.sqrt(
+                    Math.pow(position.x - tree.position.x, 2) + 
+                    Math.pow(position.z - tree.position.z, 2)
+                );
+                // Collision si la distance est inférieure au rayon de l'arbre + rayon du drone
+                if (distance < tree.radius + radius) {
+                    return tree;
+                }
+            }
+            return null;
+        }
+
+        // Fonction pour éviter les arbres (retourne une force de répulsion)
+        function getTreeAvoidanceForce(position, velocity) {
+            const avoidanceForce = new THREE.Vector3(0, 0, 0);
+            const detectionRadius = 3.0; // Distance de détection des arbres
+            
+            for (let tree of treeObstacles) {
+                const distance = Math.sqrt(
+                    Math.pow(position.x - tree.position.x, 2) + 
+                    Math.pow(position.z - tree.position.z, 2)
+                );
+                
+                if (distance < detectionRadius + tree.radius) {
+                    // Vecteur de répulsion
+                    const repulsion = new THREE.Vector3(
+                        position.x - tree.position.x,
+                        0,
+                        position.z - tree.position.z
+                    );
+                    
+                    if (repulsion.length() > 0) {
+                        repulsion.normalize();
+                        // Force inversement proportionnelle à la distance
+                        const force = (detectionRadius + tree.radius - distance) / detectionRadius;
+                        repulsion.multiplyScalar(force * 2.0);
+                        avoidanceForce.add(repulsion);
+                    }
+                }
+            }
+            
+            return avoidanceForce;
+        }
+        let showStigmergie = false;
         
         // Persistent exploration tracking
         let exploredZones = new Set();
@@ -695,24 +773,60 @@
         // Créer des cibles de scouting
         function createScoutingTargets() {
             scoutingTargets = [];
-            const numTargets = 12;
+            const numTargets = 20; // Augmenté de 12 à 20 pour plus de dispersion
+
+            console.log(`🎯 DEBUG: Création de ${numTargets} targets de scouting`);
 
             for (let i = 0; i < numTargets; i++) {
                 const target = {
+                    id: i,
                     position: new THREE.Vector3(
-                        (Math.random() - 0.5) * CONFIG.zoneSize * 0.8,
+                        (Math.random() - 0.5) * CONFIG.zoneSize * 1.5, // Élargi de 0.8 à 1.5
                         0.1,
-                        (Math.random() - 0.5) * CONFIG.zoneSize * 0.8
+                        (Math.random() - 0.5) * CONFIG.zoneSize * 1.5  // Zone plus large
                     ),
                     value: Math.random() * 50 + 25,
                     discovered: false,
-                    discoveredBy: null,
+                    discoveredBy: [],
                     discoveryTime: null
                 };
+
+                // Créer le mesh visuel du target
+                const geometry = new THREE.SphereGeometry(1.0, 8, 6); // Plus gros pour être visible
+                const material = new THREE.MeshBasicMaterial({ color: 0xff4444 }); // Rouge par défaut
+                target.mesh = new THREE.Mesh(geometry, material);
+                target.mesh.position.copy(target.position);
+                scene.add(target.mesh);
+
                 scoutingTargets.push(target);
+                
+                console.log(`🎯 Target ${i} créé à position (${target.position.x.toFixed(2)}, ${target.position.y.toFixed(2)}, ${target.position.z.toFixed(2)})`);
             }
 
-            console.log(`🎯 ${numTargets} cibles de scouting créées`);
+            // Mettre à jour le compteur total
+            totalTargetsPlaced = numTargets;
+
+            // TEST: Marquer artificiellement quelques targets comme découverts pour tester l'UI
+            setTimeout(() => {
+                if (scoutingTargets.length > 2) {
+                    // Marquer 2 targets comme découverts pour avoir un pourcentage visible
+                    scoutingTargets[0].discovered = true;
+                    scoutingTargets[0].discoveryTime = Date.now();
+                    if (scoutingTargets[0].mesh) {
+                        scoutingTargets[0].mesh.material.color.setHex(0x00ff44);
+                    }
+                    
+                    scoutingTargets[1].discovered = true;
+                    scoutingTargets[1].discoveryTime = Date.now();
+                    if (scoutingTargets[1].mesh) {
+                        scoutingTargets[1].mesh.material.color.setHex(0x00ff44);
+                    }
+                    
+                    console.log(`🎯 TEST: 2 targets marqués comme découverts artificellement`);
+                }
+            }, 5000); // Après 5 secondes
+
+            console.log(`🎯 ${numTargets} cibles de scouting créées, totalTargetsPlaced=${totalTargetsPlaced}`);
         }
 
         // Variables Gazebo système
@@ -880,7 +994,7 @@
                 if (!statusList) return;
 
                 statusList.innerHTML = '';
-                for (let i = 0; i < 8; i++) {
+                for (let i = 0; i < 6; i++) { // Correspondre au nombre réel de drones créés
                     const droneName = `crazyflie${i === 0 ? '' : i}`;
                     const isActive = activeDrones.includes(droneName);
                     const pos = this.dronePositions.get(droneName);
@@ -890,7 +1004,7 @@
                     statusDiv.innerHTML = `
                         <span>${droneName}</span>
                         <span>${isActive && pos ?
-                            `(${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)})` :
+                            `X:${pos.x.toFixed(1)} Y:${pos.y.toFixed(1)} Alt:${pos.z.toFixed(1)}` :
                             'OFFLINE'}</span>
                     `;
                     statusList.appendChild(statusDiv);
@@ -928,22 +1042,46 @@
                 this.emergenceLevel = 0;
                 this.cohesionIndex = 0;
                 this.coordinationScore = 0;
-                this.updateInterval = 100;
+                this.updateInterval = 2000; // Augmenté à 2 secondes pour stabilité
+                
+                // Historique pour lissage
+                this.history = {
+                    totalIntelligence: [],
+                    emergenceLevel: [],
+                    cohesionIndex: [],
+                    coordinationScore: []
+                };
+                this.historySize = 5; // Garder 5 valeurs pour moyenner
 
                 setTimeout(() => {
                     setInterval(() => this.updateMetrics(), this.updateInterval);
                 }, 1000);
             }
 
+            smoothValue(newValue, metricName) {
+                // Ajouter la nouvelle valeur
+                this.history[metricName].push(newValue);
+                
+                // Garder seulement les dernières valeurs
+                if (this.history[metricName].length > this.historySize) {
+                    this.history[metricName].shift();
+                }
+                
+                // Calculer la moyenne mobile
+                const sum = this.history[metricName].reduce((a, b) => a + b, 0);
+                return sum / this.history[metricName].length;
+            }
+
             updateMetrics() {
                 if (!window.drones || window.drones.length === 0) return;
 
-                this.totalIntelligence = window.drones.reduce((sum, drone) => {
+                // Calculs bruts
+                const rawTotalIntelligence = window.drones.reduce((sum, drone) => {
                     return sum + (drone.intelligence || 0);
                 }, 0);
 
-                const averageIntelligence = this.totalIntelligence / window.drones.length;
-                this.emergenceLevel = Math.min(100, averageIntelligence * 2.5);
+                const averageIntelligence = rawTotalIntelligence / window.drones.length;
+                const rawEmergenceLevel = Math.min(100, averageIntelligence * 2.5);
 
                 let totalDistance = 0;
                 let pairCount = 0;
@@ -955,7 +1093,7 @@
                     }
                 }
                 const averageDistance = pairCount > 0 ? totalDistance / pairCount : 0;
-                this.cohesionIndex = Math.max(0, 100 - averageDistance * 2);
+                const rawCohesionIndex = Math.max(0, Math.min(100, 100 - averageDistance * 2));
 
                 let alignment = 0;
                 for (let i = 0; i < window.drones.length; i++) {
@@ -969,7 +1107,23 @@
                         }
                     }
                 }
-                this.coordinationScore = pairCount > 0 ? alignment / pairCount : 0;
+                const rawCoordinationScore = pairCount > 0 ? Math.min(100, alignment / pairCount) : 0;
+
+                // Appliquer le lissage
+                this.totalIntelligence = this.smoothValue(rawTotalIntelligence, 'totalIntelligence');
+                this.emergenceLevel = this.smoothValue(rawEmergenceLevel, 'emergenceLevel');
+                this.cohesionIndex = this.smoothValue(rawCohesionIndex, 'cohesionIndex');
+                this.coordinationScore = this.smoothValue(rawCoordinationScore, 'coordinationScore');
+
+                // Mettre à jour aussi les métriques de mission
+                if (typeof updateMissionProgress === 'function') {
+                    updateMissionProgress();
+                }
+
+                // Mettre à jour les métriques d'intelligence collective moins fréquemment
+                if (typeof updateSwarmIntelligenceMetrics === 'function' && Date.now() % 4000 < 100) {
+                    updateSwarmIntelligenceMetrics();
+                }
 
                 this.updateUI();
             }
@@ -1491,10 +1645,11 @@
             }
 
             initializeIntelligenceCollective() {
-                setInterval(() => this.updateIntelligenceCollective(), 200);
-                setInterval(() => this.performGlobalOptimization(), 5000);
-                setInterval(() => this.analyzeEmergentBehaviors(), 3000);
-                console.log('🧠 Intelligence Collective Enrichie initialisée');
+                // TIMERS DÉSACTIVÉS - Utilisation du système DiamantMetrics stabilisé uniquement
+                // setInterval(() => this.updateIntelligenceCollective(), 200);
+                // setInterval(() => this.performGlobalOptimization(), 5000);
+                // setInterval(() => this.analyzeEmergentBehaviors(), 3000);
+                console.log('🧠 Intelligence Collective Enrichie initialisée (timers désactivés - système DiamantMetrics actif)');
             }
 
             updateIntelligenceCollective() {
@@ -4397,9 +4552,9 @@
                             pose: {
                                 pose: {
                                     position: {
-                                        x: this.position.x,
-                                        y: this.position.y,
-                                        z: this.position.z
+                                        x: this.position.x,  // avant/arrière
+                                        y: this.position.z,  // gauche/droite (Three.js Z -> ROS Y)
+                                        z: this.position.y   // altitude (Three.js Y -> ROS Z)
                                     },
                                     orientation: { x: 0, y: 0, z: 0, w: 1 }
                                 }
@@ -4407,9 +4562,9 @@
                             twist: {
                                 twist: {
                                     linear: {
-                                        x: this.velocity.x,
-                                        y: this.velocity.y,
-                                        z: this.velocity.z
+                                        x: this.velocity.x,  // vitesse avant/arrière
+                                        y: this.velocity.z,  // vitesse gauche/droite
+                                        z: this.velocity.y   // vitesse verticale
                                     }
                                 }
                             }
@@ -4830,9 +4985,42 @@
                 const oldPos = this.position.clone();
                 const deltaPos = this.velocity.clone().multiplyScalar(deltaTime);
 
+                // Ne pas bouger si le drone est au sol (IDLE ou EMERGENCY_LANDED)
+                if (this.state === 'IDLE' || this.state === 'EMERGENCY_LANDED') {
+                    this.velocity.set(0, 0, 0);
+                    const currentGroundLevel = getLandingHeightAt(this.position.x, this.position.z);
+                    this.position.y = Math.max(this.position.y, currentGroundLevel); // Maintenir au niveau du sol réel
+                    return; // Sortir de la fonction pour éviter tout calcul de mouvement
+                }
+
                 // Vérification de validité du déplacement
                 if (isFinite(deltaPos.x) && isFinite(deltaPos.y) && isFinite(deltaPos.z)) {
-                    this.position.add(deltaPos);
+                    // Vérifier collision avec arbres avant de se déplacer
+                    const newPosition = this.position.clone().add(deltaPos);
+                    const treeCollision = checkTreeCollision(newPosition);
+                    
+                    if (treeCollision) {
+                        // Collision détectée - appliquer force d'évitement
+                        const avoidance = getTreeAvoidanceForce(this.position, this.velocity);
+                        this.velocity.add(avoidance.multiplyScalar(deltaTime * 5.0));
+                        
+                        // Recalculer deltaPos avec la nouvelle vitesse
+                        const correctedDeltaPos = this.velocity.clone().multiplyScalar(deltaTime);
+                        this.position.add(correctedDeltaPos);
+                        
+                        console.log(`🌳 Drone ${this.id} évite un arbre`);
+                    } else {
+                        this.position.add(deltaPos);
+                    }
+
+                    // Protection contre descente sous le sol en vol normal
+                    if (this.state === 'FLYING' || this.state === 'TAKEOFF') {
+                        const minFlightHeight = getGroundHeightAt(this.position.x, this.position.z) + 1.0;
+                        if (this.position.y < minFlightHeight) {
+                            this.position.y = minFlightHeight;
+                            this.velocity.y = Math.max(0, this.velocity.y); // Empêcher descente
+                        }
+                    }
 
                     // Détection de téléportation (mouvement trop brusque)
                     const maxMovement = 2.0; // Distance maximum raisonnable par frame
@@ -5317,6 +5505,16 @@
                     case 'EMERGENCY':
                         this.handleLanding(deltaTime);
                         break;
+                    case 'IDLE':
+                    case 'EMERGENCY_LANDED':
+                        // Ne rien faire - rester au sol complètement immobile
+                        this.velocity.set(0, 0, 0);
+                        this.acceleration.set(0, 0, 0);
+                        this.motorRPM.fill(0);
+                        // Forcer la position au niveau du sol réel
+                        const currentGroundLevel = getLandingHeightAt(this.position.x, this.position.z);
+                        this.position.y = Math.max(this.position.y, currentGroundLevel);
+                        break;
                 }
 
                 // Mise à jour des RPM des moteurs
@@ -5347,17 +5545,25 @@
                     const pf = this.getPatternForce(allDrones);
                     this.targetPosition.add(pf.multiplyScalar(0.3));
                     const avoidanceForce = this.calculateIntelligentAvoidance(allDrones);
+                    
+                    // Ajouter l'évitement d'arbres
+                    const treeAvoidance = getTreeAvoidanceForce(this.position, this.velocity);
 
                     const targetDirection = this.targetPosition.clone().sub(this.position);
                     const distance = targetDirection.length();
 
                     if (distance > 0.5) {
                         targetDirection.normalize().multiplyScalar(Math.min(3.0, distance));
-                        this.velocity.lerp(targetDirection, deltaTime * 2);
+                        
+                        // Combiner direction cible, évitement de drones et évitement d'arbres
+                        const combinedForce = targetDirection.clone()
+                            .add(avoidanceForce.multiplyScalar(2.0))
+                            .add(treeAvoidance.multiplyScalar(3.0)); // Priorité forte à l'évitement d'arbres
+                        
+                        this.velocity.lerp(combinedForce, deltaTime * 1.5);
                     }
 
-                    // Application des forces d'évitement intelligentes
-                    this.velocity.add(avoidanceForce.multiplyScalar(deltaTime));
+                    // Mise à jour de la position
                     this.position.add(this.velocity.clone().multiplyScalar(deltaTime));
                 }
 
@@ -5509,18 +5715,35 @@
             }
 
             handleLanding(deltaTime) {
-                if (this.position.y > 0.2) {
+                // Calculer la hauteur réelle du sol sous le drone
+                const realGroundLevel = getLandingHeightAt(this.position.x, this.position.z);
+                
+                if (this.position.y > realGroundLevel + 0.2) {
+                    // Descendre vers le sol
                     this.velocity.y = this.state === 'EMERGENCY' ? -3.0 : -1.5;
                     this.position.y += this.velocity.y * deltaTime;
+                    
+                    // S'assurer de ne pas descendre en dessous du sol réel
+                    if (this.position.y < realGroundLevel) {
+                        this.position.y = realGroundLevel;
+                    }
 
                     // Réduction progressive des RPM
                     const landingRPM = Math.max(0, 800 * (this.position.y / 3.0));
                     this.motorRPM.fill(landingRPM);
                 } else {
-                    this.state = 'IDLE';
-                    this.position.y = 0.1;
+                    // Atterrissage terminé - posé sur le sol réel
+                    this.position.y = realGroundLevel;
                     this.velocity.set(0, 0, 0);
                     this.motorRPM.fill(0);
+                    
+                    // Si c'était un atterrissage d'urgence, rester en mode emergency
+                    if (this.state === 'EMERGENCY') {
+                        this.state = 'EMERGENCY_LANDED';
+                        console.log(`🚨 Drone ${this.id} emergency landed at height ${realGroundLevel.toFixed(2)} - waiting for mission launch`);
+                    } else {
+                        this.state = 'IDLE';
+                    }
                 }
             }
 
@@ -5607,6 +5830,9 @@
                         break;
                     case 'EMERGENCY':
                         baseRPM = 400;
+                        break;
+                    case 'EMERGENCY_LANDED':
+                        baseRPM = 0;
                         break;
                 }
 
@@ -5955,6 +6181,9 @@
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             environment.add(ground);
+            
+            // Sauvegarder la référence pour calculs de collision
+            groundMesh = ground;
 
             // Création de la forêt optimisée pour recherche
             const forestDensity = 30; // Nombre d'arbres réduit pour visibilité
@@ -5987,16 +6216,24 @@
 
                 if (validPosition) {
                     tree.position.set(x, 0, z);
+                    const treeRadius = 4 + Math.random() * 2;
                     trees.push({
                         mesh: tree,
                         position: new THREE.Vector3(x, 0, z),
-                        radius: 4 + Math.random() * 2,
+                        radius: treeRadius,
                         height: 12 + Math.random() * 8,
                         isExplored: false
                     });
+                    
+                    // Ajouter à la liste des obstacles pour collision
+                    treeObstacles.push({
+                        position: new THREE.Vector3(x, 0, z),
+                        radius: treeRadius
+                    });
+                    
                     forestObstacles.push({
                         position: new THREE.Vector3(x, 0, z),
-                        radius: 4 + Math.random() * 2
+                        radius: treeRadius
                     });
                     environment.add(tree);
                 }
@@ -6275,14 +6512,16 @@
                 // Add click to recenter support
                 minimapCanvas.addEventListener('click', function(e) {
                     const rect = minimapCanvas.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
+                    const clickX = e.clientX - rect.left;
+                    const clickY = e.clientY - rect.top;
                     
                     // Calculate offset to center the clicked point
                     const centerX = minimapCanvas.width / 2;
                     const centerY = minimapCanvas.height / 2;
-                    minimapOffsetX = centerX - x;
-                    minimapOffsetY = centerY - y;
+                    // L'offset déplace le centre, donc pour centrer un point cliqué, 
+                    // on ajuste l'offset pour que ce point devienne le nouveau centre
+                    minimapOffsetX += centerX - clickX;
+                    minimapOffsetY += centerY - clickY;
                     
                     updateMinimap();
                 });
@@ -6298,6 +6537,7 @@
             const width = minimapCanvas.width;
             const height = minimapCanvas.height;
             const baseScale = 4 * minimapZoom;
+            // Les offsets déplacent le point de référence (0,0) du monde dans la minimap
             const centerX = width / 2 + minimapOffsetX;
             const centerY = height / 2 + minimapOffsetY;
 
@@ -6421,6 +6661,85 @@
                 }
             }
 
+            // Visualisation de la stigmergie (phéromones et traces chimiques)
+            if (showStigmergie && window.drones && window.drones.length > 0) {
+                console.log('🧬 Drawing stigmergie visualization with', window.drones.length, 'drones');
+                
+                // 1. Dessiner un cercle de base autour de chaque drone pour tester
+                window.drones.forEach(drone => {
+                    const x = centerX + drone.position.x * baseScale;
+                    const y = centerY - drone.position.z * baseScale;
+                    
+                    if (x >= 0 && x <= width && y >= 0 && y <= height) {
+                        // Cercle de test stigmergie (rouge vif pour être visible)
+                        minimapCtx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                        minimapCtx.beginPath();
+                        minimapCtx.arc(x, y, 10, 0, 2 * Math.PI);
+                        minimapCtx.fill();
+                        
+                        // Bordure pour plus de visibilité
+                        minimapCtx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
+                        minimapCtx.lineWidth = 2;
+                        minimapCtx.stroke();
+                    }
+                });
+                
+                // 2. Lignes de communication entre tous les drones (version simplifiée)
+                for (let i = 0; i < window.drones.length; i++) {
+                    for (let j = i + 1; j < window.drones.length; j++) {
+                        const drone1 = window.drones[i];
+                        const drone2 = window.drones[j];
+                        const distance = drone1.position.distanceTo(drone2.position);
+                        
+                        if (distance < 15) { // Distance de communication élargie pour test
+                            const x1 = centerX + drone1.position.x * baseScale;
+                            const y1 = centerY - drone1.position.z * baseScale;
+                            const x2 = centerX + drone2.position.x * baseScale;
+                            const y2 = centerY - drone2.position.z * baseScale;
+                            
+                            minimapCtx.strokeStyle = 'rgba(0, 255, 255, 0.7)'; // Cyan vif
+                            minimapCtx.lineWidth = 3;
+                            minimapCtx.beginPath();
+                            minimapCtx.moveTo(x1, y1);
+                            minimapCtx.lineTo(x2, y2);
+                            minimapCtx.stroke();
+                        }
+                    }
+                }
+                
+                // 3. Historique de mouvement si disponible
+                window.drones.forEach(drone => {
+                    if (drone.movementHistory && drone.movementHistory.length > 0) {
+                        console.log('🧬 Drone', drone.id, 'has movement history:', drone.movementHistory.length, 'points');
+                        
+                        // Tracer les phéromones le long du chemin récent
+                        for (let i = 0; i < Math.min(20, drone.movementHistory.length); i++) {
+                            const pos = drone.movementHistory[drone.movementHistory.length - 1 - i];
+                            const x = centerX + pos.x * baseScale;
+                            const y = centerY - pos.z * baseScale;
+                            
+                            if (x >= 0 && x <= width && y >= 0 && y <= height) {
+                                const intensity = (1 - i/20) * 0.8; // Intensité décroissante
+                                
+                                // Phéromones d'exploration (vert)
+                                minimapCtx.fillStyle = `rgba(0, 255, 100, ${intensity * 0.5})`;
+                                minimapCtx.beginPath();
+                                minimapCtx.arc(x, y, 5 * intensity, 0, 2 * Math.PI);
+                                minimapCtx.fill();
+                            }
+                        }
+                    } else {
+                        console.log('🧬 Drone', drone.id, 'has no movement history');
+                    }
+                });
+                
+                // Affichage des informations stigmergiques
+                minimapCtx.fillStyle = '#ffa500';
+                minimapCtx.font = 'bold 10px Arial';
+                minimapCtx.textAlign = 'left';
+                minimapCtx.fillText('Stigmergie Active', 5, height - 5);
+            }
+
             // Cibles de mission
             if (scoutingTargets) {
                 scoutingTargets.forEach((target, idx) => {
@@ -6461,8 +6780,8 @@
             }
 
             // Drones avec informations tactiques avancées et zoom adaptatif
-            if (drones && drones.length > 0) {
-                drones.forEach((drone) => {
+            if (window.drones && window.drones.length > 0) {
+                window.drones.forEach((drone) => {
                     let x = centerX + drone.position.x * baseScale;
                     let y = centerY - drone.position.z * baseScale;
                     
@@ -6537,10 +6856,10 @@
                                 if (i >= 0) {
                                     const pos1 = drone.movementHistory[i];
                                     const pos2 = drone.movementHistory[i + 1];
-                                    const x1 = centerX + pos1.x * scale;
-                                    const y1 = centerY - pos1.z * scale;
-                                    const x2 = centerX + pos2.x * scale;
-                                    const y2 = centerY - pos2.z * scale;
+                                    const x1 = centerX + pos1.x * baseScale;
+                                    const y1 = centerY - pos1.z * baseScale;
+                                    const x2 = centerX + pos2.x * baseScale;
+                                    const y2 = centerY - pos2.z * baseScale;
 
                                     if (i === drone.movementHistory.length - historyLength) {
                                         minimapCtx.moveTo(x1, y1);
@@ -6553,7 +6872,7 @@
 
                         // Zone d'influence/détection
                         if (drone.state === 'FLYING' && drone.intelligence > 0.5) {
-                            const influenceRadius = (drone.intelligence * 3 + 2) * scale;
+                            const influenceRadius = (drone.intelligence * 3 + 2) * baseScale;
                             minimapCtx.strokeStyle = droneColor + '30';
                             minimapCtx.lineWidth = 1;
                             minimapCtx.beginPath();
@@ -6606,11 +6925,11 @@
             minimapCtx.textAlign = 'left';
             const discovered = scoutingTargets ? scoutingTargets.filter(t => t.discovered).length : 0;
             const total = scoutingTargets ? scoutingTargets.length : 0;
-            minimapCtx.fillText(`Targets: ${discovered}/${total}`, 5, height - 25);
+            minimapCtx.fillText(`Targets: ${discovered}/${total}`, 5, height - 35);
 
-            if (drones && drones.length > 0) {
-                const avgIntel = drones.reduce((sum, d) => sum + (d.intelligence || 0), 0) / drones.length;
-                minimapCtx.fillText(`Swarm Intel: ${(avgIntel * 100).toFixed(0)}%`, 5, height - 10);
+            if (window.drones && window.drones.length > 0) {
+                const avgIntel = window.drones.reduce((sum, d) => sum + (d.intelligence || 0), 0) / window.drones.length;
+                minimapCtx.fillText(`Swarm Intel: ${(avgIntel * 100).toFixed(0)}%`, 5, height - 20);
             }
         }
 
@@ -6641,7 +6960,7 @@
                 const angle = (i / 6) * Math.PI * 2;
                 const position = new THREE.Vector3(
                     Math.cos(angle) * CONFIG.spawnRadius,
-                    0.1,
+                    0.5, // Position surélevée pour bien voir les drones
                     Math.sin(angle) * CONFIG.spawnRadius
                 );
 
@@ -6752,17 +7071,20 @@
 
         // Fonctions de contrôle
         window.toggleSwarm = function () {
-            if (drones.length === 0) return;
+            if (!window.drones || window.drones.length === 0) {
+                console.log('⚠️ No drones available');
+                return;
+            }
 
-            const isFlying = drones.some(drone => drone.state === 'FLYING');
+            const isFlying = window.drones.some(drone => drone.state === 'FLYING');
 
             if (isFlying) {
-                drones.forEach(drone => {
+                window.drones.forEach(drone => {
                     if (drone.state === 'FLYING') drone.land();
                 });
                 console.log('🛬 Landing Gazebo swarm...');
             } else {
-                drones.forEach(drone => {
+                window.drones.forEach(drone => {
                     if (drone.state === 'IDLE') drone.takeoff();
                 });
                 console.log('🚁 Taking off Gazebo swarm...');
@@ -6861,16 +7183,32 @@
         };
 
         window.emergencyLand = function () {
-            drones.forEach(drone => drone.emergencyLand());
-            console.log('🚨 EMERGENCY LANDING ALL GAZEBO DRONES!');
+            if (window.drones && window.drones.length > 0) {
+                window.drones.forEach(drone => {
+                    if (drone && drone.emergencyLand) {
+                        drone.emergencyLand();
+                    }
+                });
+                console.log('🚨 EMERGENCY LANDING ALL GAZEBO DRONES!', window.drones.length, 'drones affected');
+            } else {
+                console.log('⚠️ No drones available for emergency landing');
+            }
         };
 
         window.resetSimulation = function () {
-            drones.forEach(drone => drone.destroy());
-            drones.length = 0;
-            updateDroneCount();
-            updateDroneSelector();
-            console.log('🔄 Gazebo simulation reset');
+            if (window.drones && window.drones.length > 0) {
+                window.drones.forEach(drone => {
+                    if (drone && drone.destroy) {
+                        drone.destroy();
+                    }
+                });
+                window.drones.length = 0;
+                updateDroneCount();
+                updateDroneSelector();
+                console.log('🔄 Gazebo simulation reset');
+            } else {
+                console.log('⚠️ No drones to reset');
+            }
 
             setTimeout(() => {
                 initializeDrones();
@@ -6912,6 +7250,28 @@
             console.log('📍 Minimap view reset');
         };
 
+        window.toggleStigmergie = function () {
+            showStigmergie = !showStigmergie;
+            const button = document.getElementById('stigmergie_button');
+            const status = document.getElementById('stigmergie_status');
+            
+            console.log('🧬 Toggle stigmergie called, new state:', showStigmergie);
+            console.log('🧬 Drones available:', window.drones ? window.drones.length : 'none');
+            
+            if (showStigmergie) {
+                button.classList.add('active');
+                button.title = 'Désactiver la visualisation stigmergie';
+                if (status) status.innerHTML = '<span style="color: orange;">Stigmergie: ON</span>';
+                console.log('🧬 Stigmergie visualization enabled');
+            } else {
+                button.classList.remove('active');
+                button.title = 'Activer la visualisation stigmergie';
+                if (status) status.innerHTML = '<span style="color: #555;">Stigmergie: OFF</span>';
+                console.log('🧬 Stigmergie visualization disabled');
+            }
+            updateMinimap();
+        };
+
         window.toggleSAROverlay = function () {
             showSAR = !showSAR;
             if (showSAR) {
@@ -6924,14 +7284,25 @@
         };
 
         window.launchMission = function () {
+            if (!window.drones || window.drones.length === 0) {
+                console.log('⚠️ No drones available for mission');
+                return;
+            }
+            
             const missionSelect = document.getElementById('mission_type');
             const type = missionSelect ? missionSelect.value : 'exploration';
-            drones.forEach(d => {
+            
+            window.drones.forEach(d => {
                 d.setMission?.(type);
-                if (d.state === 'IDLE') {
+                // Redémarrer les drones en emergency_landed ou idle
+                if (d.state === 'IDLE' || d.state === 'EMERGENCY_LANDED') {
                     d.takeoff();
+                    if (d.state === 'EMERGENCY_LANDED') {
+                        console.log(`🚁 Restarting drone ${d.id} from emergency landing`);
+                    }
                 }
             });
+            
             if (type === 'mapping') {
                 // Assign SAR lanes for boustrophédon coverage
                 assignBoustrophedonLanes();
@@ -7260,7 +7631,6 @@
                 updateMetrics();
                 updateIntelligenceMetrics(); // Ajouter les métriques d'intelligence
                 updateTargetDisplay(); // Ajouter la mise à jour des targets
-                updateMissionProgress(); // Ajouter les métriques de mission
 
                 if (minimapVisible) {
                     updateMinimap();
@@ -7276,6 +7646,9 @@
                 lastFPSUpdate = currentTime;
             }
             frameCount++;
+
+            // Mise à jour des métriques de mission en temps réel (plus fréquent)
+            updateMissionProgress();
 
             // Rendu
             if (renderer && scene && camera) {
@@ -7378,35 +7751,77 @@
         function updateMissionProgress() {
             if (!drones || drones.length === 0) return;
 
-            // Mise à jour des zones explorées de manière persistante
+            console.log(`🎯 DEBUG: updateMissionProgress appelée - drones: ${drones.length}, scoutingTargets: ${scoutingTargets.length}`);
+            
+            // Debug occasionnel des positions
+            if (Math.random() < 0.001) { // 0.1% de chance
+                console.log(`🎯 Positions drones:`, drones.map(d => `${d.id}:(${d.position.x.toFixed(1)},${d.position.z.toFixed(1)})`));
+                console.log(`🎯 Positions targets:`, scoutingTargets.slice(0,3).map(t => `${t.id}:(${t.position.x.toFixed(1)},${t.position.z.toFixed(1)})`));
+            }
+
+            // Mise à jour des zones explorées de manière persistante  
             drones.forEach(drone => {
-                const zoneX = Math.floor((drone.position.x + 10) / 2); // Grille 2x2 dans zone 20x20
-                const zoneZ = Math.floor((drone.position.z + 10) / 2);
+                const zoneX = Math.floor((drone.position.x + CONFIG.zoneSize/2) / (CONFIG.zoneSize/CONFIG.explorationGrid));
+                const zoneZ = Math.floor((drone.position.z + CONFIG.zoneSize/2) / (CONFIG.zoneSize/CONFIG.explorationGrid));
                 const zoneKey = `${zoneX},${zoneZ}`;
-                if (zoneX >= 0 && zoneX < 10 && zoneZ >= 0 && zoneZ < 10) {
+                if (zoneX >= 0 && zoneX < CONFIG.explorationGrid && zoneZ >= 0 && zoneZ < CONFIG.explorationGrid) {
                     exploredZones.add(zoneKey);
+                    // Mise à jour de la map d'exploration aussi
+                    if (explorationMap[zoneX] && explorationMap[zoneX][zoneZ] !== undefined) {
+                        explorationMap[zoneX][zoneZ] = Math.min(1.0, explorationMap[zoneX][zoneZ] + 0.1);
+                    }
                 }
             });
+
+            // Vérifier les targets découverts par les drones
+            if (scoutingTargets && scoutingTargets.length > 0) {
+                scoutingTargets.forEach(target => {
+                    if (!target.discovered) {
+                        drones.forEach(drone => {
+                            const distance = drone.position.distanceTo(target.position);
+                            
+                            // Debug occasionnel des distances
+                            if (Math.random() < 0.001) { // 0.1% de chance de log par frame
+                                console.log(`🎯 Distance drone ${drone.id} -> target ${target.id}: ${distance.toFixed(2)} unités`);
+                            }
+                            
+                            if (distance < 5.0) { // Rayon de découverte plus grand pour test
+                                target.discovered = true;
+                                target.discoveredBy.push(drone.id);
+                                target.discoveryTime = Date.now();
+                                if (target.mesh) {
+                                    target.mesh.material.color.setHex(0x00ff44); // Vert quand découvert
+                                }
+                                console.log(`🎯 Target ${target.id} découvert par drone ${drone.id} (distance: ${distance.toFixed(2)})`);
+                            }
+                        });
+                    }
+                });
+            }
             
             // Calcul de la coverage basée sur l'exploration persistante
-            const totalZones = 100; // Grille 10x10
+            const totalZones = CONFIG.explorationGrid * CONFIG.explorationGrid;
             const coverage = Math.min(100, (exploredZones.size / totalZones) * 100);
             
             // Calcul de l'efficacité basée sur targets découverts
-            const discoveredTargets = targets.filter(t => t.discovered).length;
-            const totalTargets = targets.length;
+            const discoveredTargets = scoutingTargets ? scoutingTargets.filter(t => t.discovered).length : 0;
+            const totalTargets = scoutingTargets ? scoutingTargets.length : totalTargetsPlaced;
             const efficiency = totalTargets > 0 ? (discoveredTargets / totalTargets) * 100 : 0;
+            
+            console.log(`🎯 DEBUG: discoveredTargets=${discoveredTargets}, totalTargets=${totalTargets}, efficiency=${efficiency.toFixed(1)}%`);
             
             // Calcul de la vitesse d'exploration en zones par minute
             const missionTimeMinutes = (Date.now() - missionStartTime) / 60000;
             const speed = missionTimeMinutes > 0 ? exploredZones.size / missionTimeMinutes : 0;
-            const normalizedSpeed = Math.min(100, speed * 10); // Normaliser pour affichage
+            const normalizedSpeed = Math.min(100, speed * 5); // Normaliser pour affichage
             
             // Mise à jour des éléments textuels avec vérification d'existence
             const coverageElement = document.getElementById('mission_coverage');
             const targetsElement = document.getElementById('targets_discovered');
             const efficiencyElement = document.getElementById('mission_efficiency');
             const speedElement = document.getElementById('exploration_speed');
+            
+            console.log(`🎯 DEBUG: Elements trouvés - coverage: ${!!coverageElement}, targets: ${!!targetsElement}, efficiency: ${!!efficiencyElement}, speed: ${!!speedElement}`);
             
             if (coverageElement) coverageElement.textContent = `${coverage.toFixed(1)}%`;
             if (targetsElement) targetsElement.textContent = `${discoveredTargets}/${totalTargets}`;
@@ -7488,6 +7903,130 @@
 
         function updateIntelligenceMetrics() {
             if (!drones || drones.length === 0) return;
+
+            // Calcul des métriques d'intelligence collective plus réalistes
+            let totalPheromones = 0;
+            let totalStigmergie = 0;
+            let totalEmergence = 0;
+            let activeConnections = 0;
+            let communicationRange = 3.0; // Distance de communication
+
+            drones.forEach(drone => {
+                if (!drone.swarmIntelligence) {
+                    drone.swarmIntelligence = {
+                        pheromoneLevel: Math.random() * 0.3,
+                        stigmergyLevel: Math.random() * 0.3,
+                        emergenceLevel: Math.random() * 0.1,
+                        connections: []
+                    };
+                }
+
+                // Simuler l'évolution des phéromones (exploration)
+                const movementSpeed = drone.velocity ? drone.velocity.length() : 0.1;
+                drone.swarmIntelligence.pheromoneLevel = Math.min(1.0, 
+                    drone.swarmIntelligence.pheromoneLevel + movementSpeed * 0.01);
+
+                // Calculer les connexions avec autres drones
+                drone.swarmIntelligence.connections = [];
+                drones.forEach(otherDrone => {
+                    if (otherDrone !== drone) {
+                        const distance = drone.position.distanceTo(otherDrone.position);
+                        if (distance < communicationRange) {
+                            drone.swarmIntelligence.connections.push(otherDrone.id);
+                        }
+                    }
+                });
+
+                // Stigmergie basée sur les connexions actives
+                const connectionRatio = drone.swarmIntelligence.connections.length / Math.max(1, drones.length - 1);
+                drone.swarmIntelligence.stigmergyLevel = Math.min(1.0,
+                    drone.swarmIntelligence.stigmergyLevel + connectionRatio * 0.02);
+
+                // Emergence basée sur la coordination du groupe
+                const averageDistance = drones.reduce((sum, d) => {
+                    if (d !== drone) return sum + drone.position.distanceTo(d.position);
+                    return sum;
+                }, 0) / Math.max(1, drones.length - 1);
+                
+                const cohesionFactor = Math.max(0, 1 - (averageDistance / 10));
+                drone.swarmIntelligence.emergenceLevel = Math.min(1.0,
+                    drone.swarmIntelligence.emergenceLevel + cohesionFactor * 0.005);
+
+                // Accumulation des totaux
+                totalPheromones += drone.swarmIntelligence.pheromoneLevel;
+                totalStigmergie += drone.swarmIntelligence.stigmergyLevel;
+                totalEmergence += drone.swarmIntelligence.emergenceLevel;
+                activeConnections += drone.swarmIntelligence.connections.length;
+            });
+
+            // Moyenne des métriques
+            const avgPheromones = totalPheromones / drones.length;
+            const avgStigmergie = totalStigmergie / drones.length;
+            const avgEmergence = totalEmergence / drones.length;
+
+            // Mise à jour des barres de progression avec animation
+            const phiBar = document.getElementById('phi_bar');
+            const sigmaBar = document.getElementById('sigma_bar');
+            const emergenceBar = document.getElementById('emergence_bar');
+
+            if (phiBar) {
+                const phiPercent = Math.min(100, avgPheromones * 100);
+                phiBar.style.width = `${phiPercent}%`;
+                phiBar.style.backgroundColor = phiPercent > 70 ? '#00ff88' : 
+                                              phiPercent > 40 ? '#ffaa00' : '#ff6600';
+                phiBar.style.transition = 'width 0.3s ease';
+            }
+
+            if (sigmaBar) {
+                const sigmaPercent = Math.min(100, avgStigmergie * 100);
+                sigmaBar.style.width = `${sigmaPercent}%`;
+                sigmaBar.style.backgroundColor = sigmaPercent > 70 ? '#00ff88' : 
+                                                sigmaPercent > 40 ? '#ffaa00' : '#ff6600';
+                sigmaBar.style.transition = 'width 0.3s ease';
+            }
+
+            if (emergenceBar) {
+                const emergencePercent = Math.min(100, avgEmergence * 100);
+                emergenceBar.style.width = `${emergencePercent}%`;
+                emergenceBar.style.backgroundColor = emergencePercent > 80 ? '#00ff88' : 
+                                                    emergencePercent > 50 ? '#ffaa00' : '#ff6600';
+                emergenceBar.style.transition = 'width 0.3s ease';
+            }
+
+            // Mise à jour des valeurs textuelles
+            const phiValue = document.getElementById('phi_value');
+            const sigmaValue = document.getElementById('sigma_value');
+            const emergenceValue = document.getElementById('emergence_value');
+            const consensusValue = document.getElementById('consensus_value');
+            const communicationValue = document.getElementById('communication_value');
+            const adaptationValue = document.getElementById('adaptation_value');
+
+            if (phiValue) phiValue.textContent = avgPheromones.toFixed(2);
+            if (sigmaValue) sigmaValue.textContent = avgStigmergie.toFixed(2);
+            if (emergenceValue) emergenceValue.textContent = avgEmergence.toFixed(2);
+            if (consensusValue) consensusValue.textContent = Math.round(activeConnections / 2); // Connexions bidirectionnelles
+            if (communicationValue) communicationValue.textContent = (activeConnections / Math.max(1, drones.length)).toFixed(1);
+            if (adaptationValue) adaptationValue.textContent = Math.round(avgEmergence * 100) + '%';
+        }
+
+        // Protection contre les appels concurrents
+        let isUpdatingSwarmIntelligence = false;
+        let lastSwarmUpdate = 0;
+
+        function updateSwarmIntelligenceMetrics() {
+            // Débounce - max 1 appel par seconde
+            const now = Date.now();
+            if (isUpdatingSwarmIntelligence || (now - lastSwarmUpdate < 1000)) {
+                return;
+            }
+            
+            isUpdatingSwarmIntelligence = true;
+            lastSwarmUpdate = now;
+            
+            if (!drones || drones.length === 0) {
+                isUpdatingSwarmIntelligence = false;
+                return;
+            }
 
             // Calcul des métriques d'intelligence collective plus réalistes
             let totalPheromones = 0;
@@ -7807,8 +8346,8 @@
             }
         }
 
-        // Mise à jour périodique des métriques
-        setInterval(updateMetricsDisplay, 200);
+        // Mise à jour périodique des métriques - DÉSACTIVÉ pour éviter conflit avec DiamantMetrics
+        // setInterval(updateMetricsDisplay, 200);
 
         // Mise à jour du sélecteur de drones
         function updateDroneSelector() {
