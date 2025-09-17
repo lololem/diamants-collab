@@ -1,0 +1,157 @@
+{
+  "diamants_video_inventory": {
+    "project": "DIAMANTS - Distributed Autonomous Multi-agents Systems",
+    "last_updated": "2025-09-17",
+    "total_videos": 11,
+    "total_size_mb": 765,
+    "videos": {
+      "backend": {
+        "DIAMANTS_Backend_ROS2_Multi_Drone_SLAM_System.mp4": {
+          "category": "Backend & Core System",
+          "size_mb": 25.9,
+          "functionality": "ROS2 Multi-Drone SLAM System",
+          "features": [
+            "8 Crazyflie drones in Gazebo simulation",
+            "Real-time collaborative SLAM mapping",
+            "TMUX orchestration (13 specialized windows)",
+            "ROS2 Jazzy + Gazebo Garden integration",
+            "Multi-agent path planning and coordination"
+          ],
+          "keywords": ["ros2", "slam", "gazebo", "multi-drone", "tmux"]
+        }
+      },
+      "frontend": {
+        "DIAMANTS_Frontend_3D_WebGL_Visualization_Interface.mp4": {
+          "category": "Frontend & Visualization",
+          "size_mb": 164.0,
+          "functionality": "3D WebGL Visualization Interface",
+          "features": [
+            "Three.js + WebGL real-time 3D visualization",
+            "WebSocket communication with ROS2 backend",
+            "Interactive mission planning interface",
+            "Vite development server integration",
+            "Modern responsive UI design"
+          ],
+          "keywords": ["threejs", "webgl", "websocket", "3d", "ui"]
+        },
+        "DIAMANTS_Frontend_Advanced_Visualization_Features.mp4": {
+          "category": "Frontend & Visualization",
+          "size_mb": 84.5,
+          "functionality": "Advanced Visualization Features",
+          "features": [
+            "Advanced shader effects and lighting",
+            "Real-time performance monitoring",
+            "Dynamic camera controls",
+            "WebSocket integration demonstration",
+            "Multi-viewport rendering"
+          ],
+          "keywords": ["shaders", "performance", "camera", "viewport", "effects"]
+        }
+      },
+      "artificial_intelligence": {
+        "DIAMANTS_Multi_Agent_Systems_SMA_Demo.mp4": {
+          "category": "AI & Coordination",
+          "size_mb": 5.0,
+          "functionality": "Multi-Agent Systems (SMA)",
+          "features": [
+            "Distributed agent coordination",
+            "Emergent swarm behaviors",
+            "Real-time multi-agent communication",
+            "Collective decision making"
+          ],
+          "keywords": ["sma", "multi-agent", "distributed", "coordination"]
+        },
+        "DIAMANTS_Collective_Intelligence_Emergence_Demo.mp4": {
+          "category": "AI & Coordination",
+          "size_mb": 124.4,
+          "functionality": "Collective Intelligence Emergence",
+          "features": [
+            "Behavioral emergence demonstration",
+            "Adaptive collective intelligence",
+            "Distributed learning algorithms",
+            "Spontaneous self-organization"
+          ],
+          "keywords": ["emergence", "collective", "intelligence", "learning"]
+        },
+        "DIAMANTS_Stigmergy_Based_Coordination_Demo.mp4": {
+          "category": "AI & Coordination",
+          "size_mb": 25.8,
+          "functionality": "Stigmergy-Based Coordination",
+          "features": [
+            "Indirect coordination through environment",
+            "Pheromone-like trail mechanisms",
+            "Self-organizing pathfinding",
+            "Bio-inspired collective intelligence"
+          ],
+          "keywords": ["stigmergy", "pheromone", "bio-inspired", "pathfinding"]
+        }
+      },
+      "navigation": {
+        "DIAMANTS_Gradient_Based_Navigation_Demo.mp4": {
+          "category": "Navigation & Control",
+          "size_mb": 42.6,
+          "functionality": "Gradient-Based Navigation",
+          "features": [
+            "Gradient-based path planning",
+            "Obstacle avoidance algorithms",
+            "Dynamic field navigation",
+            "Smooth trajectory optimization"
+          ],
+          "keywords": ["gradient", "navigation", "pathfinding", "trajectory"]
+        },
+        "DIAMANTS_Swarm_Coordination_Demo.mp4": {
+          "category": "Navigation & Control",
+          "size_mb": 94.6,
+          "functionality": "Swarm Coordination",
+          "features": [
+            "Collective swarm intelligence",
+            "Distributed formation control",
+            "Emergent group behaviors",
+            "Scalable multi-drone coordination"
+          ],
+          "keywords": ["swarm", "formation", "coordination", "scalable"]
+        },
+        "DIAMANTS_Autonomous_Formation_Control_Demo.mp4": {
+          "category": "Navigation & Control",
+          "size_mb": 81.9,
+          "functionality": "Autonomous Formation Control",
+          "features": [
+            "Autonomous drone formation",
+            "Swarm geometry maintenance",
+            "Dynamic formation adaptation",
+            "Advanced spatial coordination"
+          ],
+          "keywords": ["formation", "autonomous", "geometry", "spatial"]
+        }
+      },
+      "emergency": {
+        "DIAMANTS_Emergency_Response_Coordination_Demo.mp4": {
+          "category": "Emergency & Response",
+          "size_mb": 101.9,
+          "functionality": "Emergency Response Coordination",
+          "features": [
+            "Emergency response protocols",
+            "Mission-critical coordination",
+            "Dynamic resource reallocation",
+            "Rescue and intervention systems"
+          ],
+          "keywords": ["emergency", "rescue", "critical", "response"]
+        }
+      },
+      "development": {
+        "DIAMANTS_Real_Time_Development_Session_2025-09-17.mp4": {
+          "category": "Development & Documentation",
+          "size_mb": 15.4,
+          "functionality": "Real-Time Development Session",
+          "features": [
+            "Live development demonstration",
+            "Real-time debugging and testing",
+            "DIAMANTS development workflow",
+            "Creation process documentation"
+          ],
+          "keywords": ["development", "debugging", "workflow", "documentation"]
+        }
+      }
+    }
+  }
+}

@@ -66,7 +66,7 @@ Interactive Three.js + WebGL interface with real-time drone tracking, mission pl
 - ✅ Modern responsive UI design
 
 #### Advanced Visualization Features  
-[![Frontend Demo 1](https://img.shields.io/badge/▶️%20Watch%20Advanced%20Features-blue?style=for-the-badge)](./DEMO/video/Frontend1.mp4)
+[![Frontend Demo 1](https://img.shields.io/badge/▶️%20Watch%20Advanced%20Features-blue?style=for-the-badge)](./DEMO/video/DIAMANTS_Frontend_Advanced_Visualization_Features.mp4)
 
 **🎮 Advanced Features:**
 - ✅ Advanced shader effects and lighting
@@ -113,6 +113,44 @@ Extended capabilities showcasing various aspects of the DIAMANTS platform.
 - ✅ Pheromone-like trail mechanisms
 - ✅ Self-organizing pathfinding
 - ✅ Bio-inspired collective intelligence
+
+## 🎮 Interactive Demonstrations
+
+Experience DIAMANTS directly in your browser with our interactive HTML demonstrations showcasing real-time swarm intelligence and mission capabilities.
+
+### 🚁 Search & Rescue Simulation
+**[DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html](./DEMO/sample/DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html)**
+
+Complete Crazyflie drone simulation with ROS2-like interface for search and rescue missions:
+- ✅ Realistic Crazyflie mesh with physics simulation
+- ✅ ROS2-style control panels and topic monitoring
+- ✅ Multi-drone collaborative search algorithms
+- ✅ Anti-collision system with formation control
+- ✅ Tactical minimap with stigmergy visualization
+- ✅ Real-time intelligence and mission metrics
+
+### 🌟 Complete Frontend Intelligence Demo
+**[DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html](./DEMO/sample/DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html)**
+
+Spectacular visualization of swarm intelligence with advanced effects:
+- ✅ Wahoo effect with energy auras between drones
+- ✅ Real-time DIAMANTS φ+σ gradient calculations
+- ✅ Mathematical formulas displayed live
+- ✅ Emergent behavior visualization
+- ✅ Immersive futuristic interface design
+
+### 📹 Complete Video Documentation
+**[Video Library](./DEMO/video/)** - Comprehensive collection of demonstration videos:
+- 🤖 **[Backend ROS2 SLAM System](./DEMO/video/DIAMANTS_Backend_ROS2_Multi_Drone_SLAM_System.mp4)** - Multi-drone collaborative mapping
+- 🌐 **[3D WebGL Visualization](./DEMO/video/DIAMANTS_Frontend_3D_WebGL_Visualization_Interface.mp4)** - Interactive 3D interface
+- 🧠 **[Multi-Agent Systems](./DEMO/video/DIAMANTS_Multi_Agent_Systems_SMA_Demo.mp4)** - Distributed agent coordination
+- 🎯 **[Gradient Navigation](./DEMO/video/DIAMANTS_Gradient_Based_Navigation_Demo.mp4)** - Advanced pathfinding algorithms
+- 🐝 **[Swarm Coordination](./DEMO/video/DIAMANTS_Swarm_Coordination_Demo.mp4)** - Collective intelligence behaviors
+- 🧬 **[Stigmergy Coordination](./DEMO/video/DIAMANTS_Stigmergy_Based_Coordination_Demo.mp4)** - Bio-inspired coordination
+- 🚁 **[Formation Control](./DEMO/video/DIAMANTS_Autonomous_Formation_Control_Demo.mp4)** - Autonomous formation flying
+- 🚨 **[Emergency Response](./DEMO/video/DIAMANTS_Emergency_Response_Coordination_Demo.mp4)** - Crisis management protocols
+- 🧠 **[Collective Intelligence](./DEMO/video/DIAMANTS_Collective_Intelligence_Emergence_Demo.mp4)** - Emergent behaviors
+- 🛠️ **[Development Session](./DEMO/video/DIAMANTS_Real_Time_Development_Session_2025-09-17.mp4)** - Live development process
 
 ## ✨ Key Features & Technical Challenges
 
@@ -256,12 +294,21 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 - **FastAPI**: High-performance async API framework
 - **WebSocket Bridge**: Real-time ROS2 ↔ Web communication
 
+### Demonstration Assets
+- **Video Library**: 11 professionally named demonstration videos (~765MB)
+- **Interactive Samples**: 2 HTML files with complete functionality showcases
+- **Documentation**: Comprehensive guides for all demonstration materials
+
 ## 📚 Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and design principles
 - [DIAMANTS_TECH_STACK.md](DIAMANTS_TECH_STACK.md) - Complete technical documentation
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
 - [API Documentation](DIAMANTS_API/docs/) - API endpoints and WebSocket protocols
+
+### 🎬 Demonstration Documentation
+- [Video Documentation](DEMO/video/README_Videos.md) - Complete video library with detailed descriptions
+- [Sample Files Guide](DEMO/sample/README_Sample_Files.md) - Interactive HTML demonstrations guide
 
 ## 🔬 Research & Publications
 
