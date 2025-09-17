@@ -417,7 +417,7 @@ docs(readme): update installation instructions
 
 1. **Ensure your fork is up to date**:
    ```bash
-   git remote add upstream https://github.com/lololem/diamants.git
+   git remote add upstream https://github.com/lololem/diamants-collab.git
    git fetch upstream
    git checkout main
    git merge upstream/main
@@ -502,8 +502,8 @@ For security vulnerabilities:
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/diamants.git
-cd diamants
+git clone https://github.com/yourusername/diamants-collab.git
+cd diamants-collab
 
 # Setup ROS2 environment
 source /opt/ros/jazzy/setup.bash
