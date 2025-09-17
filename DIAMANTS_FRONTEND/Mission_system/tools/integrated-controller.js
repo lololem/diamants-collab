@@ -34,7 +34,7 @@ import { DronePhysics } from '../physics/drone-physics.js';
 import { PIDController } from '../physics/pid-controller.js';
 import { RealisticFlightDynamics } from '../physics/realistic-flight-dynamics.js';
 import { GLSLGrassField } from '../environment/glsl-grass-field.js';
-import { SAMPLE_MODE } from '../sample/sample-mode-shim.js';
+// SAMPLE_MODE import removed - sample files moved to DEMO/ directory
 
 export class IntegratedDiamantsController {
     constructor(scene, config = {}) {
