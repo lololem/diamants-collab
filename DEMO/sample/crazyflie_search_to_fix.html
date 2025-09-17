@@ -321,8 +321,8 @@
             position: fixed;
             bottom: 30px;
             right: 30px;
-            width: 220px;
-            height: 220px;
+            width: 280px;
+            height: 300px;
             background: rgba(0, 0, 0, 0.9);
             border: 2px solid #00AAFF;
             border-radius: 8px;
@@ -332,7 +332,7 @@
 
         #minimap canvas {
             width: calc(100% - 10px);
-            height: calc(100% - 35px);
+            height: calc(100% - 70px);
             margin: 5px;
             border-radius: 6px;
             background: #87CEEB;
@@ -346,6 +346,41 @@
             font-size: 12px;
             text-align: center;
             border-radius: 6px 6px 0 0;
+        }
+
+        #minimap_controls {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 4px;
+        }
+
+        .minimap_button {
+            background: rgba(0, 170, 255, 0.8);
+            border: 1px solid #00AAFF;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .minimap_button:hover {
+            background: rgba(0, 170, 255, 1);
+            transform: scale(1.05);
+        }
+
+        #minimap_zoom_level {
+            color: #00FFFF;
+            font-size: 10px;
+            font-weight: bold;
         }
 
         .loading_status {
@@ -593,7 +628,13 @@
     <!-- Minimap -->
     <div id="minimap">
         <h4>🎯 Tactical Overview - Mission Intel</h4>
-        <canvas id="minimap_canvas" width="180" height="170"></canvas>
+        <canvas id="minimap_canvas" width="260" height="220"></canvas>
+        <div id="minimap_controls">
+            <button class="minimap_button" onclick="adjustMinimapZoom(-0.5)">🔍-</button>
+            <span id="minimap_zoom_level">Zoom: 1.0x</span>
+            <button class="minimap_button" onclick="adjustMinimapZoom(0.5)">🔍+</button>
+            <button class="minimap_button" onclick="resetMinimapView()">📍</button>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -626,6 +667,13 @@
         let colladaLoader = null;
         let minimapCanvas, minimapCtx;
         let minimapVisible = true;
+        
+        // Minimap zoom and view controls
+        let minimapZoom = 1.0;
+        let minimapOffsetX = 0;
+        let minimapOffsetY = 0;
+        let minimapMaxZoom = 3.0;
+        let minimapMinZoom = 0.5;
         
         // Persistent exploration tracking
         let exploredZones = new Set();
@@ -6211,7 +6259,35 @@
             minimapCanvas = document.getElementById('minimap_canvas');
             if (minimapCanvas) {
                 minimapCtx = minimapCanvas.getContext('2d');
-                console.log('✅ Minimap initialized');
+                
+                // Add mouse wheel zoom support
+                minimapCanvas.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    const zoomDelta = e.deltaY > 0 ? -0.2 : 0.2;
+                    const newZoom = minimapZoom + zoomDelta;
+                    if (newZoom >= minimapMinZoom && newZoom <= minimapMaxZoom) {
+                        minimapZoom = newZoom;
+                        document.getElementById('minimap_zoom_level').textContent = `Zoom: ${minimapZoom.toFixed(1)}x`;
+                        updateMinimap();
+                    }
+                });
+                
+                // Add click to recenter support
+                minimapCanvas.addEventListener('click', function(e) {
+                    const rect = minimapCanvas.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    // Calculate offset to center the clicked point
+                    const centerX = minimapCanvas.width / 2;
+                    const centerY = minimapCanvas.height / 2;
+                    minimapOffsetX = centerX - x;
+                    minimapOffsetY = centerY - y;
+                    
+                    updateMinimap();
+                });
+                
+                console.log('✅ Minimap initialized with interactive controls');
             }
         }
 
@@ -6221,9 +6297,12 @@
 
             const width = minimapCanvas.width;
             const height = minimapCanvas.height;
-            const scale = 4;
-            const centerX = width / 2;
-            const centerY = height / 2;
+            const baseScale = 4 * minimapZoom;
+            const centerX = width / 2 + minimapOffsetX;
+            const centerY = height / 2 + minimapOffsetY;
+
+            // Clear canvas
+            minimapCtx.clearRect(0, 0, width, height);
 
             // Fond style mission tactique
             const gradient = minimapCtx.createRadialGradient(centerX, centerY, 0, centerX, centerY, Math.max(width, height) / 2);
@@ -6238,30 +6317,39 @@
             minimapCtx.lineWidth = 2;
             minimapCtx.strokeRect(2, 2, width - 4, height - 4);
 
-            // Grille tactique
+            // Grille tactique adaptative selon le zoom
             minimapCtx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
             minimapCtx.lineWidth = 1;
             minimapCtx.beginPath();
 
-            for (let i = -25; i <= 25; i += 5) {
-                const x = centerX + i * scale;
-                const y = centerY + i * scale;
-                minimapCtx.moveTo(x, 0);
-                minimapCtx.lineTo(x, height);
-                minimapCtx.moveTo(0, y);
-                minimapCtx.lineTo(width, y);
+            const gridSpacing = minimapZoom > 2 ? 2 : 5;
+            for (let i = -50; i <= 50; i += gridSpacing) {
+                const x = centerX + i * baseScale;
+                const y = centerY + i * baseScale;
+                if (x >= 0 && x <= width) {
+                    minimapCtx.moveTo(x, 0);
+                    minimapCtx.lineTo(x, height);
+                }
+                if (y >= 0 && y <= height) {
+                    minimapCtx.moveTo(0, y);
+                    minimapCtx.lineTo(width, y);
+                }
             }
             minimapCtx.stroke();
 
             // Axes de référence
             minimapCtx.strokeStyle = '#00ff88';
-            minimapCtx.lineWidth = 1;
+            minimapCtx.lineWidth = 2;
             minimapCtx.setLineDash([5, 5]);
             minimapCtx.beginPath();
-            minimapCtx.moveTo(centerX, 0);
-            minimapCtx.lineTo(centerX, height);
-            minimapCtx.moveTo(0, centerY);
-            minimapCtx.lineTo(width, centerY);
+            if (centerX >= 0 && centerX <= width) {
+                minimapCtx.moveTo(centerX, 0);
+                minimapCtx.lineTo(centerX, height);
+            }
+            if (centerY >= 0 && centerY <= height) {
+                minimapCtx.moveTo(0, centerY);
+                minimapCtx.lineTo(width, centerY);
+            }
             minimapCtx.stroke();
             minimapCtx.setLineDash([]);
 
@@ -6269,94 +6357,117 @@
             minimapCtx.strokeStyle = 'rgba(255, 0, 0, 0.6)';
             minimapCtx.lineWidth = 2;
             minimapCtx.beginPath();
-            const missionRadius = (CONFIG.zoneSize / 2) * scale;
+            const missionRadius = (CONFIG.zoneSize / 2) * baseScale;
             minimapCtx.arc(centerX, centerY, missionRadius, 0, 2 * Math.PI);
             minimapCtx.stroke();
 
-            // Couverture d'exploration avancée avec gradient
+            // Couverture d'exploration améliorée avec calcul précis
+            let totalCovered = 0;
+            let totalSectors = 0;
+            
             if (explorationMap && explorationMap.length) {
                 const sectorSize = CONFIG.zoneSize / CONFIG.explorationGrid;
-                let totalCovered = 0;
-                let totalSectors = 0;
-
+                
                 for (let i = 0; i < CONFIG.explorationGrid; i++) {
                     for (let j = 0; j < CONFIG.explorationGrid; j++) {
                         totalSectors++;
                         const coverage = explorationMap[i][j];
-                        if (coverage > 0) {
+                        if (coverage > 0.1) { // Seuil minimal pour considérer une zone explorée
                             totalCovered++;
                             const wx = -CONFIG.zoneSize / 2 + (i + 0.5) * sectorSize;
                             const wz = -CONFIG.zoneSize / 2 + (j + 0.5) * sectorSize;
-                            const x = centerX + wx * scale;
-                            const y = centerY - wz * scale;
+                            const x = centerX + wx * baseScale;
+                            const y = centerY - wz * baseScale;
 
                             // Gradient de couverture selon intensité
                             const intensity = Math.min(1, coverage);
-                            minimapCtx.fillStyle = `rgba(0, 255, 136, ${0.2 + intensity * 0.4})`;
-                            minimapCtx.fillRect(x - sectorSize * scale / 2, y - sectorSize * scale / 2,
-                                sectorSize * scale, sectorSize * scale);
+                            minimapCtx.fillStyle = `rgba(0, 255, 136, ${0.2 + intensity * 0.5})`;
+                            const rectSize = sectorSize * baseScale;
+                            minimapCtx.fillRect(x - rectSize / 2, y - rectSize / 2, rectSize, rectSize);
 
                             // Marqueur de zone bien explorée
                             if (intensity > 0.7) {
-                                minimapCtx.fillStyle = 'rgba(0, 255, 255, 0.8)';
-                                minimapCtx.fillRect(x - 1, y - 1, 2, 2);
+                                minimapCtx.fillStyle = 'rgba(0, 255, 255, 0.9)';
+                                minimapCtx.fillRect(x - 2, y - 2, 4, 4);
                             }
                         }
                     }
                 }
+            }
 
-                // Affichage du pourcentage de couverture
-                const coveragePercent = (totalCovered / totalSectors * 100).toFixed(1);
-                minimapCtx.fillStyle = '#00ff88';
-                minimapCtx.font = 'bold 11px Arial';
-                minimapCtx.textAlign = 'left';
-                minimapCtx.fillText(`Coverage: ${coveragePercent}%`, 5, 15);
+            // Calcul de couverture mis à jour et affiché
+            const coveragePercent = totalSectors > 0 ? (totalCovered / totalSectors * 100) : 0;
+            minimapCtx.fillStyle = '#00ff88';
+            minimapCtx.font = 'bold 11px Arial';
+            minimapCtx.textAlign = 'left';
+            minimapCtx.fillText(`Coverage: ${coveragePercent.toFixed(1)}%`, 5, 15);
+            
+            // Update main coverage display
+            const coverageElement = document.getElementById('mission_coverage');
+            if (coverageElement) {
+                coverageElement.textContent = `${coveragePercent.toFixed(1)}%`;
+                // Update progress bar
+                const coverageBar = document.getElementById('coverage_bar');
+                if (coverageBar) {
+                    coverageBar.style.width = `${coveragePercent}%`;
+                    // Color coding
+                    if (coveragePercent < 30) {
+                        coverageBar.style.background = 'linear-gradient(90deg, #ff4757, #ff6b7a)';
+                    } else if (coveragePercent < 70) {
+                        coverageBar.style.background = 'linear-gradient(90deg, #ffa502, #ffc048)';
+                    } else {
+                        coverageBar.style.background = 'linear-gradient(90deg, #2ed573, #7bed9f)';
+                    }
+                }
             }
 
             // Cibles de mission
             if (scoutingTargets) {
                 scoutingTargets.forEach((target, idx) => {
-                    const x = centerX + target.position.x * scale;
-                    const y = centerY - target.position.z * scale;
+                    const x = centerX + target.position.x * baseScale;
+                    const y = centerY - target.position.z * baseScale;
 
-                    if (target.discovered) {
-                        // Cible découverte
-                        minimapCtx.fillStyle = '#00ff00';
-                        minimapCtx.beginPath();
-                        minimapCtx.arc(x, y, 3, 0, 2 * Math.PI);
-                        minimapCtx.fill();
-                        minimapCtx.strokeStyle = '#ffffff';
-                        minimapCtx.lineWidth = 1;
-                        minimapCtx.stroke();
-                    } else {
-                        // Cible non découverte
-                        minimapCtx.fillStyle = target.type === 'emergency' ? '#ff6b6b' :
-                            target.type === 'resource' ? '#feca57' : '#48dbfb';
-                        minimapCtx.beginPath();
-                        minimapCtx.arc(x, y, 2, 0, 2 * Math.PI);
-                        minimapCtx.fill();
-
-                        // Pulsation pour les cibles importantes
-                        if (target.type === 'emergency') {
-                            const pulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
-                            minimapCtx.strokeStyle = `rgba(255, 107, 107, ${pulse})`;
-                            minimapCtx.lineWidth = 2;
+                    // Only draw targets that are visible in the current view
+                    if (x >= -10 && x <= width + 10 && y >= -10 && y <= height + 10) {
+                        if (target.discovered) {
+                            // Cible découverte
+                            minimapCtx.fillStyle = '#00ff00';
                             minimapCtx.beginPath();
-                            minimapCtx.arc(x, y, 4 + pulse * 2, 0, 2 * Math.PI);
+                            minimapCtx.arc(x, y, 3 * minimapZoom, 0, 2 * Math.PI);
+                            minimapCtx.fill();
+                            minimapCtx.strokeStyle = '#ffffff';
+                            minimapCtx.lineWidth = 1;
                             minimapCtx.stroke();
+                        } else {
+                            // Cible non découverte
+                            minimapCtx.fillStyle = target.type === 'emergency' ? '#ff6b6b' :
+                                target.type === 'resource' ? '#feca57' : '#48dbfb';
+                            minimapCtx.beginPath();
+                            minimapCtx.arc(x, y, 2 * minimapZoom, 0, 2 * Math.PI);
+                            minimapCtx.fill();
+
+                            // Pulsation pour les cibles importantes
+                            if (target.type === 'emergency') {
+                                const pulse = Math.sin(Date.now() * 0.01) * 0.5 + 0.5;
+                                minimapCtx.strokeStyle = `rgba(255, 107, 107, ${pulse})`;
+                                minimapCtx.lineWidth = 2;
+                                minimapCtx.beginPath();
+                                minimapCtx.arc(x, y, (4 + pulse * 2) * minimapZoom, 0, 2 * Math.PI);
+                                minimapCtx.stroke();
+                            }
                         }
                     }
                 });
             }
 
-            // Drones avec informations tactiques avancées
+            // Drones avec informations tactiques avancées et zoom adaptatif
             if (drones && drones.length > 0) {
                 drones.forEach((drone) => {
-                    let x = centerX + drone.position.x * scale;
-                    let y = centerY - drone.position.z * scale;
+                    let x = centerX + drone.position.x * baseScale;
+                    let y = centerY - drone.position.z * baseScale;
                     
-                    // Vérifier si le drone est hors de la minimap
-                    const margin = 10;
+                    // Vérifier si le drone est hors de la minimap avec marge adaptive
+                    const margin = 15 * minimapZoom;
                     let isOffScreen = false;
                     let edgeX = x, edgeY = y;
                     
@@ -6386,29 +6497,33 @@
 
                     // Affichage différent selon si le drone est visible ou pas
                     if (isOffScreen) {
-                        // Drone hors écran - indicateur de direction
+                        // Drone hors écran - indicateur de direction amélioré
                         minimapCtx.fillStyle = droneColor;
                         minimapCtx.beginPath();
                         // Triangle pointant vers la direction du drone
                         const angle = Math.atan2(y - centerY, x - centerX);
-                        const size = 6;
+                        const size = 8 * minimapZoom;
                         minimapCtx.moveTo(edgeX + Math.cos(angle) * size, edgeY + Math.sin(angle) * size);
-                        minimapCtx.lineTo(edgeX + Math.cos(angle + 2.5) * size, edgeY + Math.sin(angle + 2.5) * size);
-                        minimapCtx.lineTo(edgeX + Math.cos(angle - 2.5) * size, edgeY + Math.sin(angle - 2.5) * size);
+                        minimapCtx.lineTo(edgeX + Math.cos(angle + 2.5) * size/2, edgeY + Math.sin(angle + 2.5) * size/2);
+                        minimapCtx.lineTo(edgeX + Math.cos(angle - 2.5) * size/2, edgeY + Math.sin(angle - 2.5) * size/2);
                         minimapCtx.closePath();
                         minimapCtx.fill();
                         
-                        // Bordure
+                        // Bordure plus visible
                         minimapCtx.strokeStyle = '#ffffff';
-                        minimapCtx.lineWidth = 1;
+                        minimapCtx.lineWidth = 2;
                         minimapCtx.stroke();
                         
                         // Distance approximative
                         const distance = Math.sqrt(drone.position.x * drone.position.x + drone.position.z * drone.position.z);
                         minimapCtx.fillStyle = '#ffffff';
-                        minimapCtx.font = 'bold 8px Arial';
+                        minimapCtx.font = `bold ${8 * minimapZoom}px Arial`;
                         minimapCtx.textAlign = 'center';
-                        minimapCtx.fillText(`${distance.toFixed(0)}m`, edgeX, edgeY - 8);
+                        minimapCtx.fillText(`${distance.toFixed(0)}m`, edgeX, edgeY - 12 * minimapZoom);
+                        
+                        // ID du drone
+                        minimapCtx.fillStyle = droneColor;
+                        minimapCtx.fillText(`${drone.id}`, edgeX, edgeY + 12 * minimapZoom);
                     } else {
                         // Drone visible normalement
                         
@@ -6775,6 +6890,26 @@
                     console.log('📋 Minimap deactivated');
                 }
             }
+        };
+
+        // Zoom controls for minimap
+        window.adjustMinimapZoom = function (delta) {
+            const newZoom = minimapZoom + delta;
+            if (newZoom >= minimapMinZoom && newZoom <= minimapMaxZoom) {
+                minimapZoom = newZoom;
+                document.getElementById('minimap_zoom_level').textContent = `Zoom: ${minimapZoom.toFixed(1)}x`;
+                updateMinimap();
+                console.log(`🔍 Minimap zoom: ${minimapZoom.toFixed(1)}x`);
+            }
+        };
+
+        window.resetMinimapView = function () {
+            minimapZoom = 1.0;
+            minimapOffsetX = 0;
+            minimapOffsetY = 0;
+            document.getElementById('minimap_zoom_level').textContent = `Zoom: ${minimapZoom.toFixed(1)}x`;
+            updateMinimap();
+            console.log('📍 Minimap view reset');
         };
 
         window.toggleSAROverlay = function () {
