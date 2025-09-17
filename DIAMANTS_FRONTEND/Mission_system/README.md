@@ -213,9 +213,10 @@ DIAMANTS Frontend
 - **`generate-direct-trees.js`** - Procedural tree generation
 
 #### 🎨 Sample Applications - `sample/`
-- **`crazyflie.html`** - Standalone Crazyflie demo
-- **`SMA.html`** - Multi-agent system demo
+- **`DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html`** - Standalone Crazyflie search & rescue demo
+- **`DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html`** - Complete multi-agent swarm intelligence demonstration
 - **`sample-mode-shim.js`** - Sample mode utilities
+- **`README_Sample_Files.md`** - Documentation for all sample applications
 
 #### 🔧 Tools - `tools/`
 - **`authentic-drone-swarm.js`** - Authentic swarm simulation
