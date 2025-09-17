@@ -31,11 +31,9 @@ export default defineConfig({
     sourcemap: true,
     rollupOptions: {
       input: {
-  main: path.resolve(__dirname, 'index.html'),
-  sampleIndex: path.resolve(__dirname, 'sample/index.html'),
-  sampleSMA: path.resolve(__dirname, 'sample/SMA.html'),
-  // Use lowercase filename to match Linux filesystem
-  sampleCrazyflie: path.resolve(__dirname, 'sample/crazyflie.html')
+  main: path.resolve(__dirname, 'index.html')
+  // Sample files have been moved to DEMO/sample/ directory
+  // and are no longer part of the Mission_system build process
       }
     }
   },
