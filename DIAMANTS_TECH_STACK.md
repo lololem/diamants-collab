@@ -487,8 +487,8 @@ Browser_DevTools:
 ### **Development Environment**
 ```bash
 # Installation
-git clone https://github.com/lololem/diamants.git
-cd diamants/mission_core/Mission_system_v1
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab/DIAMANTS_FRONTEND/Mission_system
 nvm use 16.15.0
 npm install
 

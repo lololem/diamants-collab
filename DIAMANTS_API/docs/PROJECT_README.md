@@ -16,8 +16,8 @@
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/lololem/diamants.git
-cd diamants
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab
 
 # 2. One-command setup and launch
 ./DIAMANTS_API/quick-setup.sh
