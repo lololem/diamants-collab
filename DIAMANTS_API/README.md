@@ -1,4 +1,4 @@
-# 🚁 DIAMANTS API
+# 💎 DIAMANTS API
 
 **Advanced FastAPI service for collaborative drone simulation with ROS2 Jazzy integration**
 
