@@ -1,4 +1,4 @@
-# � DIAMANTS Backend
+# 💎 DIAMANTS Backend
 
 **Collaborative SLAM System powered by ROS2 Jazzy for multi-agent drone simulation**
 
