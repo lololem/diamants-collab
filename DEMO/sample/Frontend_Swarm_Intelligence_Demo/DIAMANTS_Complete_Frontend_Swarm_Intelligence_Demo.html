@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAMANTS Crazyflie Swarm - Effet Wahoo</title>
+    <title>DIAMANTS Crazyflie Swarm </title>
     <link rel="icon" href="data:,">
     <style>
         body {
@@ -137,7 +137,7 @@
     </div>
 
     <div id="controls">
-        <button class="btn" onclick="toggleSwarm()">🚀 START WAHOO</button>
+        <button class="btn" onclick="toggleSwarm()">🚀 START</button>
         <button class="btn" onclick="addDrone()">➕ Drone</button>
         <button class="btn" onclick="resetSwarm()">🔄 Reset</button>
         <button class="btn" onclick="changePattern()">🌟 Pattern</button>
@@ -639,7 +639,7 @@
         let startTime = Date.now();
         let showMinimap = true;
 
-        // ===== SCENE SETUP WAHOO =====
+        // ===== SCENE SETUP =====
         let scene, camera, renderer;
         try {
             scene = new THREE.Scene();
@@ -953,7 +953,7 @@
             console.error('❌ Erreur lors de la création de la forêt:', error);
         }
 
-        // ===== CRAZYFLIE DIAMANTS WAHOO =====
+        // ===== CRAZYFLIE DIAMANTS =====
         class CrazyflieWahoo {
             constructor(id, x, z, type = null) {
                 this.id = id;
@@ -2416,7 +2416,7 @@
             }
 
             update(time, allDrones, deltaTime = 0.016) {
-                // ===== CALCUL DIAMANTS WAHOO =====
+                // ===== CALCUL DIAMANTS =====
 
                 // 1. Calcul des potentiels φ (attractif) et σ (répulsif)
                 this.phi = 0;
@@ -2693,7 +2693,7 @@
                     }
                 }
 
-                // 11. Mise à jour visuelle WAHOO
+                // 11. Mise à jour visuelle 
                 this.updateVisual(time);
                 this.updateTrail();
             }
@@ -4770,7 +4770,7 @@
             if (isRunning && drones.length === 0) {
                 initSwarm();
             }
-            document.querySelector('.btn').textContent = isRunning ? '⏸️ PAUSE' : '🚀 START WAHOO';
+            document.querySelector('.btn').textContent = isRunning ? '⏸️ PAUSE' : '🚀 START';
         }
 
         function initSwarm() {
@@ -5620,7 +5620,7 @@
             minimapCtx.fillText('Nettoyage', 225, 99);
         }
 
-        // ===== ANIMATION LOOP WAHOO =====
+        // ===== ANIMATION LOOP =====
         let cameraControls = {
             moveSpeed: 0.8,  // Vitesse augmentée pour navigation plus rapide
             rotateSpeed: 0.003, // Rotation plus sensible
@@ -5756,9 +5756,9 @@
         });
 
         // ===== DÉMARRAGE AUTOMATIQUE =====
-        console.log('🚁 DIAMANTS Crazyflie Swarm - Effet Wahoo Activé');
+        console.log('🚁 DIAMANTS Crazyflie Swarm - Effet Activé');
         console.log('🧮 Formule: I(t) = ∬|∇(φ+σ)|dΩ');
-        console.log('⚡ Mode Performance Wahoo');
+        console.log('⚡ Mode Performance');
         console.log('🎮 CONTRÔLES AMÉLIORÉS:');
         console.log('   • Souris: Clic+glisser pour regarder autour');
         console.log('   • Molette: Zoom avant/arrière (corrigé)');
