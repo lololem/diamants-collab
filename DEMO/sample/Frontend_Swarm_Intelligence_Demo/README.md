@@ -1,224 +1,224 @@
 # DIAMANTS Frontend Swarm Intelligence Demo
 
-## 🧠 Vue d'ensemble
+## 🧠 Overview
 
-Ce répertoire contient une démonstration avancée de l'**Intelligence d'Essaim** utilisant le framework DIAMANTS pour la coordination autonome de drones multiples dans un environnement forestier complexe.
+This directory contains an advanced demonstration of **Swarm Intelligence** using the DIAMANTS framework for autonomous coordination of multiple drones in a complex forest environment.
 
-## 🎯 Objectifs de la démonstration
+## 🎯 Demonstration Objectives
 
-### Intelligence Collective Émergente
-- **Coordination décentralisée** : Chaque drone développe sa propre expertise tout en collaborant
-- **Consensus distribué** : Prise de décision collective sans contrôle centralisé
-- **Spécialisation adaptative** : Émergence de rôles spécialisés selon les besoins de la mission
-- **Communication stigmergique** : Échange d'informations par traces environnementales
+### Emergent Collective Intelligence
+- **Decentralized coordination**: Each drone develops its own expertise while collaborating
+- **Distributed consensus**: Collective decision-making without centralized control
+- **Adaptive specialization**: Emergence of specialized roles according to mission needs
+- **Stigmergic communication**: Information exchange through environmental traces
 
-### Scouting Collaboratif Optimisé
-- **Exploration boustrophédon** : Couverture systématique avec espacement optimal (18m)
-- **Anti-redondance intelligente** : Évitement automatique des zones déjà explorées
-- **Assignation dynamique de secteurs** : Répartition adaptative selon le nombre de drones
-- **Finition collaborative** : Coordination pour compléter les zones partiellement explorées
+### Optimized Collaborative Scouting
+- **Boustrophedon exploration**: Systematic coverage with optimal spacing (18m)
+- **Intelligent anti-redundancy**: Automatic avoidance of already explored zones
+- **Dynamic sector assignment**: Adaptive distribution according to number of drones
+- **Collaborative completion**: Coordination to complete partially explored areas
 
-## 🚁 Types de Drones et Spécialisations
+## 🚁 Drone Types and Specializations
 
-| Type | Rôle | Capacités | Couleur |
-|------|------|-----------|---------|
-| **Scout** | Exploration | Vitesse élevée, portée de détection optimisée | 🟢 Vert |
-| **Coordinateur** | Leadership | Communication longue portée, synchronisation | 🔴 Rouge |
-| **Furtif** | Reconnaissance | Discrétion, précision de navigation | 🔵 Bleu |
-| **Porteur** | Transport | Capacité de charge, stabilité | 🟠 Orange |
+| Type | Role | Capabilities | Color |
+|------|------|-------------|-------|
+| **Scout** | Exploration | High speed, optimized detection range | 🟢 Green |
+| **Coordinator** | Leadership | Long-range communication, synchronization | 🔴 Red |
+| **Stealth** | Reconnaissance | Discretion, navigation precision | 🔵 Blue |
+| **Heavy** | Transport | Load capacity, stability | 🟠 Orange |
 
-## 📊 Métriques d'Intelligence Collective
+## 📊 Collective Intelligence Metrics
 
-### Métriques DIAMANTS Classiques
-- **I(t)** : Intelligence instantanée basée sur le gradient ∇(φ+σ)
-- **φ (Phi)** : Potentiel attractif pour la cohésion d'essaim
-- **σ (Sigma)** : Potentiel répulsif pour l'évitement de redondance
-- **|∇|** : Magnitude du gradient directeur
+### Classic DIAMANTS Metrics
+- **I(t)**: Instantaneous intelligence based on gradient ∇(φ+σ)
+- **φ (Phi)**: Attractive potential for swarm cohesion
+- **σ (Sigma)**: Repulsive potential for redundancy avoidance
+- **|∇|**: Magnitude of directional gradient
 
-### Métriques d'Intelligence d'Essaim
-- **Émergence** : Niveau de comportements auto-organisés détectés
-- **Cohésion** : Index de coordination collective de l'essaim
-- **Phase** : État comportemental global (DISPERSION → EXPLORATION → CONSOLIDATION → COMPLETION)
-- **Experts** : Nombre de drones ayant développé une expertise spécialisée
-- **Communication** : Intensité des échanges d'information entre drones
+### Swarm Intelligence Metrics
+- **Emergence**: Level of detected self-organized behaviors
+- **Cohesion**: Collective coordination index of the swarm
+- **Phase**: Global behavioral state (DISPERSION → EXPLORATION → CONSOLIDATION → COMPLETION)
+- **Experts**: Number of drones that have developed specialized expertise
+- **Communication**: Intensity of information exchanges between drones
 
-## 🌲 Environnement de Simulation
+## 🌲 Simulation Environment
 
-### Forêt Dense Réaliste
-- **30 arbres** positionnés avec espacement naturel (distance minimale 15m)
-- **Éclairage diurne** avec rayons de soleil filtrant à travers la canopée
-- **Terrain forestier** avec variations de relief et textures réalistes
-- **15 cibles d'intérêt** cachées pour missions de scouting
+### Realistic Dense Forest
+- **30 trees** positioned with natural spacing (minimum distance 15m)
+- **Daylight illumination** with sunbeams filtering through the canopy
+- **Forest terrain** with relief variations and realistic textures
+- **15 targets of interest** hidden for scouting missions
 
-### Altitudes Optimisées
-- **Niveau sol** : 2m (navigation de base)
-- **Niveau troncs** : 8m (scouting optimal)
-- **Niveau coordination** : 15m (vue d'ensemble)
+### Optimized Altitudes
+- **Ground level**: 2m (basic navigation)
+- **Trunk level**: 8m (optimal scouting)
+- **Coordination level**: 15m (overview)
 
-## 🎮 Contrôles et Interface
+## 🎮 Controls and Interface
 
-### Commandes
-- **WASD** : Déplacement de la caméra
-- **Souris** : Rotation de la vue
-- **Molette** : Zoom avant/arrière
+### Commands
+- **WASD**: Camera movement
+- **Mouse**: View rotation
+- **Scroll wheel**: Zoom in/out
 
-### Boutons de Contrôle
-- **🚀 START** : Lancement de la mission d'intelligence d'essaim
-- **⏸️ PAUSE** : Suspension temporaire de la simulation
-- **🔄 Reset** : Remise à zéro complète de l'environnement
+### Control Buttons
+- **🚀 START**: Launch swarm intelligence mission
+- **⏸️ PAUSE**: Temporary simulation suspension
+- **🔄 Reset**: Complete environment reset
 
-## ⚙️ Configuration Avancée
+## ⚙️ Advanced Configuration
 
-### Paramètres d'Essaim (CONFIG)
+### Swarm Parameters (CONFIG)
 ```javascript
-maxDrones: Infinity          // Nombre illimité de drones
-zoneSize: 120               // Taille de la zone de mission (120m)
-explorationGrid: 20         // Précision de la grille d'exploration
-swarmCohesion: 1.5         // Force de cohésion collective
-swarmSeparation: 5.0       // Force d'évitement de collision
-autonomyPower: 4.5         // Niveau d'autonomie individuelle
+maxDrones: Infinity          // Unlimited number of drones
+zoneSize: 120               // Mission area size (120m)
+explorationGrid: 20         // Exploration grid precision
+swarmCohesion: 1.5         // Collective cohesion force
+swarmSeparation: 5.0       // Collision avoidance force
+autonomyPower: 4.5         // Individual autonomy level
 ```
 
-### Algorithmes d'Intelligence Collective
-- **Stigmergie numérique** : Traces environnementales persistantes
-- **Consensus distribué** : Vote pondéré selon l'expertise
-- **Apprentissage par émulation** : Transfert de connaissances entre drones
-- **Adaptation comportementale** : Changement de stratégie selon contexte
+### Collective Intelligence Algorithms
+- **Digital stigmergy**: Persistent environmental traces
+- **Distributed consensus**: Expertise-weighted voting
+- **Emulation learning**: Knowledge transfer between drones
+- **Behavioral adaptation**: Strategy change according to context
 
-## 🔬 Fonctionnalités Techniques
+## 🔬 Technical Features
 
-### Systèmes d'Intelligence Avancés
-1. **Mémoire Collective Globale** (`SWARM_MEMORY`)
-   - Carte de stigmergie partagée
-   - Historique des découvertes collectives
-   - Zones d'expertise par drone
-   - Consensus dynamique temps réel
+### Advanced Intelligence Systems
+1. **Global Collective Memory** (`SWARM_MEMORY`)
+   - Shared stigmergy map
+   - Collective discoveries history
+   - Expertise zones per drone
+   - Real-time dynamic consensus
 
-2. **Communication Multi-Modale**
-   - Messages directs entre drones (portée 30m)
-   - Diffusion d'informations prioritaires
-   - Traces stigmergiques persistantes
-   - Synchronisation de stratégies
+2. **Multi-Modal Communication**
+   - Direct messages between drones (30m range)
+   - Priority information broadcasting
+   - Persistent stigmergic traces
+   - Strategy synchronization
 
-3. **Spécialisation Émergente**
-   - Développement automatique d'expertise
-   - Enseignement entre drones expérimentés
-   - Reconversion selon besoins de l'essaim
-   - Leadership émergent dynamique
+3. **Emergent Specialization**
+   - Automatic expertise development
+   - Teaching between experienced drones
+   - Reconversion according to swarm needs
+   - Dynamic emergent leadership
 
-## 🎯 Phases de Mission
+## 🎯 Mission Phases
 
-### Phase 1 : Dispersion (0-20% progression)
-- Répartition rapide dans la zone
-- Assignation initiale de secteurs
-- Établissement des communications
+### Phase 1: Dispersion (0-20% progress)
+- Rapid distribution in the zone
+- Initial sector assignment
+- Communication establishment
 
-### Phase 2 : Exploration Parallèle (20-60% progression)
-- Scouting coordonné par couloirs
-- Évitement de redondance active
-- Partage des découvertes en temps réel
+### Phase 2: Parallel Exploration (20-60% progress)
+- Coordinated scouting by corridors
+- Active redundancy avoidance
+- Real-time discovery sharing
 
-### Phase 3 : Consolidation (60-85% progression)
-- Nettoyage collaboratif des zones partielles
-- Optimisation des trajectoires
-- Spécialisation des rôles finalisée
+### Phase 3: Consolidation (60-85% progress)
+- Collaborative cleanup of partial zones
+- Trajectory optimization
+- Finalized role specialization
 
-### Phase 4 : Completion (85-100% progression)
-- Finition précise des dernières zones
-- Vérification croisée des découvertes
-- Consensus final sur l'état de mission
+### Phase 4: Completion (85-100% progress)
+- Precise finishing of last zones
+- Cross-verification of discoveries
+- Final consensus on mission state
 
-## 🚀 Technologies Utilisées
+## 🚀 Technologies Used
 
-### Moteur de Rendu
-- **Three.js r128** : Rendu 3D WebGL haute performance
-- **ColladaLoader** : Support des modèles 3D .dae des Crazyflies
-- **Shaders personnalisés** : Effets visuels d'intelligence collective
+### Rendering Engine
+- **Three.js r128**: High-performance WebGL 3D rendering
+- **ColladaLoader**: Support for .dae 3D models of Crazyflies
+- **Custom shaders**: Collective intelligence visual effects
 
-### Intelligence Artificielle
-- **Algorithmes DIAMANTS** : I(t) = ∬|∇(φ+σ)|dΩ
-- **Boids avancés** : Cohésion, séparation, alignement adaptatifs
-- **Réseaux de neurones émergents** : Apprentissage distribué
-- **Optimisation par essaims** : Convergence collective vers optima
+### Artificial Intelligence
+- **DIAMANTS algorithms**: I(t) = ∬|∇(φ+σ)|dΩ
+- **Advanced boids**: Adaptive cohesion, separation, alignment
+- **Emergent neural networks**: Distributed learning
+- **Swarm optimization**: Collective convergence toward optima
 
-## 📈 Métriques de Performance
+## 📈 Performance Metrics
 
-### Temps de Couverture Optimisé
-- **Objectif** : < 3 minutes pour couverture complète
-- **Efficacité** : > 95% avec redondance minimale
-- **Adaptation** : Reconfiguration en < 10 secondes lors de changements
+### Optimized Coverage Time
+- **Target**: < 3 minutes for complete coverage
+- **Efficiency**: > 95% with minimal redundancy
+- **Adaptation**: Reconfiguration in < 10 seconds during changes
 
-### Intelligence Collective Mesurable
-- **Émergence** : Détection automatique de 4+ comportements émergents
-- **Expertise** : 80% des drones développent une spécialisation
-- **Consensus** : Décisions collectives en < 5 secondes
-- **Communication** : > 90% de fiabilité des échanges d'information
+### Measurable Collective Intelligence
+- **Emergence**: Automatic detection of 4+ emergent behaviors
+- **Expertise**: 80% of drones develop specialization
+- **Consensus**: Collective decisions in < 5 seconds
+- **Communication**: > 90% reliability of information exchanges
 
-## 🔧 Installation et Lancement
+## 🔧 Installation and Launch
 
-### Prérequis
-- Navigateur moderne avec support WebGL 2.0
-- Connexion internet pour chargement des librairies Three.js
-- Serveur HTTP local (VS Code Live Server recommandé)
+### Prerequisites
+- Modern browser with WebGL 2.0 support
+- Internet connection for loading Three.js libraries
+- Local HTTP server (VS Code Live Server recommended)
 
-### Démarrage
-1. Ouvrir `DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html`
-2. Lancer avec serveur HTTP (éviter file://)
-3. Cliquer sur "🚀 START" pour initier la mission
-4. Observer l'émergence de l'intelligence collective
+### Startup
+1. Open `DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html`
+2. Launch with HTTP server (avoid file://)
+3. Click "🚀 START" to initiate the mission
+4. Observe the emergence of collective intelligence
 
-## 📊 Analyse des Résultats
+## 📊 Results Analysis
 
-### Indicateurs de Succès
-- **Couverture territoriale** : Pourcentage de zone explorée
-- **Redondance minimisée** : Évitement du double-scouting
-- **Consensus atteints** : Décisions collectives réussies
-- **Spécialisations émergentes** : Rôles auto-organisés
-- **Efficacité temporelle** : Vitesse d'accomplissement
+### Success Indicators
+- **Territorial coverage**: Percentage of explored area
+- **Minimized redundancy**: Avoidance of double-scouting
+- **Achieved consensus**: Successful collective decisions
+- **Emergent specializations**: Self-organized roles
+- **Temporal efficiency**: Accomplishment speed
 
-### Comportements Émergents Observables
-- Formation spontanée de groupes de travail
-- Leadership rotatif selon l'expertise
-- Chaînes de communication optimisées
-- Stratégies adaptatives contextuelles
+### Observable Emergent Behaviors
+- Spontaneous work group formation
+- Rotational leadership according to expertise
+- Optimized communication chains
+- Contextual adaptive strategies
 
-## 🔍 Debug et Monitoring
+## 🔍 Debug and Monitoring
 
-### Console de Debug
-Activé par défaut, affiche :
-- Changements de phase collective
-- Découvertes de cibles importantes
-- Consensus atteints/échoués
-- Adaptations comportementales
-- Métriques d'intelligence en temps réel
+### Debug Console
+Enabled by default, displays:
+- Collective phase changes
+- Important target discoveries
+- Achieved/failed consensus
+- Behavioral adaptations
+- Real-time intelligence metrics
 
-### Visualisations Temps Réel
-- **Grille d'exploration** : Zones couvertes en surbrillance
-- **Traces de stigmergie** : Chemins d'information
-- **Auras d'expertise** : Zones d'influence des experts
-- **Liens de communication** : Connexions actives entre drones
+### Real-Time Visualizations
+- **Exploration grid**: Highlighted covered zones
+- **Stigmergy traces**: Information paths
+- **Expertise auras**: Expert influence zones
+- **Communication links**: Active connections between drones
 
-## 🎓 Applications Pratiques
+## 🎓 Practical Applications
 
-### Scénarios d'Usage
-- **Recherche et sauvetage** en terrain difficile
-- **Surveillance environnementale** de grandes zones
-- **Cartographie collaborative** à grande échelle
-- **Missions d'exploration** spatiale ou sous-marine
-- **Sécurité périmétrique** adaptive et autonome
+### Usage Scenarios
+- **Search and rescue** in difficult terrain
+- **Environmental surveillance** of large areas
+- **Collaborative mapping** at large scale
+- **Exploration missions** in space or underwater
+- **Perimeter security** adaptive and autonomous
 
-### Avantages de l'Intelligence d'Essaim
-- **Robustesse** : Résistance aux pannes individuelles
-- **Scalabilité** : Performance améliorée avec plus de drones
-- **Efficacité** : Optimisation automatique des ressources
-- **Adaptabilité** : Réaction rapide aux changements d'environnement
+### Swarm Intelligence Advantages
+- **Robustness**: Resistance to individual failures
+- **Scalability**: Improved performance with more drones
+- **Efficiency**: Automatic resource optimization
+- **Adaptability**: Rapid reaction to environmental changes
 
 ---
 
-## 🤝 Contribution et Développement
+## 🤝 Contribution and Development
 
-Cette démonstration fait partie du projet DIAMANTS et illustre les capacités avancées d'intelligence collective décentralisée. Elle sert de référence pour le développement d'applications d'essaims autonomes dans des contextes réels.
+This demonstration is part of the DIAMANTS project and illustrates advanced capabilities of decentralized collective intelligence. It serves as a reference for developing autonomous swarm applications in real contexts.
 
-**Version** : 1.0.0  
-**Dernière mise à jour** : Décembre 2024  
-**Statut** : ✅ Démonstration fonctionnelle complète
+**Version**: 1.0.0  
+**Last update**: December 2024  
+**Status**: ✅ Complete functional demonstration
