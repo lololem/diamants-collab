@@ -6,7 +6,7 @@ This directory contains interactive demos for the DIAMANTS drone simulation syst
 
 | Demo Type | File | Status | Description |
 |-----------|------|--------|-------------|
-| **✅ RL Crazyflie** | `Reinforcement_Learning_Guide/DIAMANTS_RL_Crazyflie_Fixed.html` | **FUNCTIONAL** | **Complete RL simulation with mesh loading (RECOMMENDED)** |
+| **⚠️ RL Crazyflie** | `Reinforcement_Learning_Guide/DIAMANTS_RL_Crazyflie_Fixed.html` | **NEEDS FIXES** | **Mesh loading issues, mixed languages** |
 | **🔍 RL Reference** | `Reinforcement_Learning_Guide/DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html` | Reference | Working reference implementation |
 | **Basic Swarm** | `Frontend_Swarm_Intelligence_Demo/swarm_intelligence_demo.html` | Available | Simple flocking behaviors |
 | **Advanced Swarm** | `Frontend_Swarm_Intelligence_Demo/advanced_swarm_demo.html` | Available | Complex multi-agent coordination |
@@ -15,25 +15,29 @@ This directory contains interactive demos for the DIAMANTS drone simulation syst
 | **Advanced RL Features** | `Reinforcement_Learning_Guide/advanced_rl_features_guide.html` | Guide | Neural networks & experience replay |
 | **RL Collaborative Demo** | `Reinforcement_Learning_Guide/rl_collaborative_learning_demo.html` | Demo | Live multi-agent learning |
 
-## 🎯 Featured Demo
+## 🎯 Current Status
 
 ### 🚁 DIAMANTS_RL_Crazyflie_Fixed.html
-**Status**: ✅ **FULLY FUNCTIONAL** (Updated: 19/09/2025)
+**Status**: ⚠️ **REQUIRES FIXES** (Updated: 19/09/2025)
 
-**Features:**
-- ✅ **3D Crazyflie Mesh Loading** - Real cf2_assembly.dae, cw_prop.dae, ccw_prop.dae
-- ✅ **Reinforcement Learning** - Collaborative multi-agent system
-- ✅ **WebGL Rendering** - Three.js with realistic lighting
-- ✅ **Dynamic Targets** - Procedural mission objectives
-- ✅ **Real-time Metrics** - Intelligence and performance tracking
+**Known Issues:**
+- ⚠️ **Mixed Languages** - French content in HTML comments and interface
+- ⚠️ **Mesh Loading** - Path issues with cf2_assembly.dae, cw_prop.dae, ccw_prop.dae
+- ⚠️ **Scene Rendering** - Potential WebGL initialization conflicts
+- ⚠️ **RL System** - May not start correctly due to initialization issues
 
-**Recent Fixes:**
-- 🔧 Scene timing issues resolved
-- 🔧 Mesh loading system repaired
-- 🔧 JavaScript errors eliminated
-- 🔧 RL startup sequence optimized
+**Features (When Working):**
+- 🔧 **3D Crazyflie Mesh Loading** - Real cf2_assembly.dae, cw_prop.dae, ccw_prop.dae
+- 🔧 **Reinforcement Learning** - Collaborative multi-agent system
+- 🔧 **WebGL Rendering** - Three.js with realistic lighting
+- 🔧 **Dynamic Targets** - Procedural mission objectives
+- 🔧 **Real-time Metrics** - Intelligence and performance tracking
 
-**Quick Test**: Open file → Wait 3 seconds → RL training starts automatically
+**Remaining Work:**
+- 🔧 Translation to English (interface, comments, messages)
+- 🔧 Fix mesh loading system
+- 🔧 Resolve JavaScript initialization conflicts
+- 🔧 Test RL startup sequence
 
 ## 📂 Structure
 
@@ -43,7 +47,7 @@ sample/
 │   ├── DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html
 │   └── README.md
 └── Reinforcement_Learning_Guide/        # RL implementation guides & demos
-    ├── DIAMANTS_RL_Crazyflie_Fixed.html              # ✅ MAIN FUNCTIONAL DEMO
+    ├── DIAMANTS_RL_Crazyflie_Fixed.html              # ⚠️ NEEDS FIXES
     ├── DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html  # Reference
     ├── meshes/                                        # 3D Models
     │   ├── cf2_assembly.dae
@@ -67,10 +71,11 @@ sample/
 
 ## 🔧 Troubleshooting
 
-### Common Issues:
-- **"Fallback Renderer"** → Use `DIAMANTS_RL_Crazyflie_Fixed.html` (resolved)
-- **Mesh not loading** → Check `meshes/` directory and HTTP server
-- **JavaScript errors** → Open DevTools console for diagnostics
+### Current Known Issues:
+- **"Mixed Languages"** → `DIAMANTS_RL_Crazyflie_Fixed.html` contains French content
+- **"Mesh not loading"** → Check `meshes/` directory and HTTP server setup
+- **"RL not starting"** → JavaScript initialization conflicts need resolution
+- **"Fallback Renderer"** → WebGL initialization issues
 
 ### Debug Commands:
 ```javascript
@@ -87,31 +92,37 @@ checkMeshCache()
 startRLTrainingMission()
 ```
 
+### Recommended Fixes Needed:
+1. **Translate interface to English**
+2. **Fix mesh loading paths**
+3. **Resolve JavaScript conflicts**
+4. **Test complete RL workflow**
+
 ## 📈 Version History
 
-### v1.1 (19/09/2025) - Major Fixes
-- ✅ **DIAMANTS_RL_Crazyflie_Fixed.html** - Fully functional version
-- 🔧 Fixed scene timing and initialization conflicts
-- 🔧 Resolved mesh loading system from reference file
-- 🔧 Eliminated JavaScript runtime errors
-- 🔧 Optimized RL startup sequence
-- 📁 Added complete mesh assets (cf2_assembly.dae, props)
+### v1.1 (19/09/2025) - Work in Progress
+- ⚠️ **DIAMANTS_RL_Crazyflie_Fixed.html** - Still requires fixes
+- 🔧 Mixed language content needs translation
+- 🔧 Mesh loading system needs debugging
+- 🔧 JavaScript initialization conflicts present
+- 🔧 RL startup sequence not fully tested
+- 📁 Mesh assets present but paths may be incorrect
 
 ### v1.0 (Base)
 - 🚁 Initial drone simulation demos
 - 🧠 Basic RL implementation
 - 🎮 Three.js WebGL rendering
 
-## 🎯 Quick Start Guide
+## 🎯 Development Guide
 
 1. **Clone repository**
 2. **Start local server** (VS Code Live Server recommended)
 3. **Open**: `Reinforcement_Learning_Guide/DIAMANTS_RL_Crazyflie_Fixed.html`
-4. **Wait 3 seconds** for automatic RL training start
-5. **Use control panel** to interact with simulation
+4. **Check browser console** for errors and debug information
+5. **Report issues** for mesh loading, language, or RL startup problems
 
 ---
 
 **Last Updated**: 19 September 2025  
-**Status**: ✅ **PRODUCTION READY** (DIAMANTS_RL_Crazyflie_Fixed.html)  
-**Next**: Performance optimization and UI improvements
+**Status**: ⚠️ **DEVELOPMENT IN PROGRESS** (Multiple fixes needed)  
+**Next**: Complete English translation, fix mesh loading, resolve JS conflicts
