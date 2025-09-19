@@ -1,6 +1,8 @@
 # 🎬 DIAMANTS Video Documentation
 
-## 📹 V### 🧠 **Artificial Intelligence & Multi-Agent Systems**deo Inventory by Functionality
+## ---
+
+### 🧠 **Artificial Intelligence & Multi-Agent Systems**## 🧠 **Artificial Intelligence & Multi-Agent Systems**deo Inventory by Functionality
 
 This documentation describes the content of each demonstration video of the DIAMANTS project, organized by functionality.
 
