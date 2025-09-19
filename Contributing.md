@@ -523,7 +523,7 @@ Major contributors are recognized in:
 - **GitHub Issues**: Bugs and features
 - **GitHub Discussions**: General questions
 - **Discord**: Real-time chat
-- **Email**: contact@diamants.ai
+- **Email**: loic.lemasle@gmail.com
 
 ### Support Hours
 
