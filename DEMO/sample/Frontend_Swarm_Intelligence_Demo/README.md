@@ -220,5 +220,5 @@ Enabled by default, displays:
 This demonstration is part of the DIAMANTS project and illustrates advanced capabilities of decentralized collective intelligence. It serves as a reference for developing autonomous swarm applications in real contexts.
 
 **Version**: 1.0.0  
-**Last update**: December 2024  
+**Last update**: 19 September 2025  
 **Status**: ✅ Complete functional demonstration
