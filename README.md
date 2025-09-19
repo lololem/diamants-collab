@@ -184,6 +184,8 @@ Simulation is a mirror of reality. Zero throwaway code.
 
 ## 🚀 Quick Start
 
+> **📖 For detailed setup instructions, visit our [Complete Wiki Documentation](https://github.com/lololem/diamants-collab/wiki)**
+
 ### Prerequisites
 - **Ubuntu 24.04** (recommended)
 - **ROS2 Jazzy** ([installation guide](https://docs.ros.org/en/jazzy/Installation.html))
@@ -200,6 +202,8 @@ cd diamants-collab
 # One-command launch (interactive menu)
 ./launch_diamants.sh
 ```
+
+**💡 Need help?** Check our [Installation Guide](https://github.com/lololem/diamants-collab/wiki/Installation) or [Guide d'Installation](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration) (French).
 
 ## 🔧 Component-Specific Launch
 
@@ -301,6 +305,13 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 
 ## 📚 Documentation
 
+### 🌐 Complete Wiki Documentation
+**[📖 DIAMANTS Wiki](https://github.com/lololem/diamants-collab/wiki)** - Comprehensive documentation in English and French
+
+- **🇬🇧 English Documentation**: [Installation](https://github.com/lololem/diamants-collab/wiki/Installation), [Architecture](https://github.com/lololem/diamants-collab/wiki/Architecture), [Launch Guide](https://github.com/lololem/diamants-collab/wiki/Launch-Guide)
+- **🇫🇷 Documentation Française**: [Installation et Configuration](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration), [Architecture Système](https://github.com/lololem/diamants-collab/wiki/Architecture-Système), [Lancement du Système](https://github.com/lololem/diamants-collab/wiki/Lancement-du-Système)
+
+### 📋 Technical Reference
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and design principles
 - [DIAMANTS_TECH_STACK.md](DIAMANTS_TECH_STACK.md) - Complete technical documentation
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Contribution guidelines
