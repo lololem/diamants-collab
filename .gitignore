@@ -61,3 +61,6 @@ Thumbs.db
 # Logs
 *.log
 logs/
+
+# Wiki directory (managed separately)
+diamants-collab.wiki/
