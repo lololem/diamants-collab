@@ -14,43 +14,204 @@ DIAMANTS uses simple local interactions between agents to generate robust and ad
 - **Distributed consensus**: Collective decision-making without centralized coordination
 - **Self-organization**: Spontaneous emergence of structures and patterns
 
-## 🧮 DIAMANTS Formulas
+## 📐 DIAMANTS Formulas - Consolidated Reference
 
-### Main Intelligence Formula
+### 🔹 1. Formules Fondamentales
 
-The collective intelligence value is calculated by:
-
+#### Formule principale (2D)
 ```
-I(t) = Σ(n=1 to 15) αₙ × Hₙ(t)
+I(t) = ∬_Ω |∇(φ(x,t) + σ(x,t))| dΩ
 ```
 
-Where:
-- `I(t)`: Collective intelligence at time t
-- `αₙ`: Weighting coefficient of harmonic n
-- `Hₙ(t)`: Value of harmonic n at time t
+#### Triple intégrale (3D)
+```
+I(t) = ∭_Ω |∇(φ(x,y,z,t) + σ(x,y,z,t))| dx dy dz
+```
 
-### The 15 DIAMANTS Harmonics
+#### Forme spatio-temporelle
+```
+I = ∬_{Ω×[0,T]} |∇(φ(x,t) + σ(x,t))| dx dt
+```
 
-#### Basic Harmonics (H1-H5)
-1. **H1 - External Field**: `H1 = ∬Ω φ dΩ`
-2. **H2 - Internal Field**: `H2 = ∬Ω σ dΩ`
-3. **H3 - Total Energy**: `H3 = ∬Ω ψ² dΩ`
-4. **H4 - Interaction**: `H4 = ∬Ω ∇φ·∇σ dΩ`
-5. **H5 - Curvature**: `H5 = ∬Ω |Δψ| dΩ`
+#### Forme discrète (maillage)
+```
+DIAMANTS(t) = Σ_{i∈Ω} |∇ψᵢ| ΔΩᵢ
+```
 
-#### Dynamic Harmonics (H6-H10)
-6. **H6 - Noise**: `H6 = ∬Ω η|∇ψ| dΩ`
-7. **H7 - Evolution**: `H7 = d/dt I(t)`
-8. **H8 - Stability**: `H8 = ∬Ω (∇ψ - ⟨∇ψ⟩)² dΩ`
-9. **H9 - Anisotropy**: `H9 = ∬Ω (λmax - λmin) dΩ`
-10. **H10 - Flow Curvature**: `H10 = ∬Ω |κ||∇ψ| dΩ`
+#### Forme sur graphe
+```
+I_G(t) = Σ_{(i,j)∈E} |(φⱼ + σⱼ) - (φᵢ + σᵢ)|
+```
 
-#### Advanced Harmonics (H11-H15)
-11. **H11 - Symmetry**: `H11 = ∬Ω |ψ(x,y) - ψ(-x,-y)| dΩ`
-12. **H12 - Vorticity**: `H12 = ∬Ω |∇ × v| dΩ`
-13. **H13 - Coherence**: `H13 = ∬Ω |⟨ψ⟩ - ψ| dΩ`
-14. **H14 - Flow**: `H14 = ∬Ω v·∇ψ dΩ`
-15. **H15 - Entropy**: `H15 = -∬Ω p log(p) dΩ`
+#### Forme normalisée
+```
+Î(t) = (1/|Ω|) ∬_Ω |∇(φ + σ)| dΩ
+```
+
+#### Forme n-dimensionnelle
+```
+Iₙ = ∫_{Ωₙ} |∇(φ + σ)| dVₙ
+```
+
+### 🔹 2. Décomposition Harmonique (Hₙ)
+
+#### Harmoniques Basiques
+- **H1** = `∬_Ω |∇φ| dΩ` (activité externe)
+- **H2** = `∬_Ω |∇σ| dΩ` (activité interne) 
+- **H3** = `∬_Ω |∇ψ|² dΩ` (énergie quadratique)
+- **H4** = `∬_Ω ∇φ·∇σ dΩ` (couplage)
+- **H5** = `∬_Ω |Δψ| dΩ` (courbure / Laplacien)
+
+#### Harmoniques Dynamiques
+- **H6** = `∬_Ω η |∇ψ| dΩ` (bruit pondéré)
+- **H7** = `d/dt DIAMANTS(t)` (taux d'évolution)
+- **H8** = `∬_Ω (∇ψ - ⟨∇ψ⟩)² dΩ` (variance / stabilité)
+- **H9** = `∬_Ω (λmax(H(ψ)) - λmin(H(ψ))) dΩ` (anisotropie locale)
+
+#### Harmoniques Avancées
+- **H12** = `Σ longueur(b)` des structures
+- **H13** = `(1/N) |Σ e^{iθₖ}|` (cohérence directionnelle)
+- **H14** = `∬_Ω |u||∇ψ|(u·∇ψ) dΩ` (efficacité du flux)
+- **H15** = `-Σ pᵦ log pᵦ` (entropie)
+
+#### Formule composite
+```
+DIAMANTS(t) = Σₙ αₙ Hₙ(t)
+```
+
+### 🔹 3. Formules de l'Émergence
+
+#### Entropie spatiale
+```
+S(t) = -∫_Ω ρ(x,t) log ρ(x,t) dx
+```
+
+#### Énergie potentielle
+```
+E(t) = ∬_Ω (φ + σ) dΩ
+```
+
+#### Taux d'émergence
+```
+E(t) = d/dt DIAMANTS(t) = H7
+```
+
+#### Indice de cohérence collective
+```
+C(t) = (1/N) |Σₖ₌₁ᴺ e^{iθₖ(t)}|
+```
+
+#### Émergence globale normalisée
+```
+E*(t) = (DIAMANTS(t) - min(DIAMANTS)) / (max(DIAMANTS) - min(DIAMANTS))
+```
+
+### 🔹 4. Comportement de l'Agent (Micro)
+
+#### Équation micro-agent
+```
+ẋᵢ = f(xᵢ) + Σⱼ∈Nᵢ g(xⱼ - xᵢ) + h(φ(xᵢ,t)) + uᵢ(t)
+```
+
+#### Politique de contrôle optimale
+```
+uᵢ(t) = πᵢ(xᵢ(t), Gᵢ)
+```
+
+#### Formules Locales Agents
+
+**Contribution locale d'un agent k:**
+```
+iₖ(t) = |∇(φ(xₖ,t) + σ(xₖ,t))|
+```
+
+**Indice collectif:**
+```
+I(t) = Σₖ₌₁ᴺ iₖ(t)
+```
+
+**Énergie libre par agent:**
+```
+Fₖ(t) = Eₖ(t) - T Sₖ(t)
+```
+
+**Équation de mouvement:**
+```
+ẋₖ = vₖ, v̇ₖ = -∇(φ + σ)(xₖ,t) + ηₖ(t)
+```
+
+#### Discrétisation (implémentation)
+```
+xᵢᵗ⁺Δᵗ = xᵢᵗ + Δt(f(xᵢᵗ) + Σⱼ∈Nᵢᵗ g(xⱼᵗ - xᵢᵗ) + h(φ(xᵢᵗ,t)) + πᵢ(xᵢᵗ, Gᵢ))
+```
+
+### 🔹 5. Couplage Champs-Agents
+
+#### Dépôt/évaporation de phéromone
+```
+∂ₜφ(x,t) = Dφ Δφ - κφφ + Σₖ sₖ(t) δ(x - xₖ(t))
+```
+
+#### État interne/impact environnemental
+```
+∂ₜσ(x,t) = Fσ({xₖ}, σ) ou σ̇ₖ = G(σₖ, xₖ, φ)
+```
+
+### 🚀 Implementation with Hardware Stack
+
+#### 🔧 Jetson Orin NX (Embedded Intelligence)
+- **Role**: Distributed brain for each agent/drone
+- **Implementation**: 
+  - Local micro-agent equations `ẋᵢ = f(xᵢ) + Σg + h(φ) + πᵢ`
+  - Real-time ROS2 communication for inter-agent coordination
+  - Local field computation φ/σ from OAK-D perception
+  - Embedded policy πᵢ execution with minimal latency
+
+#### 👁️ OAK-D Pro W (Environmental Perception)
+- **Role**: Environmental field sensor φ(x,t) generation
+- **Implementation**:
+  - Stereo depth → obstacle/terrain mapping
+  - AI pipeline → fire/smoke detection for forest applications
+  - Environmental gradients → φ field for agent navigation
+  - Real-time perception feeds into h(φ) term
+
+#### 🖥️ RTX 4070 (Simulation & Training)
+- **Role**: Centralized computation and learning
+- **Implementation**:
+  - Large-scale DIAMANTS simulation (1000+ agents)
+  - Policy πᵢ training via Multi-Agent RL
+  - Global DIAMANTS(t) monitoring and analysis
+  - Model export to Jetson (ONNX → TensorRT)
+
+#### 🌐 Practical Application Pipeline
+1. **Simulation Phase** (RTX 4070):
+   ```python
+   # Simulate DIAMANTS formulas
+   I_t = compute_diamants_metric(phi_field, sigma_field)
+   H7_t = compute_emergence_rate(I_t, dt)
+   
+   # Train policies
+   policy_i = train_marl_agent(state_i, goal_i, I_t)
+   ```
+
+2. **Deployment Phase** (Jetson Orin NX):
+   ```cpp
+   // Embedded agent loop
+   Vec3 f_intrinsic = computeIntrinsicDynamics(state);
+   Vec3 g_social = computeNeighborInfluence(neighbors);
+   Vec3 h_env = computeEnvironmentalGradient(phi_field);
+   Vec3 u_control = executePolicy(state, goal);
+   
+   state_next = state + dt * (f_intrinsic + g_social + h_env + u_control);
+   ```
+
+3. **Perception Integration** (OAK-D Pro W):
+   ```python
+   # Generate environmental fields
+   depth_map = oak_camera.get_depth()
+   phi_field = generate_gradient_field(depth_map, ai_detections)
+   sigma_internal = update_agent_internal_state(battery, mission_status)
+   ```
 
 ## 🤖 Implemented Intelligence Systems
 
