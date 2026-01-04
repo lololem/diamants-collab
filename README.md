@@ -16,10 +16,10 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 ## 🚨 URGENT: Community Help Needed | Aide de la Communauté Recherchée
 
-**🔥 CRITICAL MISSION: Wildfire Fighting in VAR Region, France**
+**🔥 CRITICAL MISSION: Wildfire-Fighting in the VAR Region, France**
 **🔥 MISSION CRITIQUE : Lutte contre les incendies dans le VAR, France**
 
-This platform is being developed with a vital objective: **creating an autonomous drone system to fight wildfires** that frequently devastate the VAR region in France. Forest fires represent a major danger to populations, wildlife, and the Mediterranean environment.
+This platform is being developed with a vital objective: **creating an autonomous drone system to fight wildfires** that frequently devastate the VAR region in France. Forest fires pose a major threat to people, wildlife, and the Mediterranean environment.
 
 Cette plateforme est développée avec un objectif vital : **créer un système de drones autonomes pour éteindre les incendies** qui ravagent fréquemment la région du VAR en France. Les feux de forêt représentent un danger majeur pour les populations, la faune, et l'environnement méditerranéen.
 
