@@ -254,7 +254,7 @@ We need help with:
 - 🤖 **Algorithm Development**: Advanced swarm intelligence behaviors.
 
 ### 🛠️ Development Workflow
-1. Fork the repository
+1. Fork the repository.
 2. Create a feature branch: `git checkout -b feature/amazing-feature`
 3. Make your changes and test thoroughly
 4. Submit a pull request with detailed description
