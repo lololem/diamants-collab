@@ -25,16 +25,15 @@ Cette plateforme est développée avec un objectif vital : **créer un système 
 
 ### 🆘 We NEED YOU! | Nous avons besoin de VOUS !
 
-The project still has **critical anomalies** that prevent operational deployment. Your expertise can save lives and protect our forests:
+The project still has **critical anomalies** that prevent operational deployment. Your expertise can save lives and protect our forests.
 
-Le projet comporte encore des **anomalies critiques** qui empêchent le déploiement opérationnel. Votre expertise peut sauver des vies et protéger nos forêts :
+Le projet comporte encore des **anomalies critiques** qui empêchent le déploiement opérationnel. Votre expertise peut sauver des vies et protéger nos forêts.
 
-- **🐛 Bug fixes**, **Corrections de bugs**: Multi-drone system stabilization, Stabilisation du système multi-drones
-- **🧪 Field testing**, **Tests terrain**: Algorithm coordination validation, Validation des algorithmes de coordination  
-- **⚡ Optimizations**, **Optimisations**: Real-time performance improvements, Amélioration des performances temps réel
-- **🔧 Integration**, **Intégration**: ROS2/Frontend/Hardware coordination, Coordination ROS2/Frontend/Hardware
-- **📚 Documentation**, **Documentation**: Emergency deployment guides, Guides de déploiement d'urgence
-
+- **🐛 Bug fixes** | **Corrections de bugs**: Multi-drone system stabilization | Stabilisation du système multi-drones.
+- **🧪 Field testing** | **Tests terrain**: Algorithm coordination and validation | Validation des algorithmes de coordination.
+- **⚡ Optimizations** | **Optimisations**: Real-time performance improvements | Amélioration des performances temps réel.
+- **🔧 Integration** | **Intégration**: ROS2/Frontend/Hardware coordination | Coordination ROS2/Frontend/Hardware.
+- **📚 Documentation** | **Documentation**: Emergency deployment guides | Guides de déploiement d'urgence.
 
 **🌲 Every contribution can help preserve our forests and save lives.**
 **🌲 Chaque contribution peut aider à préserver nos forêts et sauver des vies.**
