@@ -346,22 +346,22 @@ DIAMANTS is built on solid scientific foundations in swarm intelligence and dist
 ## 🎯 Use Cases
 
 ### 🚁 Drone Swarm Applications
-- Search and rescue operations
-- Environmental monitoring
-- Agricultural surveying
-- Infrastructure inspection
+- Search and rescue operations.
+- Environmental monitoring.
+- Agricultural surveying.
+- Infrastructure inspection.
 
 ### 🤖 Multi-Robot Coordination
-- Warehouse automation
-- Collaborative manufacturing
-- Distributed sensing networks
-- Autonomous vehicle coordination
+- Warehouse automation.
+- Collaborative manufacturing.
+- Distributed sensing networks.
+- Autonomous vehicle coordination.
 
 ### 🧠 Research Platform
-- Swarm intelligence algorithms
-- Distributed AI systems
-- Emergent behavior studies
-- Human-swarm interaction
+- Swarm intelligence algorithms.
+- Distributed AI systems.
+- Studies of emergent behaviors.
+- Human–swarm interaction.
 
 ## 📄 License
 
