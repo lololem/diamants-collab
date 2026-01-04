@@ -246,12 +246,12 @@ npm run build     # Production build
 **DIAMANTS is actively seeking contributors!** 
 
 We need help with:
-- 🐛 **Bug Fixes**: System stability and edge cases
-- 🚀 **Performance Optimization**: Multi-agent coordination efficiency
-- 📚 **Documentation**: User guides and API documentation
-- 🧪 **Testing**: Unit tests and integration testing
-- 🎨 **UI/UX**: Frontend interface improvements
-- 🤖 **Algorithm Development**: Advanced swarm intelligence behaviors
+- 🐛 **Bug Fixes**: System stability and handling edge cases.
+- 🚀 **Performance Optimization**: Multi-agent coordination efficiency.
+- 📚 **Documentation**: User guides and API documentation.
+- 🧪 **Testing**: Unit tests and integration testing.
+- 🎨 **UI/UX**: Frontend interface improvements.
+- 🤖 **Algorithm Development**: Advanced swarm intelligence behaviors.
 
 ### 🛠️ Development Workflow
 1. Fork the repository
