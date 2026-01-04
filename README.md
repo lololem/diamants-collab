@@ -317,10 +317,11 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 ## 📚 Documentation
 
 ### 🌐 Complete Wiki Documentation
-**[📖 DIAMANTS Wiki](https://github.com/lololem/diamants-collab/wiki)** - Comprehensive documentation in English and French
+**[📖 DIAMANTS Wiki](https://github.com/lololem/diamants-collab/wiki)** – provides comprehensive documentation in English and French
 
 - **🇬🇧 English Documentation**: [Installation](https://github.com/lololem/diamants-collab/wiki/Installation), [Architecture](https://github.com/lololem/diamants-collab/wiki/Architecture), [Launch Guide](https://github.com/lololem/diamants-collab/wiki/Launch-Guide)
-- **🇫🇷 Documentation Française**: [Installation et Configuration](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration), [Architecture Système](https://github.com/lololem/diamants-collab/wiki/Architecture-Système), [Lancement du Système](https://github.com/lololem/diamants-collab/wiki/Lancement-du-Système)
+- **🇫🇷 Documentation en Français**: [Installation et Configuration](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration), [Architecture Système](https://github.com/lololem/diamants-collab/wiki/Architecture-Système), [Lancement du Système](https://github.com/lololem/diamants-collab/wiki/Lancement-du-Système)
+
 
 ### 📋 Technical Reference
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and design principles
