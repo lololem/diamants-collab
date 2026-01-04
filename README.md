@@ -160,7 +160,9 @@ Spectacular visualization of swarm intelligence with advanced effects:
 
 ### 🌱 Open Source by Design
 
-Our entire ecosystem is built on recognized open standards. No proprietary lock-in.
+Our entire ecosystem is built on recognized open standards. There is no proprietary lock-in.
+
+**Goal**: To foster an ecosystem where every developer can contribute, test, and enrich the platform.
 
 **Main Stack:**
 - **Backend & Simulation**: ROS 2, Gazebo, PX4/ArduPilot, MAVROS
