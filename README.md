@@ -126,12 +126,12 @@ Experience DIAMANTS directly in your browser with our interactive HTML demonstra
 **[DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html](./DEMO/sample/DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html)**
 
 Complete Crazyflie drone simulation with ROS2-like interface for search and rescue missions:
-- ✅ Realistic Crazyflie mesh with physics simulation
-- ✅ ROS2-style control panels and topic monitoring
-- ✅ Multi-drone collaborative search algorithms
-- ✅ Anti-collision system with formation control
-- ✅ Tactical minimap with stigmergy visualization
-- ✅ Real-time intelligence and mission metrics
+- ✅ Realistic Crazyflie mesh with physics simulation.
+- ✅ ROS2-style control panels and topic monitoring.
+- ✅ Multi-drone collaborative search algorithms.
+- ✅ Anti-collision system with formation control.
+- ✅ Tactical minimap with stigmergy-based visualization.
+- ✅ Real-time intelligence metrics and mission data.
 
 ### 🌟 Complete Frontend Intelligence Demo
 **[DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html](./DEMO/sample/DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html)**
