@@ -1,6 +1,10 @@
 # 💎 DIAMANTS: Distributed Autonomous Multi-Agent Systems
 
-[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue?style=flat-square)](https://docs.ros.org/en/jazzy/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green?style=flat-square)](https://fastapi.tiangolo.com/)
+
 
 **DIAMANTS is an open-source platform for the simulation and execution of distributed intelligence. Our philosophy: code once and deploy everywhere—in simulation and in the real world.**
 
