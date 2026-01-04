@@ -371,11 +371,11 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 
 ## 🙏 Acknowledgments
 
-- **ROS2 Community**: For the robust robotics middleware
-- **Gazebo Team**: For the high-fidelity simulation environment
-- **Bitcraze**: For the excellent Crazyflie platform and Crazyswarm2
-- **Three.js Community**: For the powerful 3D web graphics library
-- **Open Source Contributors**: For making this collaborative platform possible
+- **ROS2 Community**: For providing robust robotics middleware.
+- **Gazebo Team**: For providing a high-fidelity simulation environment.
+- **Bitcraze**: For the excellent Crazyflie platform and Crazyswarm2.
+- **Three.js Community**: For the powerful 3D web graphics library.
+- **Open Source Contributors**: For making this collaborative platform possible.
 
 ## 📞 Contact & Support
 
