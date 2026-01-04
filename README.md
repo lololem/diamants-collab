@@ -221,8 +221,8 @@ You can run each system autonomously using dedicated scripts:
 ```bash
 cd DIAMANTS_API
 ./setup.sh        # First-time setup
-./start.sh        # Launch API service
-./status.sh       # Check service status
+./start.sh        # Launch the API service
+./status.sh       # Check the service status
 ./stop.sh         # Stop service
 ```
 
