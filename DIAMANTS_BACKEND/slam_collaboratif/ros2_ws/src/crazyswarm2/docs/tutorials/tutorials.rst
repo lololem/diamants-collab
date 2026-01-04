@@ -1,4 +1,0 @@
-Tutorials
-=========
-
-.. include:: hover.rstinclude

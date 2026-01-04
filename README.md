@@ -1,4 +1,4 @@
-# 💎 DIAMANTS: Distributed Autonomous Multi-agents Systems
+# 💎 DIAMANTS: Distributed Autonomous Multi-Agent Systems
 
 [![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
 
