@@ -189,7 +189,7 @@ Simulation is a mirror of reality. Zero throwaway code.
 
 ## 🚀 Quick Start
 
-> **📖 For detailed setup instructions, visit our [Full Wiki Documentation](https://github.com/lololem/diamants-collab/wiki)**
+> **📖 For detailed setup instructions, please visit our [Full Wiki Documentation](https://github.com/lololem/diamants-collab/wiki).**
 
 ### Prerequisites
 - **Ubuntu 24.04** (recommended)
