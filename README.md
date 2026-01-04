@@ -48,8 +48,7 @@ See DIAMANTS in action! Watch our multi-drone collaborative system working seaml
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-[![Watch Backend Demo](https://img.youtube.com/vi/iYg9Jf1jv4Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=iYg9Jf1jv4Y)
-
+[![Backend Demo - Multi-drone SLAM](https://img.youtube.com/vi/iYg9Jf1jv4Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=iYg9Jf1jv4Y)
 **🤖 Backend Features Showcase:**
 - ✅ 8 Crazyflie drones in Gazebo simulation
 - ✅ Real-time collaborative SLAM mapping
@@ -61,7 +60,7 @@ Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featu
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
 #### Frontend Interface Overview
-[![Watch Frontend Demo](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
+[![Frontend Demo - 3D Web Visualization](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
 
 **🌐 Frontend Features Showcase:**
 - ✅ Three.js + WebGL real-time 3D visualization
