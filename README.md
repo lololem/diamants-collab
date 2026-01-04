@@ -255,9 +255,9 @@ We need help with:
 
 ### 🛠️ Development Workflow
 1. Fork the repository.
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and test thoroughly
-4. Submit a pull request with detailed description
+2. Create a feature branch: `git checkout -b feature/amazing-feature`.
+3. Make your changes and test thoroughly.
+4. Submit a pull request with detailed description.
 
 ### 🆘 Report Issues
 Found a bug or have a feature request? Please [create an issue](https://github.com/lololem/diamants-collab/issues) with:
