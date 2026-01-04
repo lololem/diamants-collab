@@ -50,11 +50,12 @@ Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featu
 
 [![Backend Demo - Multi-drone SLAM](https://img.youtube.com/vi/iYg9Jf1jv4Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=iYg9Jf1jv4Y)
 **🤖 Backend Features Showcase:**
-- ✅ 8 Crazyflie drones in Gazebo simulation
-- ✅ Real-time collaborative SLAM mapping
-- ✅ TMUX orchestration (13 specialized windows)  
-- ✅ ROS2 Jazzy + Gazebo Garden integration
-- ✅ Multi-agent path planning and coordination
+- ✅ 8 Crazyflie drones in Gazebo simulation.
+- ✅ Real-time collaborative SLAM mapping.
+- ✅ TMUX orchestration (13 specialized windows).  
+- ✅ ROS2 Jazzy + Gazebo Garden integration.
+- ✅ Multi-agent path planning and coordination.
+
 
 ### 🌐 Frontend - 3D Visualization Interface
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
