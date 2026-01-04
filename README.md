@@ -337,10 +337,11 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 
 DIAMANTS is built on solid scientific foundations in swarm intelligence and distributed systems:
 
-- **Emergent Behaviors**: Study of collective intelligence from simple agent interactions
-- **Stigmergy Algorithms**: Bio-inspired coordination through environmental modifications
-- **Consensus Mechanisms**: Distributed agreement protocols for multi-agent systems
-- **Sim-to-Real Transfer**: Seamless transition from simulation to physical deployment
+- **Emergent Behaviors**: Studies collective intelligence arising from simple agent interactions.
+- **Stigmergy Algorithms**: Bio-inspired coordination via environmental modifications.
+- **Consensus Mechanisms**: Distributed agreement protocols for multi-agent systems.
+- **Sim-to-Real Transfer**: Seamless transition from simulation to physical deployment.
+
 
 ## 🎯 Use Cases
 
