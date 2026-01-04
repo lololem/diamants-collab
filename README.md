@@ -399,4 +399,5 @@ This collaborative approach has enabled:
 - **Accelerated development cycles** for mission-critical applications.
 
 
-> *"The best way to predict the future is to invent it, and the best way to invent the future of robotics is to build it collaboratively."*
+> *"The best way to predict the future is to invent it, and a good way to shape the future of robotics is to build it collaboratively."*
+
