@@ -202,14 +202,12 @@ Simulation is a mirror of reality. Zero throwaway code.
 ```bash
 
 # Clone the collaborative repository
-
 git clone https://github.com/lololem/diamants-collab.git
-
 cd diamants-collab
 
-# One-command launch (interactive menu)
-
+# One-command launch (interactive menu):
 ./launch_diamants.sh
+
 ```
 
 **💡 Need help?** Check our [Installation Guide](https://github.com/lololem/diamants-collab/wiki/Installation) or [Guide d'Installation](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration) (French).
