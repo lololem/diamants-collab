@@ -56,11 +56,10 @@ Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featu
 - ✅ ROS2 Jazzy + Gazebo Garden integration.
 - ✅ Multi-agent path planning and coordination.
 
-
 ### 🌐 Frontend - 3D Visualization Interface
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
-#### Frontend Interface Overview
+### Frontend Interface Overview
 [![Frontend Demo - 3D Web Visualization](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
 
 **🌐 Frontend Features Showcase:**
