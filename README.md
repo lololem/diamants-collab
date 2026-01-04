@@ -192,8 +192,8 @@ Simulation is a mirror of reality. Zero throwaway code.
 > **📖 For detailed setup instructions, please visit our [Full Wiki Documentation](https://github.com/lololem/diamants-collab/wiki).**
 
 ### Prerequisites
-- **Ubuntu 24.04** (recommended)
-- **ROS2 Jazzy** ([installation guide](https://docs.ros.org/en/jazzy/Installation.html))
+- **Ubuntu 24.04** (recommended):
+- **ROS2 Jazzy** ([installation guide](https://docs.ros.org/en/jazzy/Installation.html)):
 - **Python 3.12+**
 - **Node.js 16+**
 
