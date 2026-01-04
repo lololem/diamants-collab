@@ -4,7 +4,7 @@
 
 **DIAMANTS is an open-source platform for the simulation and execution of distributed intelligence. Our philosophy: code once and deploy everywhere—in simulation and in the real world.**
 
-This project is a 'playground' for developers, creating a robust bridge between high-level intent (the swarm's strategy) and low-level execution (each drone's physical commands). It's a space to code distributed intelligence, test it in a credible simulation, and push it directly to real-world swarms.
+This project is a 'playground' for developers creating a robust bridge between high-level intent (the swarm's strategy) and low-level execution (each drone's physical commands). It's a space to code distributed intelligence, test it in a credible simulation, and push it directly to real-world swarms.
 
 ## 🎯 Vision
 
