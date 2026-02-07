@@ -17,7 +17,7 @@ class DiamantAPITester:
     def __init__(self):
         self.api_process = None
         self.base_url = "http://localhost:8000"
-        self.ws_url = "ws://localhost:9001"
+        self.ws_url = "ws://localhost:8765"
         
     async def start_api(self):
         """Démarre l'API en arrière-plan"""

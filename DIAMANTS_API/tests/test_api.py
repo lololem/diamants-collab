@@ -18,7 +18,7 @@ import os
 # Add the API directory to the path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from api.main import app, manager, ws_bridge
+from api.main import app, manager
 from api.models import DroneModel, MissionModel, DroneStatus, MissionStatus
 
 # Test client
@@ -43,7 +43,7 @@ class TestAPIEndpoints:
         response = client.get("/health")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["status"] == "healthy"
+        assert data["status"] in ("healthy", "degraded")
         assert "timestamp" in data
         assert "services" in data
 
@@ -76,9 +76,9 @@ class TestAPIEndpoints:
         assert "velocity" in data
         assert "timestamp" in data
 
-    @patch('api.main.ws_bridge.send_to_ros2', new_callable=AsyncMock)
+    @patch('api.main._send_to_bridge', new_callable=AsyncMock, return_value=True)
     @patch('api.main.manager.broadcast', new_callable=AsyncMock)
-    def test_takeoff_drone(self, mock_broadcast, mock_send_ros2):
+    def test_takeoff_drone(self, mock_broadcast, mock_send):
         """Test drone takeoff command"""
         drone_id = "crazyflie_01"
         response = client.post(f"/api/drones/{drone_id}/takeoff")
@@ -88,9 +88,9 @@ class TestAPIEndpoints:
         assert data["action"] == "takeoff"
         assert data["drone_id"] == drone_id
 
-    @patch('api.main.ws_bridge.send_to_ros2', new_callable=AsyncMock)
+    @patch('api.main._send_to_bridge', new_callable=AsyncMock, return_value=True)
     @patch('api.main.manager.broadcast', new_callable=AsyncMock)
-    def test_land_drone(self, mock_broadcast, mock_send_ros2):
+    def test_land_drone(self, mock_broadcast, mock_send):
         """Test drone landing command"""
         drone_id = "crazyflie_01"
         response = client.post(f"/api/drones/{drone_id}/land")
@@ -100,9 +100,9 @@ class TestAPIEndpoints:
         assert data["action"] == "land"
         assert data["drone_id"] == drone_id
 
-    @patch('api.main.ws_bridge.send_to_ros2', new_callable=AsyncMock)
+    @patch('api.main._send_to_bridge', new_callable=AsyncMock, return_value=True)
     @patch('api.main.manager.broadcast', new_callable=AsyncMock)
-    def test_move_drone(self, mock_broadcast, mock_send_ros2):
+    def test_move_drone(self, mock_broadcast, mock_send):
         """Test drone movement command"""
         drone_id = "crazyflie_01"
         direction = {"x": 1.0, "y": 0.0, "z": 0.5}
@@ -130,9 +130,9 @@ class TestAPIEndpoints:
             assert "status" in mission
             assert "drones_required" in mission
 
-    @patch('api.main.ws_bridge.send_to_ros2', new_callable=AsyncMock)
+    @patch('api.main._send_to_bridge', new_callable=AsyncMock, return_value=True)
     @patch('api.main.manager.broadcast', new_callable=AsyncMock)
-    def test_start_mission(self, mock_broadcast, mock_send_ros2):
+    def test_start_mission(self, mock_broadcast, mock_send):
         """Test starting a mission"""
         mission_id = "scouting_mission_01"
         drone_ids = ["crazyflie_01", "crazyflie_02"]

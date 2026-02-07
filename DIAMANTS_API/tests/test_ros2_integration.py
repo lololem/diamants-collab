@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 DIAMANTS API - ROS2 Integration Tests
-Tests specifically for ROS2 WebSocket bridge functionality
+Tests for the unified DiamantsBridge (services.websocket_bridge)
 """
 
 import pytest
@@ -9,281 +9,219 @@ import asyncio
 import json
 import sys
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
-# Add system paths for ROS2
-sys.path.append('/opt/ros/jazzy/lib/python3.12/site-packages')
-import os
-import sys
+# Add the API directory to the path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Get the directory of this file
-current_dir = os.path.dirname(os.path.abspath(__file__))
-# Go up to DIAMANTS_API, then to project root, then to backend workspace  
-project_root = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
-ros2_ws_path = os.path.join(project_root, 'DIAMANTS_BACKEND', 'slam_collaboratif', 'ros2_ws', 'install')
-if os.path.exists(ros2_ws_path):
-    sys.path.append(f"{ros2_ws_path}/lib/python3.12/site-packages")
+from services.websocket_bridge import DiamantsBridge
 
-# Import our WebSocket bridge
-from api.websocket_bridge import WebSocketBridge, WebSocketBridgeServer
 
-class TestROS2Integration:
-    """Test ROS2 integration with WebSocket bridge"""
-    
+class TestBridgeInitialization:
+    """Test DiamantsBridge initialization (ROS2 stub mode)."""
+
     @pytest.fixture
     def bridge(self):
-        """Create a WebSocket bridge instance for testing"""
-        return WebSocketBridge()
-    
-    def test_bridge_initialization(self, bridge):
-        """Test that the bridge initializes correctly"""
-        assert bridge is not None
-        assert hasattr(bridge, 'websocket_clients')
-        assert hasattr(bridge, 'client_info')
-        assert hasattr(bridge, 'stats')
-        
-    def test_ros2_availability(self):
-        """Test ROS2 availability detection"""
+        b = DiamantsBridge(ws_host="127.0.0.1", ws_port=0)
+        yield b
         try:
-            import rclpy  # type: ignore
-            from geometry_msgs.msg import Twist  # type: ignore
-            ros2_available = True
-        except ImportError:
-            ros2_available = False
-        
-        # Should handle both cases gracefully
-        assert isinstance(ros2_available, bool)
-        
-    def test_twist_message_creation(self, bridge):
-        """Test creation of ROS2 Twist messages"""
-        # Test data
-        test_data = {
-            'action': 'move',
-            'linear_x': 1.0,
-            'linear_y': 0.5,
-            'linear_z': 0.2,
-            'angular_x': 0.0,
-            'angular_y': 0.0,
-            'angular_z': 0.1
-        }
-        
-        # This should not raise an exception
-        asyncio.run(bridge._handle_drone_command(test_data))
-        
-    def test_mission_command_creation(self, bridge):
-        """Test creation of mission commands"""
-        test_data = {
-            'mission_type': 'exploration',
-            'parameters': {
-                'area': 'zone_1',
-                'duration': 300
-            }
-        }
-        
-        # This should not raise an exception
-        asyncio.run(bridge._handle_mission_command(test_data))
-        
-    def test_websocket_message_parsing(self, bridge):
-        """Test WebSocket message parsing"""
-        # Valid message
-        valid_message = json.dumps({
-            'type': 'drone_command',
-            'data': {
-                'action': 'takeoff',
-                'drone_id': 'crazyflie'
-            }
-        })
-        
-        # Mock websocket
-        mock_websocket = Mock()
-        
-        # This should not raise an exception
-        asyncio.run(bridge.handle_websocket_message(mock_websocket, valid_message))
-        
-    def test_invalid_message_handling(self, bridge):
-        """Test handling of invalid messages"""
-        # Invalid JSON
-        invalid_json = "{ invalid json }"
-        
-        mock_websocket = Mock()
-        
-        # Should handle gracefully without raising exception
-        asyncio.run(bridge.handle_websocket_message(mock_websocket, invalid_json))
-        
-    def test_client_info_handling(self, bridge):
-        """Test client information handling"""
-        mock_websocket = Mock()
-        mock_websocket.send = Mock(return_value=asyncio.Future())
-        mock_websocket.send.return_value.set_result(None)
-        
-        client_data = {
-            'client_type': 'frontend',
-            'client_name': 'mission_control'
-        }
-        
-        asyncio.run(bridge._handle_client_info(mock_websocket, client_data))
-        
-        # Check that client info was stored
-        assert mock_websocket in bridge.client_info
-        assert bridge.client_info[mock_websocket]['type'] == 'frontend'
-        
-    def test_ping_pong(self, bridge):
-        """Test ping/pong mechanism"""
-        mock_websocket = Mock()
-        mock_websocket.send = Mock(return_value=asyncio.Future())
-        mock_websocket.send.return_value.set_result(None)
-        
-        asyncio.run(bridge._handle_ping(mock_websocket))
-        
-        # Should have sent a pong message
-        mock_websocket.send.assert_called_once()
-        
-    def test_stats_tracking(self, bridge):
-        """Test statistics tracking"""
-        initial_stats = bridge.get_stats()
-        
-        assert 'messages_received' in initial_stats
-        assert 'messages_sent' in initial_stats
-        assert 'clients_connected' in initial_stats
-        assert 'uptime_seconds' in initial_stats
-        assert 'ros2_available' in initial_stats
-        
-        assert initial_stats['messages_received'] == 0
-        assert initial_stats['messages_sent'] == 0
-        
-    @pytest.mark.asyncio
-    async def test_broadcast_queue(self, bridge):
-        """Test message broadcasting queue"""
-        test_message = {
-            'type': 'test',
-            'data': {'test': True}
-        }
-        
-        await bridge._queue_broadcast(test_message)
-        
-        # Check that message was queued
-        assert not bridge.broadcast_queue.empty()
-        
-        # Get the message back
-        queued_message = await bridge.broadcast_queue.get()
-        assert queued_message == test_message
+            b.destroy_node()
+        except Exception:
+            pass
+
+    def test_bridge_created(self, bridge):
+        assert bridge is not None
+
+    def test_has_clients_set(self, bridge):
+        assert hasattr(bridge, "ws_clients")
+        assert isinstance(bridge.ws_clients, set)
+        assert len(bridge.ws_clients) == 0
+
+    def test_has_state_cache(self, bridge):
+        assert "drones" in bridge.state
+        assert "swarm" in bridge.state
+        assert "mission" in bridge.state
+        assert "system" in bridge.state
+
+    def test_state_defaults(self, bridge):
+        assert bridge.state["swarm"]["intelligence_score"] == 0.0
+        assert bridge.state["swarm"]["coverage_area"] == 0.0
+        assert bridge.state["mission"]["status"] == "idle"
+
+    def test_ros2_stub_mode(self, bridge):
+        """In CI / without ROS2, the bridge should still initialize."""
+        assert bridge.state["system"]["ros2_available"] is not None
 
 
-class TestWebSocketBridgeServer:
-    """Test WebSocket bridge server functionality"""
-    
-    def test_server_initialization(self):
-        """Test server initialization"""
-        server = WebSocketBridgeServer("localhost", 9001)
-        
-        assert server.host == "localhost"
-        assert server.port == 9001
-        assert server.bridge is None
-        assert server.server is None
-        
-    def test_server_initialization_custom_params(self):
-        """Test server with custom parameters"""
-        server = WebSocketBridgeServer("0.0.0.0", 8080)
-        
-        assert server.host == "0.0.0.0"
-        assert server.port == 8080
+class TestROS2Callbacks:
+    """Test ROS2 subscriber callbacks using stub messages."""
 
-
-class TestROS2MessageHandling:
-    """Test ROS2 message handling without requiring actual ROS2 runtime"""
-    
     @pytest.fixture
     def bridge(self):
-        return WebSocketBridge()
-        
-    def test_propeller_callback_with_mock_data(self, bridge):
-        """Test propeller callback with mock data"""
-        # Create mock message
-        mock_msg = Mock()
-        mock_msg.data = [100.0, 101.0, 102.0, 103.0]
-        
-        # This should not raise an exception
-        bridge.propeller_callback(mock_msg)
-        
-        # Check that stats were updated
-        assert bridge.stats['ros2_messages'] > 0
-        
-    def test_status_callback_with_json(self, bridge):
-        """Test status callback with JSON data"""
+        b = DiamantsBridge(ws_host="127.0.0.1", ws_port=0)
+        yield b
+        try:
+            b.destroy_node()
+        except Exception:
+            pass
+
+    def test_drone_positions_callback(self, bridge):
+        """Simulate a drone_positions ROS2 message."""
         mock_msg = Mock()
         mock_msg.data = json.dumps({
-            'status': 'flying',
-            'battery': 85.5,
-            'position': {'x': 1.0, 'y': 2.0, 'z': 1.5}
+            "cf1": {"x": 1.0, "y": 2.0, "z": 0.5},
         })
-        
-        bridge.status_callback(mock_msg)
-        
-        assert bridge.stats['ros2_messages'] > 0
-        
-    def test_status_callback_with_plain_text(self, bridge):
-        """Test status callback with plain text"""
+        bridge._on_drone_positions(mock_msg)
+        assert "cf1" in bridge.state["drones"]
+        assert bridge.state["drones"]["cf1"]["position"]["x"] == 1.0
+
+    def test_drone_telemetry_callback(self, bridge):
         mock_msg = Mock()
-        mock_msg.data = "System operational"
-        
-        bridge.status_callback(mock_msg)
-        
-        assert bridge.stats['ros2_messages'] > 0
+        mock_msg.data = json.dumps({
+            "drone_id": "cf1", "battery": 92, "status": "flying",
+        })
+        bridge._on_drone_telemetry(mock_msg)
+        assert bridge.state["drones"]["cf1"]["battery"] == 92
+
+    def test_intelligence_score_callback(self, bridge):
+        mock_msg = Mock()
+        mock_msg.data = 0.87
+        bridge._on_intelligence_score(mock_msg)
+        assert bridge.state["swarm"]["intelligence_score"] == 0.87
+
+    def test_coverage_area_callback(self, bridge):
+        mock_msg = Mock()
+        mock_msg.data = 42.5
+        bridge._on_coverage_area(mock_msg)
+        assert bridge.state["swarm"]["coverage_area"] == 42.5
+
+    def test_swarm_status_callback(self, bridge):
+        mock_msg = Mock()
+        mock_msg.data = json.dumps({
+            "formation": "v-shape",
+            "status": "scouting",
+        })
+        bridge._on_swarm_status(mock_msg)
+        assert bridge.state["swarm"]["formation"] == "v-shape"
+        assert bridge.state["swarm"]["status"] == "scouting"
+
+    def test_mission_status_callback(self, bridge):
+        mock_msg = Mock()
+        mock_msg.data = json.dumps({
+            "status": "in_progress",
+            "waypoints": [{"x": 1, "y": 2}],
+        })
+        bridge._on_mission_status(mock_msg)
+        assert bridge.state["mission"]["status"] == "in_progress"
+
+    def test_system_status_callback(self, bridge):
+        mock_msg = Mock()
+        mock_msg.data = json.dumps({
+            "simulation_active": True,
+            "extra_field": "ignored_safely",
+        })
+        bridge._on_system_status(mock_msg)
+        assert bridge.state["system"]["simulation_active"] is True
 
 
-@pytest.mark.integration
-class TestFullIntegration:
-    """Integration tests that require more setup"""
-    
+class TestCommandHandlers:
+    """Test WebSocket → ROS2 command handlers."""
+
+    @pytest.fixture
+    def bridge(self):
+        b = DiamantsBridge(ws_host="127.0.0.1", ws_port=0)
+        yield b
+        try:
+            b.destroy_node()
+        except Exception:
+            pass
+
     @pytest.mark.asyncio
-    async def test_message_flow(self):
-        """Test complete message flow from WebSocket to ROS2"""
-        bridge = WebSocketBridge()
-        
-        # Simulate WebSocket message
-        websocket_message = {
-            'type': 'drone_command',
-            'data': {
-                'action': 'move',
-                'linear_x': 1.0,
-                'linear_z': 0.5
-            }
+    async def test_cmd_vel_handler(self, bridge):
+        """cmd_vel should publish a Twist to ROS2 (stub mode = no-op)."""
+        data = {
+            "linear": {"x": 1.0, "y": 0.0, "z": 0.5},
+            "angular": {"x": 0.0, "y": 0.0, "z": 0.1},
         }
-        
-        mock_websocket = Mock()
-        
-        # Process the message
-        await bridge.handle_websocket_message(
-            mock_websocket, 
-            json.dumps(websocket_message)
-        )
-        
-        # Verify stats were updated
-        assert bridge.stats['messages_received'] > 0
-        
+        # Should not raise even in stub mode
+        await bridge._handle_cmd_vel(data)
+
     @pytest.mark.asyncio
-    async def test_concurrent_clients(self):
-        """Test handling multiple concurrent clients"""
-        bridge = WebSocketBridge()
-        
-        # Simulate multiple clients
-        clients = [Mock() for _ in range(5)]
-        
-        for client in clients:
-            bridge.websocket_clients.add(client)
-        
-        # Test broadcasting to all clients
-        test_message = {
-            'type': 'broadcast_test',
-            'data': {'message': 'Hello all clients'}
-        }
-        
-        await bridge._queue_broadcast(test_message)
-        
-        # Check that all clients are tracked
-        assert len(bridge.websocket_clients) == 5
+    async def test_drone_command_handler(self, bridge):
+        data = {"action": "takeoff", "drone_id": "cf1"}
+        await bridge._handle_drone_command(data)
+
+    @pytest.mark.asyncio
+    async def test_swarm_command_handler(self, bridge):
+        data = {"action": "scatter"}
+        await bridge._handle_swarm_command(data)
+
+    @pytest.mark.asyncio
+    async def test_mission_command_handler(self, bridge):
+        data = {"action": "start", "mission_id": "scout_01", "drone_ids": ["cf1", "cf2"]}
+        await bridge._handle_mission_command(data)
+
+    @pytest.mark.asyncio
+    async def test_parameter_change_handler(self, bridge):
+        data = {"name": "max_speed", "value": 2.5}
+        await bridge._handle_parameter_change(data)
 
 
-if __name__ == '__main__':
-    # Run tests with verbose output
-    pytest.main([__file__, '-v', '--tb=short'])
+class TestMessageRouting:
+    """Test the _route_message dispatcher."""
+
+    @pytest.fixture
+    def bridge(self):
+        b = DiamantsBridge(ws_host="127.0.0.1", ws_port=0)
+        yield b
+        try:
+            b.destroy_node()
+        except Exception:
+            pass
+
+    @pytest.mark.asyncio
+    async def test_ping_route(self, bridge):
+        mock_ws = Mock()
+        future = asyncio.get_event_loop().create_future()
+        future.set_result(None)
+        mock_ws.send = Mock(return_value=future)
+        raw = json.dumps({"type": "ping"})
+        await bridge._route_message(mock_ws, "test_client", raw)
+        mock_ws.send.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_get_status_route(self, bridge):
+        mock_ws = Mock()
+        future = asyncio.get_event_loop().create_future()
+        future.set_result(None)
+        mock_ws.send = Mock(return_value=future)
+        raw = json.dumps({"type": "get_status"})
+        await bridge._route_message(mock_ws, "test_client", raw)
+        mock_ws.send.assert_called_once()
+        sent_data = json.loads(mock_ws.send.call_args[0][0])
+        assert sent_data["type"] == "current_status"
+        assert "data" in sent_data
+
+    @pytest.mark.asyncio
+    async def test_unknown_type_ignored(self, bridge):
+        mock_ws = Mock()
+        raw = json.dumps({"type": "nonexistent_type_xyz"})
+        # Should not raise
+        await bridge._route_message(mock_ws, "test_client", raw)
+
+    @pytest.mark.asyncio
+    async def test_invalid_json_ignored(self, bridge):
+        mock_ws = Mock()
+        await bridge._route_message(mock_ws, "test_client", "{ invalid json }")
+
+    @pytest.mark.asyncio
+    async def test_subscribe_route(self, bridge):
+        mock_ws = Mock()
+        raw = json.dumps({"type": "subscribe", "data": {"topics": ["drones", "swarm"]}})
+        await bridge._route_message(mock_ws, "test_client", raw)
+        assert "drones" in bridge.client_subscriptions.get("test_client", set())
+        assert "swarm" in bridge.client_subscriptions.get("test_client", set())
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])

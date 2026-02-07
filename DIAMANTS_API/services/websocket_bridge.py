@@ -110,7 +110,7 @@ class DiamantsBridge(Node):
         )
 
         # Active WebSocket clients
-        self.clients: Set = set()
+        self.ws_clients: Set = set()
         self.client_subscriptions: Dict[str, Set[str]] = {}
 
         # Telemetry cache (sent to new clients on connect)
@@ -322,23 +322,23 @@ class DiamantsBridge(Node):
 
     async def _broadcast(self, message: Dict):
         """Send message to all connected clients."""
-        if not self.clients:
+        if not self.ws_clients:
             return
         payload = json.dumps(message)
         gone = set()
-        for ws in self.clients.copy():
+        for ws in self.ws_clients.copy():
             try:
                 await ws.send(payload)
             except Exception:
                 gone.add(ws)
-        self.clients -= gone
+        self.ws_clients -= gone
 
     async def _on_client_connect(self, websocket):
         """Handle a new WebSocket client."""
         client_id = f"{websocket.remote_address[0]}:{websocket.remote_address[1]}"
-        self.clients.add(websocket)
+        self.ws_clients.add(websocket)
         self.client_subscriptions[client_id] = set()
-        logger.info(f"Client connected: {client_id} (total: {len(self.clients)})")
+        logger.info(f"Client connected: {client_id} (total: {len(self.ws_clients)})")
 
         try:
             # Send cached state
@@ -356,9 +356,9 @@ class DiamantsBridge(Node):
         except Exception as e:
             logger.error(f"Client error ({client_id}): {e}")
         finally:
-            self.clients.discard(websocket)
+            self.ws_clients.discard(websocket)
             self.client_subscriptions.pop(client_id, None)
-            logger.info(f"Client disconnected: {client_id} (remaining: {len(self.clients)})")
+            logger.info(f"Client disconnected: {client_id} (remaining: {len(self.ws_clients)})")
 
     async def _route_message(self, websocket, client_id: str, raw: str):
         """Route inbound WebSocket message to the correct handler."""
