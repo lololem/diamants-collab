@@ -133,7 +133,7 @@ export class IntegratedDiamantsController {
             if (this.config.enableRosController) {
                 this.rosController = new CrazyflieRosController({
                     isActive: true,
-                    wsUrl: this.config.rosWsUrl || 'ws://localhost:9001',
+                    wsUrl: this.config.rosWsUrl || 'ws://localhost:8765',
                     maxReconnectDelayMs: this.config.rosMaxReconnectDelayMs || 30000
                 });
                 logger.info('Controller', '🌐 Contrôleur ROS initialisé');
@@ -871,7 +871,7 @@ export class IntegratedDiamantsController {
                     if (enabled && !this.rosController) {
                         this.rosController = new CrazyflieRosController({
                             isActive: true,
-                            wsUrl: this.config.rosWsUrl || 'ws://localhost:9001',
+                            wsUrl: this.config.rosWsUrl || 'ws://localhost:8765',
                             maxReconnectDelayMs: this.config.rosMaxReconnectDelayMs || 30000
                         });
                         if (this.rosController.isActive !== undefined) this.rosController.isActive = true;

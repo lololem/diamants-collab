@@ -2,7 +2,7 @@
 // Prefers roslibjs; dynamically imports from CDN if not present.
 
 export class RosWebBridge {
-    constructor({ url = 'ws://localhost:9090', autoConnect = false } = {}) {
+    constructor({ url = 'ws://localhost:8765', autoConnect = false } = {}) {
         // Vite env override if provided
         const envUrl = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ROSBRIDGE_URL) || null;
         this.url = envUrl || url;

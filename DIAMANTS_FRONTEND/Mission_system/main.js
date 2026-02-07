@@ -402,11 +402,11 @@ class DiamantsMissionSystem {
 
     async setupRosWeb() {
         try {
-            this.ros = new RosWebBridge({ url: 'ws://localhost:9091' });
+            this.ros = new RosWebBridge({ url: 'ws://localhost:8765' });
             // Wait briefly for connection; don't block if fails
             await this.ros.connect().catch(() => {});
             
-            log(`🔌 ROS2 WebSocket Setup: Tentative de connexion à ws://localhost:9090`);
+            log(`🔌 ROS2 WebSocket Setup: Tentative de connexion à ws://localhost:8765`);
             
             // Subscribe to simple command topic for each drone
             this.drones.forEach((d) => {
