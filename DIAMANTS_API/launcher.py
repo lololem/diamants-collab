@@ -1,54 +1,73 @@
 #!/usr/bin/env python3
 """
-DIAMANTS API - Launcher avec support ROS2
-Lance l'API REST et le WebSocket bridge avec l'environnement ROS2
+DIAMANTS API - Launcher
+========================
+Starts the REST API (FastAPI) and the unified WebSocket bridge.
 """
 
 import uvicorn
-import rclpy  # type: ignore
 import asyncio
-import threading
+import os
+import sys
+import logging
 
-# Initialize ROS2 BEFORE importing any ROS2-dependent modules
-rclpy.init()
+# Ensure imports work from this directory
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+logger = logging.getLogger("diamants.launcher")
+
+# --- Conditional ROS2 init ---
+ROS2_AVAILABLE = False
+try:
+    import rclpy
+    rclpy.init()
+    ROS2_AVAILABLE = True
+    logger.info("ROS2 initialized successfully")
+except ImportError:
+    logger.warning("ROS2 not available — running in standalone API mode")
+except Exception as e:
+    logger.warning(f"ROS2 init failed: {e} — running in standalone API mode")
 
 from api.main import app
-from services.websocket_service import DiamantWebSocketService
+from services.websocket_bridge import DiamantsBridge
 
-async def start_api_and_websocket():
-    """Lance l'API REST et le WebSocket service principal"""
-    
-    print("🚀 Démarrage de DIAMANTS API avec support ROS2")
-    
-    # Lancer le WebSocket service principal
-    websocket_service = DiamantWebSocketService(
-        ws_host="0.0.0.0",
-        ws_port=8765,
-        log_level="INFO"
-    )
-    
-    # Lancer les deux services en parallèle
-    api_task = asyncio.create_task(run_api_server())
-    websocket_task = asyncio.create_task(websocket_service.start_websocket_server())
-    
-    try:
-        await asyncio.gather(api_task, websocket_task)
-    except KeyboardInterrupt:
-        print("\n🛑 Arrêt des services...")
-    finally:
-        rclpy.shutdown()
 
 async def run_api_server():
-    """Lance le serveur API"""
+    """Run the FastAPI server."""
     config = uvicorn.Config(
         app=app,
-        host="0.0.0.0", 
+        host="0.0.0.0",
         port=8000,
         reload=False,
-        log_level="info"
+        log_level="info",
     )
     server = uvicorn.Server(config)
     await server.serve()
 
+
+async def start_all():
+    """Start both the API and the WebSocket bridge concurrently."""
+    print("=" * 60)
+    print("  DIAMANTS Platform Starting")
+    print(f"  REST API  : http://0.0.0.0:8000")
+    print(f"  WebSocket : ws://0.0.0.0:8765")
+    print(f"  ROS2      : {'connected' if ROS2_AVAILABLE else 'standalone mode'}")
+    print("=" * 60)
+
+    bridge = DiamantsBridge(ws_host="0.0.0.0", ws_port=8765)
+
+    # Start WebSocket server
+    await bridge.start_server()
+
+    # Run API (blocking)
+    await run_api_server()
+
+
 if __name__ == "__main__":
-    asyncio.run(start_api_and_websocket())
+    try:
+        asyncio.run(start_all())
+    except KeyboardInterrupt:
+        print("\nDIAMANTS Platform stopped.")
+    finally:
+        if ROS2_AVAILABLE:
+            rclpy.shutdown()

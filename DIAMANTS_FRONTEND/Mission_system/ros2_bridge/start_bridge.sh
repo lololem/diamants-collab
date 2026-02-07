@@ -54,15 +54,18 @@ fi
 if netstat -tuln | grep -q ":$BRIDGE_PORT "; then
     log_error "Port $BRIDGE_PORT déjà utilisé"
     log_info "Arrêt du processus existant..."
-    pkill -f "unified_websocket_bridge.py"
+    pkill -f "websocket_bridge.py"
     sleep 2
 fi
 
-# Démarrer bridge
+# Démarrer bridge — désormais centralisé dans DIAMANTS_API/services/
 log_info "Démarrage bridge sur $BRIDGE_HOST:$BRIDGE_PORT"
 
-cd "$(dirname "$0")"
+SCRIPT_DIR="$(dirname "$0")"
+API_DIR="$(realpath "$SCRIPT_DIR/../../../DIAMANTS_API")"
 
-python3 unified_websocket_bridge.py \
+cd "$API_DIR"
+
+python3 -m services.websocket_bridge \
     --host "$BRIDGE_HOST" \
     --port "$BRIDGE_PORT"

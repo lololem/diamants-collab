@@ -1,7 +1,7 @@
 // Simplified ROS bridge for DIAMANTS - Fixed version
 
 export class RosWebBridge {
-    constructor({ url = 'ws://localhost:9090', autoConnect = false, silent = true } = {}) {
+    constructor({ url = 'ws://localhost:8765', autoConnect = false, silent = true } = {}) {
         this.url = url;
         this.ros = null;
         this.connected = false;

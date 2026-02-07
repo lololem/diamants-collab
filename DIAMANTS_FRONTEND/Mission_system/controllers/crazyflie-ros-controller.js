@@ -8,7 +8,7 @@ export class CrazyflieRosController {
     constructor(config = {}) {
         this.websocket = null;
         this.connected = false;
-    this.wsUrl = config.wsUrl || 'ws://localhost:9001';
+    this.wsUrl = config.wsUrl || 'ws://localhost:8765';
         this.drones_state = {};
         this.callbacks = {
             onDroneUpdate: [],
