@@ -64,3 +64,10 @@ logs/
 
 # Wiki directory (managed separately)
 diamants-collab.wiki/
+
+# LOTUSSIM (Naval Group — inspiration only, not part of this repo)
+LOTUSSIM/
+
+# IDE / workspace
+*.code-workspace
+package-lock.json

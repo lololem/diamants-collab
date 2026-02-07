@@ -1,16 +1,29 @@
 #!/usr/bin/env python3
 """
 Test d'intégration complète de l'API DIAMANTS avec ROS2
+
+Ce test E2E lance le serveur API puis le teste.
+Marqué skip par défaut — lancer avec:  pytest -m e2e --run-e2e
 """
 import asyncio
 import pytest
-import rclpy
 import requests
 import time
 import threading
 from subprocess import Popen, PIPE
 import signal
 import os
+
+# Skip all tests in this module unless --run-e2e is passed
+pytestmark = pytest.mark.skipif(
+    not os.environ.get("DIAMANTS_RUN_E2E"),
+    reason="E2E test — set DIAMANTS_RUN_E2E=1 to run",
+)
+
+try:
+    import rclpy
+except ImportError:
+    rclpy = None
 
 class TestDiamantsAPI:
     """Tests d'intégration pour l'API DIAMANTS"""

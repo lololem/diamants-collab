@@ -22,11 +22,15 @@ class TestWebSocketBridge:
         """Create a DiamantsBridge instance (ROS2 stub mode)."""
         from services.websocket_bridge import DiamantsBridge
         b = DiamantsBridge(ws_host="127.0.0.1", ws_port=0)  # port 0 → OS picks a free port
-        return b
+        yield b
+        try:
+            b.destroy_node()
+        except Exception:
+            pass
 
     def test_bridge_initialization(self, bridge):
         assert bridge is not None
-        assert hasattr(bridge, "clients")
+        assert hasattr(bridge, "ws_clients")
         assert hasattr(bridge, "state")
         assert "drones" in bridge.state
         assert "swarm" in bridge.state
