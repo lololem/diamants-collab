@@ -64,3 +64,10 @@ logs/
 
 # Wiki directory (managed separately)
 diamants-collab.wiki/
+
+# VENDOR_SIM (a vendor — inspiration only, not part of this repo)
+VENDOR_SIM/
+
+# IDE / workspace
+*.code-workspace
+package-lock.json
