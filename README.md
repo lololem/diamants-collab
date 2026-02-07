@@ -1,8 +1,11 @@
-# 💎 DIAMANTS: Distributed Autonomous Multi-agents Systems
+# 💎 DIAMANTS: Distributed Autonomous Multi-Agent Systems
 
-[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/) [![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/) [![License](https://img.shields.io/badge/License-PolyForm Noncommercial-green.svg)](LICENSE) [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![ROS2](https://img.shields.io/badge/ROS2-Jazzy-blue.svg)](https://docs.ros.org/en/jazzy/)
+[![Python](https://img.shields.io/badge/Python-3.12-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-PolyForm Noncommercial-green.svg)](LICENSE)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
 
-**DIAMANTS is an open-source platform for the simulation and execution of distributed intelligence. Our philosophy: code once, and deploy everywhere—in simulation and in the real world.**
+**DIAMANTS is an open-source platform for the simulation and execution of distributed intelligence. Our philosophy: code once and deploy everywhere—in simulation and in the real world.**
 
 This project is a 'playground' for developers, creating a robust bridge between high-level intent (the swarm's strategy) and low-level execution (each drone's physical commands). It's a space to code distributed intelligence, test it in a credible simulation, and push it directly to real-world swarms.
 
@@ -12,24 +15,24 @@ DIAMANTS's objective is to tackle a major technical challenge: achieving emergen
 
 ## 🚨 URGENT: Community Help Needed | Aide de la Communauté Recherchée
 
-**🔥 CRITICAL MISSION: Wildfire Fighting in VAR Region, France**
+**🔥 CRITICAL MISSION: Wildfire-Fighting in the VAR Region, France**
 **🔥 MISSION CRITIQUE : Lutte contre les incendies dans le VAR, France**
 
-This platform is being developed with a vital objective: **creating an autonomous drone system to fight wildfires** that frequently devastate the VAR region in France. Forest fires represent a major danger to populations, wildlife, and the Mediterranean environment.
+This platform is being developed with a vital objective: **creating an autonomous drone system to fight wildfires** that frequently devastate the VAR region in France. Forest fires pose a major threat to people, wildlife, and the Mediterranean environment.
 
 Cette plateforme est développée avec un objectif vital : **créer un système de drones autonomes pour éteindre les incendies** qui ravagent fréquemment la région du VAR en France. Les feux de forêt représentent un danger majeur pour les populations, la faune, et l'environnement méditerranéen.
 
 ### 🆘 We NEED YOU! | Nous avons besoin de VOUS !
 
-The project still has **critical anomalies** that prevent operational deployment. Your expertise can save lives and protect our forests:
+The project still has **critical anomalies** that prevent operational deployment. Your expertise can save lives and protect our forests.
 
-Le projet comporte encore des **anomalies critiques** qui empêchent le déploiement opérationnel. Votre expertise peut sauver des vies et protéger nos forêts :
+Le projet comporte encore des **anomalies critiques** qui empêchent le déploiement opérationnel. Votre expertise peut sauver des vies et protéger nos forêts.
 
-- **🐛 Bug fixes** | **Corrections de bugs** : Multi-drone system stabilization | Stabilisation du système multi-drones
-- **🧪 Field testing** | **Tests terrain** : Algorithm coordination validation | Validation des algorithmes de coordination  
-- **⚡ Optimizations** | **Optimisations** : Real-time performance improvements | Amélioration des performances temps réel
-- **🔧 Integration** | **Intégration** : ROS2/Frontend/Hardware coordination | Coordination ROS2/Frontend/Hardware
-- **📚 Documentation** | **Documentation** : Emergency deployment guides | Guides de déploiement d'urgence
+- **🐛 Bug fixes** | **Corrections de bugs**: Multi-drone system stabilization | Stabilisation du système multi-drones.
+- **🧪 Field testing** | **Tests terrain**: Algorithm coordination and validation | Validation des algorithmes de coordination.
+- **⚡ Optimizations** | **Optimisations**: Real-time performance improvements | Amélioration des performances temps réel.
+- **🔧 Integration** | **Intégration**: ROS2/Frontend/Hardware coordination | Coordination ROS2/Frontend/Hardware.
+- **📚 Documentation** | **Documentation**: Emergency deployment guides | Guides de déploiement d'urgence.
 
 **🌲 Every contribution can help preserve our forests and save lives.**
 **🌲 Chaque contribution peut aider à préserver nos forêts et sauver des vies.**
@@ -43,20 +46,20 @@ See DIAMANTS in action! Watch our multi-drone collaborative system working seaml
 ### 🤖 Backend - ROS2 Multi-Drone SLAM System
 Real-time collaborative SLAM with 8 Crazyflie drones in Gazebo simulation, featuring TMUX orchestration and map fusion.
 
-[![Watch Backend Demo](https://img.youtube.com/vi/iYg9Jf1jv4Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=iYg9Jf1jv4Y)
+[![Backend Demo - Multi-drone SLAM](https://img.youtube.com/vi/iYg9Jf1jv4Y/maxresdefault.jpg)](https://www.youtube.com/watch?v=iYg9Jf1jv4Y)
 
 **🤖 Backend Features Showcase:**
-- ✅ 8 Crazyflie drones in Gazebo simulation
-- ✅ Real-time collaborative SLAM mapping
-- ✅ TMUX orchestration (13 specialized windows)  
-- ✅ ROS2 Jazzy + Gazebo Garden integration
-- ✅ Multi-agent path planning and coordination
+- ✅ 8 Crazyflie drones in Gazebo simulation.
+- ✅ Real-time collaborative SLAM mapping.
+- ✅ TMUX orchestration (13 specialized windows).
+- ✅ ROS2 Jazzy + Gazebo Garden integration.
+- ✅ Multi-agent path planning and coordination.
 
 ### 🌐 Frontend - 3D Visualization Interface
 Interactive Three.js + WebGL interface with real-time drone tracking, mission planning, and swarm visualization.
 
-#### Frontend Interface Overview
-[![Watch Frontend Demo](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
+### Frontend Interface Overview
+[![Frontend Demo - 3D Web Visualization](https://img.youtube.com/vi/fyEmYu4lbzo/maxresdefault.jpg)](https://www.youtube.com/watch?v=fyEmYu4lbzo)
 
 **🌐 Frontend Features Showcase:**
 - ✅ Three.js + WebGL real-time 3D visualization
@@ -122,12 +125,12 @@ Experience DIAMANTS directly in your browser with our interactive HTML demonstra
 **[DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html](./DEMO/sample/DIAMANTS_Crazyflie_Search_Rescue_Gazebo_Simulation.html)**
 
 Complete Crazyflie drone simulation with ROS2-like interface for search and rescue missions:
-- ✅ Realistic Crazyflie mesh with physics simulation
-- ✅ ROS2-style control panels and topic monitoring
-- ✅ Multi-drone collaborative search algorithms
-- ✅ Anti-collision system with formation control
-- ✅ Tactical minimap with stigmergy visualization
-- ✅ Real-time intelligence and mission metrics
+- ✅ Realistic Crazyflie mesh with physics simulation.
+- ✅ ROS2-style control panels and topic monitoring.
+- ✅ Multi-drone collaborative search algorithms.
+- ✅ Anti-collision system with formation control.
+- ✅ Tactical minimap with stigmergy-based visualization.
+- ✅ Real-time intelligence metrics and mission data.
 
 ### 🌟 Complete Frontend Intelligence Demo
 **[DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html](./DEMO/sample/DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html)**
@@ -156,7 +159,9 @@ Spectacular visualization of swarm intelligence with advanced effects:
 
 ### 🌱 Open Source by Design
 
-Our entire ecosystem is built on recognized open standards. No proprietary lock-in.
+Our entire ecosystem is built on recognized open standards. There is no proprietary lock-in.
+
+**Goal**: To foster an ecosystem where every developer can contribute, test, and enrich the platform.
 
 **Main Stack:**
 - **Backend & Simulation**: ROS 2, Gazebo, PX4/ArduPilot, MAVROS
@@ -184,7 +189,7 @@ Simulation is a mirror of reality. Zero throwaway code.
 
 ## 🚀 Quick Start
 
-> **📖 For detailed setup instructions, visit our [Complete Wiki Documentation](https://github.com/lololem/diamants-collab/wiki)**
+> **📖 For detailed setup instructions, please visit our [Full Wiki Documentation](https://github.com/lololem/diamants-collab/wiki).**
 
 ### Prerequisites
 - **Ubuntu 24.04** (recommended)
@@ -213,8 +218,8 @@ You can run each system autonomously using dedicated scripts:
 ```bash
 cd DIAMANTS_API
 ./setup.sh        # First-time setup
-./start.sh        # Launch API service
-./status.sh       # Check service status
+./start.sh        # Launch the API service
+./status.sh       # Check the service status
 ./stop.sh         # Stop service
 ```
 
@@ -239,18 +244,18 @@ npm run build     # Production build
 **DIAMANTS is actively seeking contributors!** 
 
 We need help with:
-- 🐛 **Bug Fixes**: System stability and edge cases
-- 🚀 **Performance Optimization**: Multi-agent coordination efficiency
-- 📚 **Documentation**: User guides and API documentation
-- 🧪 **Testing**: Unit tests and integration testing
-- 🎨 **UI/UX**: Frontend interface improvements
-- 🤖 **Algorithm Development**: Advanced swarm intelligence behaviors
+- 🐛 **Bug Fixes**: System stability and handling edge cases.
+- 🚀 **Performance Optimization**: Multi-agent coordination efficiency.
+- 📚 **Documentation**: User guides and API documentation.
+- 🧪 **Testing**: Unit tests and integration testing.
+- 🎨 **UI/UX**: Frontend interface improvements.
+- 🤖 **Algorithm Development**: Advanced swarm intelligence behaviors.
 
 ### 🛠️ Development Workflow
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make your changes and test thoroughly
-4. Submit a pull request with detailed description
+1. Fork the repository.
+2. Create a feature branch: `git checkout -b feature/amazing-feature`.
+3. Make your changes and test thoroughly.
+4. Submit a pull request with detailed description.
 
 ### 🆘 Report Issues
 Found a bug or have a feature request? Please [create an issue](https://github.com/lololem/diamants-collab/issues) with:
@@ -264,12 +269,12 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 ### 🏗️ Architecture Overview
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│  FRONTEND       │    │   DIAMANTS_API  │    │   BACKEND       │
-│  (Three.js)     │◄──►│   (FastAPI)     │◄──►│   (ROS2)        │
-│  Mission UI     │    │   WebSocket     │    │   Gazebo        │
-│  3D Visualization│    │   Bridge        │    │   Multi-Drones  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+┌─────────────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ FRONTEND                │    │ DIAMANTS_API    │    │ BACKEND         │
+│ (Three.js)              │◄──►│ (FastAPI)       │◄──►│ (ROS2)          │
+│ Mission User Interface  │    │ WebSocket Bridge│    │ Gazebo          │
+│ 3D Web Visualization    │    │                 │    │ Multi-Drones    │
+└─────────────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
 ### 🧩 Core Components
@@ -306,10 +311,10 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 ## 📚 Documentation
 
 ### 🌐 Complete Wiki Documentation
-**[📖 DIAMANTS Wiki](https://github.com/lololem/diamants-collab/wiki)** - Comprehensive documentation in English and French
+**[📖 DIAMANTS Wiki](https://github.com/lololem/diamants-collab/wiki)** – provides comprehensive documentation in English and French
 
 - **🇬🇧 English Documentation**: [Installation](https://github.com/lololem/diamants-collab/wiki/Installation), [Architecture](https://github.com/lololem/diamants-collab/wiki/Architecture), [Launch Guide](https://github.com/lololem/diamants-collab/wiki/Launch-Guide)
-- **🇫🇷 Documentation Française**: [Installation et Configuration](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration), [Architecture Système](https://github.com/lololem/diamants-collab/wiki/Architecture-Système), [Lancement du Système](https://github.com/lololem/diamants-collab/wiki/Lancement-du-Système)
+- **🇫🇷 Documentation en Français**: [Installation et Configuration](https://github.com/lololem/diamants-collab/wiki/Installation-et-Configuration), [Architecture Système](https://github.com/lololem/diamants-collab/wiki/Architecture-Système), [Lancement du Système](https://github.com/lololem/diamants-collab/wiki/Lancement-du-Système)
 
 ### 📋 Technical Reference
 - [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture and design principles
@@ -325,47 +330,47 @@ Found a bug or have a feature request? Please [create an issue](https://github.c
 
 DIAMANTS is built on solid scientific foundations in swarm intelligence and distributed systems:
 
-- **Emergent Behaviors**: Study of collective intelligence from simple agent interactions
-- **Stigmergy Algorithms**: Bio-inspired coordination through environmental modifications
-- **Consensus Mechanisms**: Distributed agreement protocols for multi-agent systems
-- **Sim-to-Real Transfer**: Seamless transition from simulation to physical deployment
+- **Emergent Behaviors**: Studies collective intelligence arising from simple agent interactions.
+- **Stigmergy Algorithms**: Bio-inspired coordination via environmental modifications.
+- **Consensus Mechanisms**: Distributed agreement protocols for multi-agent systems.
+- **Sim-to-Real Transfer**: Seamless transition from simulation to physical deployment.
 
 ## 🎯 Use Cases
 
 ### 🚁 Drone Swarm Applications
-- Search and rescue operations
-- Environmental monitoring
-- Agricultural surveying
-- Infrastructure inspection
+- Search and rescue operations.
+- Environmental monitoring.
+- Agricultural surveying.
+- Infrastructure inspection.
 
 ### 🤖 Multi-Robot Coordination
-- Warehouse automation
-- Collaborative manufacturing
-- Distributed sensing networks
-- Autonomous vehicle coordination
+- Warehouse automation.
+- Collaborative manufacturing.
+- Distributed sensing networks.
+- Autonomous vehicle coordination.
 
 ### 🧠 Research Platform
-- Swarm intelligence algorithms
-- Distributed AI systems
-- Emergent behavior studies
-- Human-swarm interaction
+- Swarm intelligence algorithms.
+- Distributed AI systems.
+- Studies of emergent behaviors.
+- Human–swarm interaction.
 
 ## 📄 License
 
-This project is licensed under the PolyForm Noncommercial License 1.0.0 - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the PolyForm Noncommercial License 1.0.0 – see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- **ROS2 Community**: For the robust robotics middleware
-- **Gazebo Team**: For the high-fidelity simulation environment
-- **Bitcraze**: For the excellent Crazyflie platform and Crazyswarm2
-- **Three.js Community**: For the powerful 3D web graphics library
-- **Open Source Contributors**: For making this collaborative platform possible
+- **ROS2 Community**: For providing robust robotics middleware.
+- **Gazebo Team**: For providing a high-fidelity simulation environment.
+- **Bitcraze**: For the excellent Crazyflie platform and Crazyswarm2.
+- **Three.js Community**: For the powerful 3D web graphics library.
+- **Open Source Contributors**: For making this collaborative platform possible.
 
 ## 📞 Contact & Support
 
-- **Issues**: [GitHub Issues](https://github.com/lololem/diamants-collab/issues)
-- **Email**: [loic.lemasle@gmail.com](mailto:loic.lemasle@gmail.com)
+- **Report Issues**: [GitHub Issues](https://github.com/lololem/diamants-collab/issues)
+- **Contact via Email**: [loic.lemasle@gmail.com](mailto:loic.lemasle@gmail.com)
 
 ---
 
@@ -373,14 +378,14 @@ This project is licensed under the PolyForm Noncommercial License 1.0.0 - see th
 
 ## 🤖🤝 Human-Machine Teaming Development
 
-**This project has been developed through full Human-machine teaming collaboration.** The entire codebase represents a unique partnership between human creativity and 
+**This project has been developed through full Human-Machine teaming collaboration.** The entire codebase represents a unique partnership between human creativity and 
 artificial intelligence, demonstrating how collaborative development can accelerate innovation in complex autonomous systems.
 
 This collaborative approach has enabled:
-- **Rapid prototyping** of distributed intelligence algorithms
-- **Comprehensive testing** across multiple simulation environments  
-- **Robust documentation** and code architecture
-- **Innovative problem-solving** combining human insight with AI capabilities
-- **Accelerated development cycles** for mission-critical applications
+- **Rapid prototyping** of distributed intelligence algorithms.
+- **Comprehensive testing** across multiple simulation environments.
+- **Robust documentation** and code architecture.
+- **Innovative problem-solving** that combines human insight with AI capabilities.
+- **Accelerated development cycles** for mission-critical applications.
 
-> *"The best way to predict the future is to invent it, and the best way to invent the future of robotics is to build it collaboratively."*
+> *"The best way to predict the future is to invent it, and a good way to shape the future of robotics is to build it collaboratively."*
