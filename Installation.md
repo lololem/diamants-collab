@@ -1,412 +1,147 @@
-# 🔧 Installation Guide
+# Installation
 
-Complete installation guide for the DIAMANTS system on Ubuntu 22.04 LTS.
+## Frontend only (recommended start)
 
-## 🎯 Prerequisites
-
-### System Requirements
-
-**Hardware:**
-- CPU: Intel i5/AMD Ryzen 5 or better (8+ cores recommended)
-- RAM: 16GB minimum (32GB recommended for simulation)
-- GPU: NVIDIA GTX 1060 or better (for 3D visualization)
-- Storage: 50GB free space
-- Network: Gigabit Ethernet (for multi-drone communication)
-
-**Software:**
-- Ubuntu 22.04 LTS (Primary support)
-- Ubuntu 20.04 LTS (Community support)
-- Python 3.10+
-- Node.js 18+
-- Git 2.30+
-
-### Supported Drones
-
-- **Crazyflie 2.X** (Primary platform)
-- **Crazyflie 2.1** (Full support)
-- **Custom drones** (With ROS2 driver)
-
-## 🚀 Automated Installation
-
-### One-Command Setup
+Requirements:
+- Node.js 20+ (use nvm)
+- npm
+- A modern browser with WebGL support
 
 ```bash
-# Download and run installation script
-curl -fsSL https://raw.githubusercontent.com/lololem/diamants-collab/main/install.sh | bash
+git clone https://github.com/lololem/diamants-collab.git
+cd diamants-collab/DIAMANTS_FRONTEND/Mission_system
+npm install
+npm run dev
 ```
 
-### Manual Installation Steps
+The dev server starts on http://localhost:5550. The simulation runs immediately — no backend needed.
 
-#### 1. Install ROS2 Jazzy
+### Node.js via nvm
 
 ```bash
-# Add ROS2 APT repository
-sudo apt update && sudo apt install curl gnupg lsb-release
-sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+source ~/.bashrc
+nvm install 20
+nvm use 20
+```
 
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+## Full stack (frontend + backend)
 
-# Install ROS2 Jazzy
+The backend adds ROS2-based SLAM, Gazebo physics simulation, and multi-drone coordination. It is optional.
+
+### System requirements
+
+- Ubuntu 22.04 or 24.04
+- 16 GB RAM minimum (32 GB recommended for Gazebo)
+- GPU with OpenGL 4.5+ (for Gazebo rendering)
+- 20 GB free disk space
+
+### 1. Install ROS2 Jazzy
+
+```bash
+sudo apt update && sudo apt install -y curl gnupg lsb-release
+
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    -o /usr/share/keyrings/ros-archive-keyring.gpg
+
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+    http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" \
+    | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+
 sudo apt update
-sudo apt install ros-jazzy-desktop-full
+sudo apt install -y ros-jazzy-desktop
 
-# Environment setup
 echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 
-# Install development tools
-sudo apt install python3-colcon-common-extensions
-sudo apt install python3-rosdep python3-vcstool
+sudo apt install -y python3-colcon-common-extensions python3-rosdep
 sudo rosdep init
 rosdep update
 ```
 
-#### 2. Install Dependencies
+### 2. Install Gazebo Harmonic (optional)
 
 ```bash
-# System dependencies
-sudo apt install -y \
-    build-essential \
-    cmake \
-    git \
-    python3-pip \
-    nodejs \
-    npm \
-    curl \
-    wget \
-    htop \
-    tmux \
-    tree
+sudo wget https://packages.osrfoundation.org/gazebo.gpg \
+    -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
 
-# Python dependencies
-pip3 install --upgrade pip
-pip3 install \
-    fastapi \
-    uvicorn \
-    websockets \
-    pydantic \
-    numpy \
-    scipy \
-    matplotlib \
-    opencv-python
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] \
+    http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+    | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
-# Node.js dependencies (global)
-sudo npm install -g \
-    vite \
-    eslint \
-    prettier
-```
-
-#### 3. Install Gazebo Garden
-
-```bash
-# Add Gazebo repository
-sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
-
-# Install Gazebo Garden
 sudo apt update
-sudo apt install gz-garden
-
-# ROS2-Gazebo bridge
-sudo apt install ros-jazzy-ros-gz-bridge ros-jazzy-ros-gz-sim
+sudo apt install -y gz-harmonic
+sudo apt install -y ros-jazzy-ros-gz-bridge ros-jazzy-ros-gz-sim
 ```
 
-#### 4. Clone and Build DIAMANTS
+### 3. Build the backend
 
 ```bash
-# Clone repository
-git clone https://github.com/lololem/diamants-collab.git
-cd diamants-collab
-
-# Setup and build
+cd diamants-collab/DIAMANTS_BACKEND
 ./setup.sh
 ```
 
-## 🔧 Component Installation
-
-### Backend (ROS2)
+Or manually:
 
 ```bash
-cd DIAMANTS_BACKEND
-
-# Build ROS2 workspace
-cd slam_collaboratif/ros2_ws
+cd diamants-collab/DIAMANTS_BACKEND/slam_collaboratif/ros2_ws
 colcon build --symlink-install
-
-# Source workspace
 source install/setup.bash
-echo "source $(pwd)/install/setup.bash" >> ~/.bashrc
 ```
 
-### API Bridge (FastAPI)
+### 4. Install the API bridge (optional)
 
 ```bash
-cd DIAMANTS_API
-
-# Create virtual environment
+cd diamants-collab/DIAMANTS_API
 python3 -m venv venv
 source venv/bin/activate
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Test installation
-python test_api_integration.py
 ```
 
-### Frontend (Three.js)
+## Verify installation
 
 ```bash
+# Frontend
 cd DIAMANTS_FRONTEND/Mission_system
+npm run build   # Should produce dist/ with no errors
 
-# Install dependencies
+# Backend (if installed)
+ros2 --version  # Should show ROS2 Jazzy
+
+# Gazebo (if installed)
+gz sim --version
+```
+
+## Troubleshooting
+
+### `npm install` fails
+
+```bash
+rm -rf node_modules package-lock.json
 npm install
-
-# Build frontend
-npm run build
-
-# Development server
-npm run dev
 ```
 
-## 🧪 Verification & Testing
+### `THREE is not defined`
 
-### System Health Check
+The frontend uses ES6 modules. Make sure you're using `npm run dev` (Vite), not opening `index.html` directly in a browser.
+
+### WebSocket connection refused
+
+This is normal if no backend is running. The frontend falls back to standalone mode (CAS 2). The WebSocket errors in the console can be ignored.
+
+### Gazebo crashes on launch
+
+Check GPU drivers:
 
 ```bash
-# Run comprehensive system check
-./check_ros_processes.sh
-
-# Expected output:
-# ✅ ROS2 Jazzy: Installed
-# ✅ Gazebo Garden: Installed
-# ✅ Python dependencies: OK
-# ✅ Node.js dependencies: OK
-# ✅ DIAMANTS build: Success
+glxinfo | grep "direct rendering"   # Should say "Yes"
+nvidia-smi                           # For NVIDIA GPUs
 ```
 
-### Component Tests
+### ROS2 topics not visible
 
 ```bash
-# Test ROS2 backend
-cd DIAMANTS_BACKEND
-ros2 launch slam_collaboratif test_system.launch.py
-
-# Test API bridge
-cd DIAMANTS_API
-python -m pytest tests/
-
-# Test frontend
-cd DIAMANTS_FRONTEND/Mission_system
-npm test
-```
-
-### Integration Test
-
-```bash
-# Launch complete system test
-./run_integration_test.sh
-
-# Expected: All 3 components communicate successfully
-```
-
-## 🔌 Hardware Setup
-
-### Crazyflie Configuration
-
-```bash
-# Install Crazyflie Python library
-pip3 install cflib
-
-# Crazyflie ROS2 driver
-cd DIAMANTS_BACKEND/slam_collaboratif/ros2_ws/src
-git clone https://github.com/IMRCLab/crazyswarm2.git
-cd ../..
-colcon build --packages-select crazyflie_py crazyflie_interfaces
-
-# Configure radio
-# Connect Crazyradio PA to USB
-lsusb | grep "1915:7777"  # Should show Crazyradio
-```
-
-### Network Configuration
-
-```bash
-# Configure network for multi-machine setup
-export ROS_DOMAIN_ID=42
-
-# For multiple computers
-export ROS_LOCALHOST_ONLY=0
-export RMW_IMPLEMENTATION=rmw_cyclonedx_cpp
-
-# Add to ~/.bashrc
-echo "export ROS_DOMAIN_ID=42" >> ~/.bashrc
-echo "export RMW_IMPLEMENTATION=rmw_cyclonedx_cpp" >> ~/.bashrc
-```
-
-## 🚨 Troubleshooting
-
-### Common Issues
-
-#### ROS2 Not Found
-```bash
-# Symptom: ros2 command not found
-# Solution:
 source /opt/ros/jazzy/setup.bash
-echo "source /opt/ros/jazzy/setup.bash" >> ~/.bashrc
+source DIAMANTS_BACKEND/slam_collaboratif/ros2_ws/install/setup.bash
+ros2 topic list
 ```
-
-#### Gazebo Launch Fails
-```bash
-# Symptom: Gazebo crashes on launch
-# Check GPU drivers:
-nvidia-smi  # For NVIDIA users
-sudo apt install mesa-utils && glxinfo | grep OpenGL
-
-# Solution: Update GPU drivers
-sudo apt install nvidia-driver-510  # NVIDIA
-sudo apt install mesa-vulkan-drivers  # AMD/Intel
-```
-
-#### Python Import Errors
-```bash
-# Symptom: ModuleNotFoundError
-# Ensure virtual environment:
-cd DIAMANTS_API
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-#### WebSocket Connection Failed
-```bash
-# Symptom: Frontend can't connect to API
-# Check firewall:
-sudo ufw allow 8080
-sudo ufw allow 3000
-
-# Check services:
-netstat -tulpn | grep :8080
-netstat -tulpn | grep :3000
-```
-
-#### Crazyflie Not Detected
-```bash
-# Check USB permissions:
-sudo usermod -a -G dialout $USER
-sudo udev reload-rules
-
-# Check radio status:
-lsusb | grep "1915:7777"
-dmesg | tail -20
-```
-
-### Performance Issues
-
-#### Low FPS in 3D Interface
-```bash
-# Check GPU acceleration:
-glxinfo | grep "direct rendering"
-
-# Enable hardware acceleration:
-export MESA_GL_VERSION_OVERRIDE=4.5
-export MESA_GLSL_VERSION_OVERRIDE=450
-```
-
-#### High CPU Usage
-```bash
-# Limit ROS2 CPU usage:
-export RMW_IMPLEMENTATION=rmw_cyclonedx_cpp
-export CYCLONEDX_URI="<CycloneDX><Domain><General><NetworkInterfaceAddress>lo</NetworkInterfaceAddress></General></Domain></CycloneDX>"
-```
-
-### Log Analysis
-
-```bash
-# ROS2 logs
-ros2 topic echo /rosout
-
-# API logs
-tail -f DIAMANTS_API/logs/api.log
-
-# Frontend logs (browser console)
-# Open browser DevTools (F12) and check Console tab
-
-# System logs
-journalctl -u ros2-daemon
-dmesg | grep -i error
-```
-
-## 🔒 Security Configuration
-
-### Firewall Setup
-
-```bash
-# Configure UFW for DIAMANTS
-sudo ufw enable
-sudo ufw allow 8080/tcp   # API
-sudo ufw allow 3000/tcp   # Frontend
-sudo ufw allow 7400/udp   # ROS2 discovery
-sudo ufw allow 7401/udp   # ROS2 discovery
-```
-
-### SSL/TLS (Production)
-
-```bash
-# Generate certificates for production
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365
-
-# Configure API for HTTPS
-export DIAMANTS_SSL_CERT="cert.pem"
-export DIAMANTS_SSL_KEY="key.pem"
-```
-
-## 📊 Performance Tuning
-
-### System Optimization
-
-```bash
-# Increase shared memory for ROS2
-echo "kernel.shmmax = 268435456" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-
-# Optimize network buffers
-echo "net.core.rmem_max = 134217728" | sudo tee -a /etc/sysctl.conf
-echo "net.core.wmem_max = 134217728" | sudo tee -a /etc/sysctl.conf
-sudo sysctl -p
-```
-
-### Real-time Configuration
-
-```bash
-# For real-time performance (optional)
-sudo apt install linux-lowlatency
-echo "@realtime soft rtprio 99" | sudo tee -a /etc/security/limits.conf
-echo "@realtime hard rtprio 99" | sudo tee -a /etc/security/limits.conf
-```
-
-## ✅ Installation Verification
-
-### Final Checklist
-
-- [ ] ROS2 Jazzy installed and sourced
-- [ ] Gazebo Garden running without errors
-- [ ] Python virtual environment activated
-- [ ] Node.js dependencies installed
-- [ ] All DIAMANTS components built successfully
-- [ ] Network configuration complete
-- [ ] Hardware (if applicable) detected
-- [ ] System tests passing
-
-### Success Indicators
-
-```bash
-# All these commands should work:
-ros2 --version                    # Shows ROS2 Jazzy
-gz --version                      # Shows Gazebo Garden
-python3 -c "import fastapi"       # No import error
-node --version                    # Shows Node.js 18+
-./launch_diamants.sh --dry-run    # Shows launch plan
-```
-
-🎉 **Installation Complete!** Your DIAMANTS system is ready. Next step: [Launch Guide](Launch-Guide)

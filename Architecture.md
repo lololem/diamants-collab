@@ -1,410 +1,208 @@
-# 🏗 System Architecture
+# Architecture
 
-Complete technical architecture of the DIAMANTS distributed multi-agent drone system.
+## Overview
 
-## 🎯 Overall Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    DIAMANTS ECOSYSTEM                           │
-├─────────────────┬─────────────────┬─────────────────────────────┤
-│   Frontend      │   API Bridge    │       Backend               │
-│   Three.js      │   FastAPI       │       ROS2 Jazzy           │
-│   WebGL         │   WebSocket     │       Gazebo Garden         │
-│   React UI      │   REST API      │       Navigation Stack     │
-└─────────────────┴─────────────────┴─────────────────────────────┘
-```
-
-## 🚁 System Components
-
-### Core Subsystems
-
-1. **Frontend Interface** (DIAMANTS_FRONTEND)
-2. **API Communication Bridge** (DIAMANTS_API)
-3. **ROS2 Backend** (DIAMANTS_BACKEND)
-
-### Data Flow Architecture
+DIAMANTS has three layers. Only the first is required.
 
 ```
-User Interface (Three.js)
-    ↕ WebSocket
-API Bridge (FastAPI)
-    ↕ ROS2 Topics/Services
-Backend (ROS2 Jazzy + Gazebo)
-    ↕ Radio/USB
-Physical Drones (Crazyflie)
+┌─────────────────────────────────────────────────────────┐
+│  FRONTEND (always)                                      │
+│  Vite + Three.js + WebGL                                │
+│  Autonomous Flight Engine (PID, 60 FPS)                 │
+│  Drone Physics Registry (JSON profiles)                 │
+│  Swarm Intelligence Interface (plugin slot)             │
+│                                                         │
+│        ▼ WebSocket (port 8765) — optional ▼             │
+├─────────────────────────────────────────────────────────┤
+│  ADAPTER (one of, optional)                             │
+│  ┌───────────────┐  ┌──────────────────────────┐        │
+│  │ ROS2 Backend  │  │ MAVLink Gateway          │        │
+│  │ + Gazebo      │  │ pymavlink + websockets   │        │
+│  │ + FastAPI     │  │ PX4 real/SITL            │        │
+│  └───────────────┘  └──────────────────────────┘        │
+├─────────────────────────────────────────────────────────┤
+│  DRONES (physical or simulated)                         │
+│  Crazyflie 2.1  |  Mavic Pro  |  PX4 SITL  |  Custom   │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## 💻 Frontend Architecture (DIAMANTS_FRONTEND)
+The frontend is fully autonomous. Without any WebSocket source, it runs its own PID engine and simulates drone flights in 3D. When a telemetry source connects on port 8765, the frontend switches to tracking mode and renders real positions.
 
-### Technology Stack
-- **Three.js r160**: 3D rendering engine
-- **WebGL 2.0**: Hardware-accelerated graphics
-- **Vite**: Build tool and development server
-- **ES6 Modules**: Modern JavaScript architecture
+## Three operating modes (CAS)
 
-### Component Structure
+The frontend uses a 3-tier fallback system internally called CAS (Cascade Autonomy System):
+
+| Mode | Trigger | What happens |
+|------|---------|-------------|
+| CAS 1 — Backend | WebSocket connected, receiving `drone_positions` | Frontend renders positions from external source |
+| CAS 2 — Autonomous | WebSocket down or no backend | AutonomousFlightEngine runs PID at 60 FPS |
+| CAS 3 — Minimal | Engine fails to initialize | Basic position update, no PID |
+
+Transition is automatic. If the WebSocket drops, the frontend falls back to CAS 2 with exponential backoff reconnection (1s, 2s, 4s, ..., 30s max).
+
+## Frontend architecture
 
 ```
 Mission_system/
-├── core/
-│   ├── diamant-system.js       # Main system orchestrator
-│   ├── app-state.js            # Global application state
-│   └── event-manager.js        # Event handling system
-├── visual/
-│   ├── three-visualizer.js     # 3D scene management
-│   ├── drone-visual.js         # Drone 3D representation
-│   └── environment-renderer.js # Environment visualization
-├── controllers/
-│   ├── camera-controller.js    # Camera movement and controls
-│   ├── mission-controller.js   # Mission planning interface
-│   └── input-handler.js        # User input processing
-├── ui/
-│   ├── control-panel.js        # Main control interface
-│   ├── telemetry-dashboard.js  # Real-time metrics display
-│   └── mission-planner.js      # Visual mission creation
-├── intelligence/
-│   ├── collective-intelligence.js    # Basic swarm intelligence
-│   └── advanced-collective-intelligence.js # Advanced AI algorithms
-├── physics/
-│   ├── physics-engine.js       # Physics simulation
-│   └── collision-detection.js  # Collision system
-├── net/
-│   ├── websocket-manager.js    # WebSocket communication
-│   └── api-client.js           # REST API client
-└── behaviors/
-    ├── flight-behaviors.js     # Drone flight patterns
-    └── collaborative-scouting.js # Swarm behaviors
+  main.js                          # Entry point, initializes everything
+  core/
+    diamant-system.js              # System orchestrator
+    app-state.js                   # Global state
+    event-manager.js               # Event bus
+  physics/
+    autonomous-flight-engine.js    # PID flight engine (CAS 2)
+    drone-physics-registry.js      # Singleton, loads profiles
+    pid-controller.js              # Generic PID controller
+    drone-physics.js               # Physics calculations
+    profiles/                      # JSON drone definitions
+  intelligence/
+    swarm-intelligence-interface.js # Abstract plugin interface
+    collective-intelligence.js     # Built-in behaviors
+  net/
+    ros-bridge-simple.js           # WebSocket client
+  visual/
+    three-visualizer.js            # Scene, camera, lights
+    drone-visual.js                # Drone 3D meshes
+    environment-renderer.js        # Terrain, trees, buildings
+  ui/
+    control-panel.js               # UI overlays
+  controllers/
+    camera-controller.js           # Orbit camera
+  behaviors/
+    flight-behaviors.js            # Exploration, patrol, RTL patterns
+  src/protocols/
+    drone-state.schema.json        # WebSocket message format
 ```
 
-### Rendering Pipeline
+### Data flow (CAS 2 — standalone)
 
 ```
-Scene Setup → Drone Loading → Physics Update → Render Loop
-    ↓              ↓              ↓             ↓
-Lighting      3D Models     Calculations   60 FPS Output
-Environment   Animations    Collisions    WebGL Render
+main.js
+  → AutonomousFlightEngine.initialize()
+      → DronePhysicsRegistry.load() — reads JSON profiles
+      → SwarmIntelligenceInterface.initialize()
+  → render loop (60 FPS):
+      1. engine.update(dt)
+         a. For each drone: PID computes thrust from (position, target)
+         b. SwarmIntelligence.computeInfluences(droneStates, dt)
+         c. Merge PID output + swarm influences
+         d. Apply collision avoidance (trees, other drones)
+         e. Integrate velocity → new position
+      2. visualizer.render(droneStates)
 ```
 
-## 🛰 API Bridge Architecture (DIAMANTS_API)
-
-### Technology Stack
-- **FastAPI**: Modern Python web framework
-- **WebSocket**: Real-time bidirectional communication
-- **Pydantic**: Data validation and serialization
-- **asyncio**: Asynchronous programming
-
-### Service Architecture
+### Data flow (CAS 1 — with backend)
 
 ```
-api/
-├── main.py                    # FastAPI application entry
-├── config.py                  # Configuration management
-├── models.py                  # Data models and schemas
-├── websocket_bridge.py        # WebSocket server
-├── websocket_bridge_simple.py # Simplified WebSocket
-└── ros2_stubs.py              # ROS2 integration stubs
+External source (ROS2 backend or MAVLink gateway)
+  → WebSocket message: { type: "drone_positions", drones: {...} }
+  → ros-bridge-simple.js receives and parses
+  → Updates drone positions in scene
+  → visualizer.render()
 ```
 
-### Communication Protocols
+## Drone Physics Registry
 
-**WebSocket Messages:**
-```json
-{
-  "type": "telemetry_update",
-  "drone_id": "cf2x_01",
-  "timestamp": "2025-09-19T10:30:00Z",
-  "data": {
-    "position": {"x": 1.2, "y": 0.8, "z": 1.5},
-    "velocity": {"vx": 0.1, "vy": 0.0, "vz": 0.0},
-    "battery": 85
-  }
-}
-```
+The registry is a singleton that loads drone profiles from JSON files. Each profile defines:
 
-**REST API Endpoints:**
-- GET `/api/drones` - List all drones
-- POST `/api/drones/{id}/takeoff` - Initiate takeoff
-- PUT `/api/drones/{id}/position` - Update position
-- POST `/api/missions/create` - Create mission
-- GET `/api/health` - System health check
+- Physical properties (mass, arm length, bounding radius)
+- Performance envelope (max speed, max altitude, agility)
+- PID gains (position, altitude, yaw)
+- Visual properties (scale, color, 3D model reference)
 
-### Data Processing Pipeline
+Built-in profiles: Crazyflie 2.1, Mavic Pro, Phantom 4.
 
-```
-Frontend Request → FastAPI Router → Data Validation → ROS2 Bridge → Backend
-Frontend Update ← WebSocket Push ← Data Transform ← ROS2 Callback ← Backend
-```
+To add a drone, drop a JSON file in `physics/profiles/` following `drone-profile.schema.json`. The registry normalizes missing optional fields with defaults.
 
-## 🤖 Backend Architecture (DIAMANTS_BACKEND)
+The registry does NOT control real drones. PX4 does its own physics. The registry informs the frontend about each drone's expected flight envelope for visualization and simulation purposes.
 
-### Technology Stack
-- **ROS2 Jazzy**: Robot Operating System
-- **Gazebo Garden**: Physics simulation
-- **Python 3.10**: Primary programming language
-- **CycloneDX**: DDS implementation
+## Swarm Intelligence Interface
 
-### ROS2 Workspace Structure
+The flight engine exposes 4 hooks for swarm intelligence:
 
-```
-slam_collaboratif/ros2_ws/src/
-├── crazyflie_ros/             # Crazyflie drivers
-├── diamants_msgs/             # Custom message definitions
-├── diamants_launch/           # Launch file configurations
-├── navigation_stack/          # Path planning and navigation
-├── simulation_worlds/         # Gazebo world definitions
-└── collective_intelligence/   # Swarm intelligence algorithms
-```
+1. `initialize(config)` — called once with drone count, arena size, profiles
+2. `computeInfluences(droneStates, dt)` — called every frame, returns influence map
+3. `onDroneAdded(id, profile)` — a drone joined
+4. `onDroneRemoved(id)` — a drone left
 
-### Node Architecture
+The default implementation (`NoopSwarmIntelligence`) returns empty maps. To implement your own algorithm, extend `SwarmIntelligenceInterface` and register it with the engine.
 
-**Primary Nodes:**
-1. **Drone Control Node**: Individual drone management
-2. **Swarm Coordinator**: Multi-drone coordination
-3. **Mission Executor**: Mission planning and execution
-4. **Safety Monitor**: Emergency systems and collision avoidance
-5. **Telemetry Publisher**: Data streaming to API bridge
+Influences are suggestions, not commands. The PID controller has final authority. An influence can modify the target position, bias the velocity, or override priority — but the PID always enforces safety limits.
 
-### ROS2 Topic Structure
+## WebSocket protocol
+
+All adapters (ROS2 backend, MAVLink gateway, custom) must send messages in the format defined by `src/protocols/drone-state.schema.json`.
+
+Core message types:
+
+| Type | Direction | Description |
+|------|-----------|-------------|
+| `drone_positions` | adapter → frontend | Telemetry for all drones |
+| `drone_command` | frontend → adapter | Command for one drone |
+| `swarm_command` | frontend → adapter | Command for all drones |
+| `mission_command` | frontend → adapter | Mission start/stop/update |
+| `ping` / `pong` | bidirectional | Keepalive |
+
+The `drone_positions` message contains a `drones` object keyed by drone ID. Each drone entry has: position (Three.js Y-up coordinates), velocity, battery percentage, status, armed flag, PX4 mode, GPS data, source identifier, and profile reference.
+
+## Backend architecture (optional)
+
+### ROS2 microservices
+
+The backend runs 4 independent ROS2 nodes:
 
 ```
-# Command Topics
-/cf2x_01/cmd_vel              # geometry_msgs/Twist
-/cf2x_01/cmd_position         # geometry_msgs/PoseStamped
-/swarm/formation_command      # diamants_msgs/FormationCommand
-
-# Status Topics
-/cf2x_01/pose                 # geometry_msgs/PoseStamped
-/cf2x_01/battery_state        # sensor_msgs/BatteryState
-/swarm/collective_state       # diamants_msgs/CollectiveState
-
-# System Topics
-/system/emergency             # std_msgs/Bool
-/mission/status               # diamants_msgs/MissionStatus
+ros2_microservices/
+  swarm_controller/        # Swarm-level coordination logic
+  position_broadcaster/    # Publishes positions to WebSocket
+  slam_fusion/             # Merges SLAM maps from multiple drones
+  mission_coordinator/     # Mission planning and execution
 ```
 
-## 🧠 Collective Intelligence Architecture
+Each node is a standalone ROS2 process. They communicate via ROS2 topics (DDS). The PositionBroadcaster node opens a WebSocket server on port 8765 and sends `drone_positions` messages to the frontend.
 
-### DIAMANTS Algorithm Framework
+### Gazebo integration
 
-The system implements 15 harmonics for collective intelligence:
+Gazebo Harmonic provides physics simulation. The backend spawns drone models in Gazebo, which publishes sensor data (IMU, range, camera) and receives velocity commands. The ROS2-Gazebo bridge (`ros_gz_bridge`) translates between Gazebo transport and ROS2 topics.
 
-```python
-I(t) = Σ(n=1 to 15) αₙ × Hₙ(t)
+Gazebo is optional. The backend can run without it in "headless" mode, reading positions from MAVLink SITL instances instead.
+
+### SLAM
+
+The `slam_collaboratif` workspace contains packages for multi-drone SLAM:
+- Individual drone mapping (each drone builds its own map)
+- Map merging (a fusion node combines maps from all drones)
+- Frontier detection (identifies unexplored areas)
+
+## Adapter pattern
+
+Anyone can write an adapter that connects to the frontend. The contract is simple:
+
+1. Open a WebSocket server on port 8765
+2. Send `drone_positions` messages at regular intervals (10-50 Hz)
+3. Receive `drone_command` / `swarm_command` / `mission_command` messages
+4. Translate them to your drone's native protocol
+
+Examples of adapters:
+- ROS2 backend (included) — reads ROS2 topics, sends to WebSocket
+- MAVLink gateway — reads pymavlink, sends to WebSocket
+- Custom adapter — any language, any drone, same WebSocket contract
+
+## Coordinate systems
+
+The frontend uses Three.js coordinates (Y-up, right-handed):
+- X: right
+- Y: up
+- Z: forward (toward camera)
+
+PX4/MAVLink uses NED (North-East-Down):
+- X: north
+- Y: east
+- Z: down
+
+The adapter is responsible for the conversion. The formula:
 ```
-
-Where:
-- `I(t)`: Collective intelligence at time t
-- `αₙ`: Weighting coefficient for harmonic n
-- `Hₙ(t)`: Value of harmonic n at time t
-
-### Intelligence Components
-
-1. **Basic Harmonics (H1-H5)**
-   - External field, Internal field, Total energy
-   - Interaction forces, Curvature measures
-
-2. **Dynamic Harmonics (H6-H10)**
-   - Noise factors, Evolution rates, Stability measures
-   - Anisotropy, Flux curvature
-
-3. **Advanced Harmonics (H11-H15)**
-   - Symmetry, Vorticity, Coherence
-   - Flow dynamics, Entropy measures
-
-### Emergent Behavior Engine
-
-```python
-class CollectiveIntelligence:
-    def __init__(self):
-        self.harmonic_calculator = HarmonicCalculator()
-        self.behavior_engine = EmergentBehaviorEngine()
-        self.consensus_system = DistributedConsensus()
-    
-    def update(self, drones, environment):
-        # Calculate 15 DIAMANTS harmonics
-        harmonics = self.harmonic_calculator.compute_all(drones)
-        
-        # Generate emergent behaviors
-        behaviors = self.behavior_engine.generate(harmonics)
-        
-        # Apply to drone swarm
-        self.apply_behaviors(drones, behaviors)
+three_x =  ned_y   (east → right)
+three_y = -ned_z   (down → up, inverted)
+three_z =  ned_x   (north → forward)
 ```
-
-## 🌐 Network Architecture
-
-### Communication Layers
-
-```
-Application Layer    │ Three.js UI ↔ User Interaction
-Presentation Layer   │ WebSocket ↔ JSON Serialization
-Session Layer        │ FastAPI ↔ Connection Management
-Transport Layer      │ TCP/UDP ↔ ROS2 DDS
-Network Layer        │ IP ↔ Multi-machine Support
-Physical Layer       │ Ethernet/WiFi ↔ Hardware
-```
-
-### Multi-Machine Setup
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Control PC    │    │   Simulation    │    │   Flight PC     │
-│   - Frontend    │◄──►│   - Gazebo      │◄──►│   - Real Drones │
-│   - API Bridge  │    │   - Physics     │    │   - Hardware    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-### Security Architecture
-
-- **Authentication**: Token-based API access
-- **Encryption**: TLS 1.3 for all communications
-- **Authorization**: Role-based access control
-- **Network Isolation**: VPN for distributed setups
-
-## 📊 Data Architecture
-
-### Data Flow Types
-
-1. **Command Flow**: User → Frontend → API → ROS2 → Drones
-2. **Telemetry Flow**: Drones → ROS2 → API → Frontend → Display
-3. **Mission Flow**: Planner → Validator → Executor → Monitor
-
-### Database Schema (Future)
-
-```sql
--- Missions table
-CREATE TABLE missions (
-    id UUID PRIMARY KEY,
-    name VARCHAR(255),
-    status ENUM('planned', 'active', 'completed', 'failed'),
-    waypoints JSONB,
-    created_at TIMESTAMP,
-    updated_at TIMESTAMP
-);
-
--- Telemetry table
-CREATE TABLE telemetry (
-    id BIGSERIAL PRIMARY KEY,
-    drone_id VARCHAR(50),
-    timestamp TIMESTAMP,
-    position POINT,
-    velocity VECTOR,
-    battery_level FLOAT,
-    sensors JSONB
-);
-```
-
-### Message Formats
-
-**Telemetry Message:**
-```protobuf
-message TelemetryData {
-    string drone_id = 1;
-    google.protobuf.Timestamp timestamp = 2;
-    Position position = 3;
-    Velocity velocity = 4;
-    float battery_level = 5;
-    SensorData sensors = 6;
-}
-```
-
-## 🔧 Configuration Architecture
-
-### Configuration Hierarchy
-
-```
-1. Default Values (hardcoded)
-2. Configuration Files (YAML)
-3. Environment Variables
-4. Command Line Arguments
-5. Runtime Overrides
-```
-
-### Configuration Files
-
-**System Configuration:**
-```yaml
-# config/system.yaml
-system:
-  name: "DIAMANTS"
-  version: "1.0.0"
-  max_drones: 50
-  update_rate: 50
-
-drones:
-  default_type: "crazyflie_2x"
-  spawn_height: 0.1
-  safety_distance: 0.5
-
-physics:
-  gravity: -9.81
-  air_density: 1.225
-  wind_enabled: false
-```
-
-## 🚀 Deployment Architecture
-
-### Development Environment
-
-```bash
-# Single machine development
-Frontend (localhost:3000) ↔ API (localhost:8080) ↔ ROS2 (local)
-```
-
-### Production Environment
-
-```bash
-# Distributed production setup
-Load Balancer → Multiple API Instances → ROS2 Cluster → Drone Fleet
-```
-
-### Container Architecture (Future)
-
-```dockerfile
-# Docker Compose setup
-services:
-  frontend:
-    build: ./DIAMANTS_FRONTEND
-    ports: ["3000:3000"]
-  
-  api:
-    build: ./DIAMANTS_API
-    ports: ["8080:8080"]
-    depends_on: [backend]
-  
-  backend:
-    build: ./DIAMANTS_BACKEND
-    volumes: ["/dev:/dev"]
-    privileged: true
-```
-
-## 🔍 Monitoring Architecture
-
-### Health Monitoring
-
-```python
-class SystemHealthMonitor:
-    def __init__(self):
-        self.metrics = {
-            'frontend_fps': 0,
-            'api_latency': 0,
-            'ros2_hz': 0,
-            'drone_count': 0,
-            'error_rate': 0
-        }
-    
-    def collect_metrics(self):
-        # Collect from all system components
-        return self.aggregate_health_score()
-```
-
-### Logging Architecture
-
-```
-Application Logs → Structured Logging → Central Aggregation → Analysis
-     ↓                     ↓                     ↓              ↓
-  Component           JSON Format           Log Server     Alerting
-```
-
-This architecture provides a robust, scalable foundation for autonomous drone swarm operations with real-time coordination and intelligent collective behaviors.

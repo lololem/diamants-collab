@@ -65,7 +65,7 @@ logs/
 # Wiki directory (managed separately)
 diamants-collab.wiki/
 
-# LOTUSSIM (Naval Group — inspiration only, not part of this repo)
+# External simulators (not part of this project)
 LOTUSSIM/
 
 # Archive (legacy code, kept locally only)
