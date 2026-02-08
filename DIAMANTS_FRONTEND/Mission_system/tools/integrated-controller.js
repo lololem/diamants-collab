@@ -1,6 +1,10 @@
 /**
  * DIAMANTS - Contrôleur Principal Intégré
  * ==========================================
+ * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
+ * Fallback 3-tier : Backend ROS2 → AutonomousFlightEngine → simple update.
+ * Restaurer : git checkout v0-origin -- tools/integrated-controller.js
+ *
  * Système unifié intégrant toutes les fonctionnalités migrées
  */
 
