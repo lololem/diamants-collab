@@ -68,6 +68,12 @@ diamants-collab.wiki/
 # VENDOR_SIM (a vendor — inspiration only, not part of this repo)
 VENDOR_SIM/
 
+# Archive (legacy code, kept locally only)
+_archive/
+
+# Build artifacts
+DIAMANTS_FRONTEND/Mission_system/dist/
+
 # IDE / workspace
 *.code-workspace
 package-lock.json
