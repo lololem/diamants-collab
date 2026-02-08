@@ -68,6 +68,12 @@ diamants-collab.wiki/
 # LOTUSSIM (Naval Group — inspiration only, not part of this repo)
 LOTUSSIM/
 
+# Archive (legacy code, kept locally only)
+_archive/
+
+# Build artifacts
+DIAMANTS_FRONTEND/Mission_system/dist/
+
 # IDE / workspace
 *.code-workspace
 package-lock.json
