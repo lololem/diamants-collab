@@ -10,6 +10,7 @@ import asyncio
 import os
 import sys
 import logging
+import threading
 
 # Ensure imports work from this directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -58,6 +59,17 @@ async def start_all():
 
     # Start WebSocket server
     await bridge.start_server()
+
+    # Spin ROS2 node in a background thread so callbacks fire
+    if ROS2_AVAILABLE:
+        def _spin_ros2():
+            try:
+                rclpy.spin(bridge)
+            except Exception as e:
+                logger.warning(f"ROS2 spin stopped: {e}")
+        ros2_thread = threading.Thread(target=_spin_ros2, daemon=True)
+        ros2_thread.start()
+        logger.info("ROS2 spin thread started — bridge will receive topic callbacks")
 
     # Run API (blocking)
     await run_api_server()

@@ -116,17 +116,26 @@ export class AuthenticProvencalEnvironment {
         const geometry = new THREE.PlaneGeometry(x, y, 256, 256);
         
         // Relief provençal réaliste avec collines et vallées
+        // FLAT inside heliport zone, hills only outside
+        const ARENA_FLAT_RADIUS = 12.0;  // Flat zone = heliport (8m) + margin
         const vertices = geometry.attributes.position.array;
         for (let i = 0; i < vertices.length; i += 3) {
             const xPos = vertices[i];
             const yPos = vertices[i + 1];
             
+            // Distance from center (arena center)
+            const distFromCenter = Math.sqrt(xPos * xPos + yPos * yPos);
+            
+            // Hills only OUTSIDE the arena — smooth transition
+            const hillFade = Math.max(0.0, Math.min(1.0, (distFromCenter - ARENA_FLAT_RADIUS) / 3.0));
+            
             // Relief multi-fréquences pour collines provençales
-            const elevation = 
-                Math.sin(xPos * 0.02) * Math.cos(yPos * 0.015) * 8.0 +
-                Math.sin(xPos * 0.05) * Math.cos(yPos * 0.04) * 4.0 +
-                Math.sin(xPos * 0.1) * Math.cos(yPos * 0.08) * 2.0 +
-                (Math.random() - 0.5) * 0.5; // Rugosité naturelle
+            const elevation = hillFade * (
+                Math.sin(xPos * 0.04) * Math.cos(yPos * 0.03) * 4.0 +
+                Math.sin(xPos * 0.08) * Math.cos(yPos * 0.06) * 2.0 +
+                Math.sin(xPos * 0.15) * Math.cos(yPos * 0.12) * 1.0 +
+                (Math.random() - 0.5) * 0.3 // Rugosité naturelle
+            );
             
             vertices[i + 2] = elevation;
         }
@@ -332,34 +341,27 @@ export class AuthenticProvencalEnvironment {
         this.scene.add(this.terrain);
         this.materials.push(material);
         
-        // Helper pour positionner sur le terrain - EXACTEMENT les mêmes calculs que le terrain
+        // Helper pour positionner sur le terrain (flat inside arena, hills outside)
         this.getHeightAt = (x, z) => {
-            // Vérifier si on est sur la plateforme centrale
-            if (this.centralPlatform) {
-                const distanceFromCenter = Math.sqrt(x * x + z * z);
-                if (distanceFromCenter <= this.centralPlatform.radius) {
-                    return this.centralPlatform.height + 0.3; // Hauteur plateforme + épaisseur surface
-                }
-            }
-            
-            // IMPORTANT: Mêmes calculs que la génération du terrain pour correspondance parfaite
-            return (
-                Math.sin(x * 0.02) * Math.cos(z * 0.015) * 8.0 +
-                Math.sin(x * 0.05) * Math.cos(z * 0.04) * 4.0 +
-                Math.sin(x * 0.1) * Math.cos(z * 0.08) * 2.0
-                // Note: On retire le random pour avoir une fonction déterministe
+            const distFromCenter = Math.sqrt(x * x + z * z);
+            // Flat inside 12m radius (heliport 8m + margin), hills beyond
+            const hillFade = Math.max(0.0, Math.min(1.0, (distFromCenter - 12.0) / 6.0));
+            return hillFade * (
+                Math.sin(x * 0.04) * Math.cos(z * 0.03) * 4.0 +
+                Math.sin(x * 0.08) * Math.cos(z * 0.06) * 2.0 +
+                Math.sin(x * 0.15) * Math.cos(z * 0.12) * 1.0
             );
         };
         
-        // Fonction spécialisée pour l'herbe qui AUTORISE l'herbe sous la plateforme
+        // Fonction spécialisée pour l'herbe — exclut la zone du héliport central
         this.getGrassHeightAt = (x, z) => {
-            // Important: on ne filtre plus la zone de la plateforme, pour permettre de l'herbe en dessous
-            // Utiliser la hauteur normale du terrain (pas la hauteur de la plateforme)
-            return (
-                Math.sin(x * 0.02) * Math.cos(z * 0.015) * 8.0 +
-                Math.sin(x * 0.05) * Math.cos(z * 0.04) * 4.0 +
-                Math.sin(x * 0.1) * Math.cos(z * 0.08) * 2.0
-            );
+            // No grass on the enlarged heliport platform (circular exclusion)
+            const HELIPORT_EXCLUSION_RADIUS = 10.0; // metres from center — matches 8m platform + margin
+            const distFromCenter = Math.sqrt(x * x + z * z);
+            if (distFromCenter < HELIPORT_EXCLUSION_RADIUS) {
+                return -999; // Signal to grass system: skip this position
+            }
+            return this.getHeightAt(x, z);
         };
         
         log('✅ Terrain méditerranéen créé');
@@ -405,7 +407,7 @@ export class AuthenticProvencalEnvironment {
         log('🌳 Génération forêt provençale authentique avec EZ-Tree...');
         
         const { x, y } = this.config.terrainSize;
-        const margin = 20;
+        const margin = 10; // Keep trees 10m inside terrain edges
         
         // Configuration espèces provençales avec presets EZ-Tree adaptés
         const provencalSpecies = [
@@ -467,16 +469,17 @@ export class AuthenticProvencalEnvironment {
         // Génération avec placement intelligent
         const placedPositions = [];
         
-        // Zone centrale exclue (clairière)
-        const centerRadius = 40; // Rayon de la clairière centrale
+        // Tree exclusion zone — no trees near heliport (circular)
+        const arenaExclusion = this.config.arenaExclusionRadius || 12; // metres from center — clear zone for drone ops
+        const treeMargin = 10; // metres from terrain edge
         
-        for (let attempt = 0; attempt < maxTrees * 3 && treeCount < maxTrees; attempt++) {
-            const px = (Math.random() - 0.5) * (x - margin * 2);
-            const pz = (Math.random() - 0.5) * (y - margin * 2);
+        for (let attempt = 0; attempt < maxTrees * 5 && treeCount < maxTrees; attempt++) {
+            const px = (Math.random() - 0.5) * (x - treeMargin * 2);
+            const pz = (Math.random() - 0.5) * (y - treeMargin * 2);
             
-            // Exclure le centre (créer une clairière)
-            const distanceFromCenter = Math.sqrt(px * px + pz * pz);
-            if (distanceFromCenter < centerRadius) continue;
+            // Exclure la zone du héliport (circulaire)
+            const distFromCenter = Math.sqrt(px * px + pz * pz);
+            if (distFromCenter < arenaExclusion) continue;
             
             // Vérifier espacement minimum
             const tooClose = placedPositions.some(pos => {
@@ -495,6 +498,21 @@ export class AuthenticProvencalEnvironment {
                 forestGroup.add(tree);
                 placedPositions.push({ x: px, z: pz });
                 treeCount++;
+                
+                // Register tree bounding box for collision avoidance
+                if (this.collisionDetection) {
+                    const trunkRadius = 1.5; // Collision radius around trunk (metres)
+                    const treeHeight = 8.0;  // Approximate tree height
+                    const treeBox = new THREE.Box3();
+                    treeBox.setFromCenterAndSize(
+                        new THREE.Vector3(px, treeHeight / 2, pz),
+                        new THREE.Vector3(trunkRadius * 2, treeHeight, trunkRadius * 2)
+                    );
+                    // Store bounding boxes as userData on the tree
+                    tree.userData.collisionBox = treeBox;
+                    tree.userData.collisionRadius = trunkRadius;
+                    tree.userData.collisionCenter = { x: px, z: pz };
+                }
                 
                 // Log progression
                 if (treeCount % 20 === 0) {
@@ -782,39 +800,77 @@ export class AuthenticProvencalEnvironment {
     }
 
     async createCentralPlatform() {
-        log('🏗️ Création de la plateforme d\'atterrissage pour drones...');
-        
-        const platformRadius = 12; // Réduite pour 6 drones
-        const platformHeight = 8.5; // UNIFIÉ: Même hauteur que PLATFORM_HEIGHT système
-        
-        // Groupe principal de la plateforme
-        const platformGroup = new THREE.Group();
-        platformGroup.name = 'DronesPlatform';
-        
-        // === PILIERS DE SUPPORT ===
-        this.createPlatformPillars(platformGroup, platformRadius, platformHeight);
-        
-        // === SURFACE DE LA PLATEFORME ===
-        this.createPlatformSurface(platformGroup, platformRadius, platformHeight);
-        
-        // === MARQUAGES DRONES ===
-        this.createDroneMarkers(platformGroup, platformRadius, platformHeight);
-        
-        // Ajouter à la scène
-        this.scene.add(platformGroup);
-        
-        // Stocker la référence pour la fonction getHeightAt
-        this.centralPlatform = {
-            position: { x: 0, y: platformHeight, z: 0 },
-            radius: platformRadius,
-            height: platformHeight
-        };
-        
-        // NOUVEAU: Initialiser le système de collision avec les dimensions réelles de la plateforme
+        // ── Central heliport platform (NO arena walls — open space) ──
+        log('🏗️ Création plateforme héliport centrale (espace ouvert, pas de murs)...');
+
+        const PLATFORM_HEIGHT = 0.15;   // Low platform flush with ground
+        const PLATFORM_RADIUS = 8.0;    // LARGE heliport — 8m radius for 8 drones
+
+        const arenaGroup = new THREE.Group();
+        arenaGroup.name = 'GazeboArena';
+
+        // ── Central platform (heliport) ──
+        const platformGeo = new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, 48);
+        const platformMat = new THREE.MeshStandardMaterial({
+            color: 0x555555,
+            roughness: 0.9,
+            metalness: 0.1,
+        });
+        const platform = new THREE.Mesh(platformGeo, platformMat);
+        platform.position.set(0, PLATFORM_HEIGHT / 2, 0);
+        platform.receiveShadow = true;
+        platform.name = 'CentralPlatform';
+        arenaGroup.add(platform);
+
+        // Heliport marking — outer ring
+        const markingGeo = new THREE.RingGeometry(6.5, 7.0, 48);
+        const markingMat = new THREE.MeshBasicMaterial({
+            color: 0xffcc00,
+            side: THREE.DoubleSide,
+        });
+        const marking = new THREE.Mesh(markingGeo, markingMat);
+        marking.rotation.x = -Math.PI / 2;
+        marking.position.set(0, PLATFORM_HEIGHT + 0.01, 0);
+        marking.name = 'HeliportMarking';
+        arenaGroup.add(marking);
+
+        // Inner "H" marking
+        const hMarkGeo = new THREE.RingGeometry(2.5, 3.0, 32);
+        const hMark = new THREE.Mesh(hMarkGeo, markingMat.clone());
+        hMark.rotation.x = -Math.PI / 2;
+        hMark.position.set(0, PLATFORM_HEIGHT + 0.01, 0);
+        arenaGroup.add(hMark);
+
+        // Drone position markers (8 spots on the platform, radius 5.5m)
+        const DRONE_MARKER_RADIUS = 5.5;
+        for (let i = 0; i < 8; i++) {
+            const angle = (i / 8) * Math.PI * 2;
+            const mx = Math.cos(angle) * DRONE_MARKER_RADIUS;
+            const mz = Math.sin(angle) * DRONE_MARKER_RADIUS;
+            const spotGeo = new THREE.RingGeometry(0.3, 0.5, 16);
+            const spotMat = new THREE.MeshBasicMaterial({ color: 0xff4444, side: THREE.DoubleSide });
+            const spot = new THREE.Mesh(spotGeo, spotMat);
+            spot.rotation.x = -Math.PI / 2;
+            spot.position.set(mx, PLATFORM_HEIGHT + 0.015, mz);
+            spot.name = `DroneSpot_${i}`;
+            arenaGroup.add(spot);
+        }
+
+        // NO WALLS — drones fly in open space, forest is the boundary
+
+        // Ground grid around the heliport for spatial reference
+        const gridHelper = new THREE.GridHelper(20, 20, 0x334455, 0x223344);
+        gridHelper.position.y = 0.01;
+        arenaGroup.add(gridHelper);
+
+        this.scene.add(arenaGroup);
+
+        this.centralPlatform = platform;
+
+        // Initialize collision detection
         this.collisionDetection.initialize(this.scene);
-        this.collisionDetection.updatePlatformConfig(platformHeight, platformRadius);
-        
-        log('✅ Plateforme de drones créée avec marquages et système de collision');
+
+        log('✅ Plateforme héliport créée (espace ouvert, pas de murs)');
     }
 
     createPlatformPillars(platformGroup, radius, height) {
@@ -1032,6 +1088,51 @@ export class AuthenticProvencalEnvironment {
 
     // ===== MÉTHODES PUBLIQUES POUR COLLISION =====
     
+    /**
+     * Returns all tree bounding boxes for external collision systems
+     * Each entry: { center: {x, z}, radius: number, box: THREE.Box3 }
+     */
+    getTreeBoundingBoxes() {
+        return this.trees
+            .filter(t => t.userData && t.userData.collisionBox)
+            .map(t => ({
+                center: t.userData.collisionCenter,
+                radius: t.userData.collisionRadius,
+                box: t.userData.collisionBox,
+                name: t.name,
+            }));
+    }
+
+    /**
+     * Check if a position collides with any tree trunk
+     * Returns { collides: boolean, nearestTree: string|null, distance: number }
+     */
+    checkTreeCollision(x, z, droneRadius = 0.3) {
+        let nearestDist = Infinity;
+        let nearestTree = null;
+        
+        for (const tree of this.trees) {
+            if (!tree.userData || !tree.userData.collisionCenter) continue;
+            const tc = tree.userData.collisionCenter;
+            const tr = tree.userData.collisionRadius || 1.5;
+            const dx = x - tc.x;
+            const dz = z - tc.z;
+            const dist = Math.sqrt(dx * dx + dz * dz);
+            const minDist = tr + droneRadius;
+            
+            if (dist < nearestDist) {
+                nearestDist = dist;
+                nearestTree = tree.name;
+            }
+            
+            if (dist < minDist) {
+                return { collides: true, nearestTree: tree.name, distance: dist };
+            }
+        }
+        
+        return { collides: false, nearestTree, distance: nearestDist };
+    }
+
     /**
      * Vérifie et corrige la position d'un drone pour éviter les collisions
      */

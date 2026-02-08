@@ -21,6 +21,10 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from config.topics import PORTS
+from api.models import (
+    DroneModel, DroneStatus, DroneType, Position, Velocity,
+    MissionModel, MissionStatus, StartMissionRequest,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -66,11 +70,35 @@ async def _bridge_is_alive() -> bool:
         import websockets  # type: ignore
         async with websockets.connect(BRIDGE_URL, close_timeout=2) as ws:
             await ws.send(json.dumps({"type": "ping"}))
-            resp = await asyncio.wait_for(ws.recv(), timeout=2)
-            data = json.loads(resp)
-            return data.get("type") == "pong"
+            # Bridge sends initial_state first, then our pong — read up to 3 msgs
+            for _ in range(3):
+                resp = await asyncio.wait_for(ws.recv(), timeout=2)
+                data = json.loads(resp)
+                if data.get("type") == "pong":
+                    return True
+            return False
     except Exception:
         return False
+
+
+async def _get_bridge_state() -> Optional[Dict[str, Any]]:
+    """Fetch the full telemetry state cache from the DiamantsBridge.
+    Returns the state dict on success, None when the bridge is unreachable."""
+    try:
+        import websockets  # type: ignore
+        async with websockets.connect(BRIDGE_URL, close_timeout=3) as ws:
+            # Bridge sends initial_state on connect — that already has the data we want
+            # Also send get_status in case we want a fresh snapshot
+            await ws.send(json.dumps({"type": "get_status"}))
+            for _ in range(3):
+                resp = await asyncio.wait_for(ws.recv(), timeout=3)
+                data = json.loads(resp)
+                if data.get("type") in ("initial_state", "current_status"):
+                    return data.get("data", {})
+            return None
+    except Exception as e:
+        logger.warning(f"Cannot fetch bridge state: {e}")
+        return None
 
 
 # ---------------------------------------------------------------------------
@@ -196,33 +224,72 @@ async def move_drone(drone_id: str, direction: Dict[str, float]):
 
 @app.get("/api/drones")
 async def list_drones():
-    """List all available drones.
-    TODO(T1.4): replace with real telemetry from bridge state cache."""
-    return {
-        "drones": [
-            {
-                "id": "crazyflie_01",
-                "type": "crazyflie",
-                "status": "ready",
-                "battery": 95,
-                "position": {"x": 0, "y": 0, "z": 0},
-            }
-        ]
-    }
+    """List all known drones with their last-known telemetry."""
+    state = await _get_bridge_state()
+    if state is None:
+        # Bridge unreachable
+        return {
+            "drones": [],
+            "source": "offline",
+            "message": "Bridge unreachable — no live telemetry available",
+        }
+
+    drones = []
+    for drone_id, info in state.get("drones", {}).items():
+        pos = info.get("position", {})
+        drones.append(
+            DroneModel(
+                id=drone_id,
+                type=DroneType.CRAZYFLIE,
+                status=DroneStatus(info.get("status", "ready")),
+                battery=info.get("battery", 100.0),
+                position=Position(
+                    x=pos.get("x", 0.0),
+                    y=pos.get("y", 0.0),
+                    z=pos.get("z", 0.0),
+                ),
+                velocity=Velocity(
+                    x=info.get("velocity", {}).get("x", 0.0),
+                    y=info.get("velocity", {}).get("y", 0.0),
+                    z=info.get("velocity", {}).get("z", 0.0),
+                ) if info.get("velocity") else None,
+            ).model_dump()
+        )
+    return {"drones": drones, "source": "bridge"}
 
 
 @app.get("/api/drones/{drone_id}/status")
 async def get_drone_status(drone_id: str):
-    """Get specific drone status.
-    TODO(T1.4): replace with real telemetry from bridge state cache."""
-    return {
-        "drone_id": drone_id,
-        "status": "ready",
-        "battery": 95,
-        "position": {"x": 0, "y": 0, "z": 0},
-        "velocity": {"x": 0, "y": 0, "z": 0},
-        "timestamp": datetime.now().isoformat(),
-    }
+    """Get specific drone status from the bridge telemetry cache."""
+    state = await _get_bridge_state()
+    if state:
+        drone_info = state.get("drones", {}).get(drone_id)
+        if drone_info:
+            pos = drone_info.get("position", {})
+            vel = drone_info.get("velocity", {})
+            return DroneModel(
+                id=drone_id,
+                type=DroneType.CRAZYFLIE,
+                status=DroneStatus(drone_info.get("status", "ready")),
+                battery=drone_info.get("battery", 100.0),
+                position=Position(
+                    x=pos.get("x", 0.0),
+                    y=pos.get("y", 0.0),
+                    z=pos.get("z", 0.0),
+                ),
+                velocity=Velocity(
+                    x=vel.get("x", 0.0),
+                    y=vel.get("y", 0.0),
+                    z=vel.get("z", 0.0),
+                ) if vel else None,
+                timestamp=datetime.now(),
+            ).model_dump()
+
+    # Bridge unreachable or drone not found → 404
+    raise HTTPException(
+        status_code=404,
+        detail=f"Drone '{drone_id}' not found in telemetry cache (bridge may be offline)",
+    )
 
 
 # -----------------------------------------------------------------------
@@ -257,37 +324,49 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str):
 # -----------------------------------------------------------------------
 @app.get("/api/missions")
 async def list_missions():
-    """List available missions.
-    TODO(T1.4): load from mission config / ROS2 params."""
+    """List missions — live data from bridge when available, otherwise defaults."""
+    state = await _get_bridge_state()
+    if state and state.get("mission") and state["mission"].get("missions"):
+        return {"missions": state["mission"]["missions"], "source": "bridge"}
+
+    # Default mission catalogue (always available even without bridge)
+    defaults = [
+        MissionModel(
+            id="scouting_mission_01",
+            name="Collaborative Scouting",
+            description="Multi-drone reconnaissance mission",
+            status=MissionStatus.AVAILABLE,
+            drones_required=3,
+        ).model_dump(),
+        MissionModel(
+            id="slam_mission_01",
+            name="SLAM Mapping",
+            description="Collaborative SLAM mapping mission",
+            status=MissionStatus.AVAILABLE,
+            drones_required=2,
+        ).model_dump(),
+    ]
+
+    # Merge current mission status from bridge if available
+    mission_state = (state or {}).get("mission", {})
+    active_status = mission_state.get("status", "idle")
     return {
-        "missions": [
-            {
-                "id": "scouting_mission_01",
-                "name": "Collaborative Scouting",
-                "description": "Multi-drone reconnaissance mission",
-                "status": "available",
-                "drones_required": 3,
-            },
-            {
-                "id": "slam_mission_01",
-                "name": "SLAM Mapping",
-                "description": "Collaborative SLAM mapping mission",
-                "status": "available",
-                "drones_required": 2,
-            },
-        ]
+        "missions": defaults,
+        "active_mission_status": active_status,
+        "source": "default" if state is None else "bridge",
     }
 
 
 @app.post("/api/missions/{mission_id}/start")
-async def start_mission(mission_id: str, drone_ids: List[str]):
+async def start_mission(mission_id: str, body: StartMissionRequest):
     """Start a mission with specified drones"""
     command = {
         "type": "mission_command",
         "data": {
             "action": "start",
             "mission_id": mission_id,
-            "drone_ids": drone_ids,
+            "drone_ids": body.drone_ids,
+            "parameters": body.parameters,
             "timestamp": datetime.now().isoformat(),
         },
     }
@@ -298,9 +377,41 @@ async def start_mission(mission_id: str, drone_ids: List[str]):
     return {
         "status": "success",
         "mission_id": mission_id,
-        "drone_ids": drone_ids,
+        "drone_ids": body.drone_ids,
         "bridge": sent,
         "message": "Mission started successfully",
+    }
+
+
+# -----------------------------------------------------------------------
+# Swarm & system telemetry endpoints
+# -----------------------------------------------------------------------
+@app.get("/api/swarm/status")
+async def get_swarm_status():
+    """Get current swarm intelligence metrics from bridge cache."""
+    state = await _get_bridge_state()
+    if state:
+        return {
+            "swarm": state.get("swarm", {}),
+            "drone_count": len(state.get("drones", {})),
+            "source": "bridge",
+        }
+    return {"swarm": {}, "drone_count": 0, "source": "offline"}
+
+
+@app.get("/api/system/status")
+async def get_system_status():
+    """Get system-wide status (ROS2, simulation, bridge, API)."""
+    state = await _get_bridge_state()
+    bridge_alive = state is not None
+    system = state.get("system", {}) if state else {}
+    return {
+        "api": True,
+        "bridge": bridge_alive,
+        "ros2_available": system.get("ros2_available", False),
+        "simulation_active": system.get("simulation_active", False),
+        "active_connections": len(manager.active_connections),
+        "timestamp": datetime.now().isoformat(),
     }
 
 

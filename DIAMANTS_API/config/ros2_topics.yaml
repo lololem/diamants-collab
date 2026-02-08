@@ -1,0 +1,193 @@
+# ===========================================================================
+# DIAMANTS — ROS2 Topic & Port Registry (Human-readable reference)
+# ===========================================================================
+# This is the DOCUMENTATION version of config/topics.py.
+# The Python file is the single source of truth for code.
+# Keep them in sync.
+# ===========================================================================
+
+# ─── Network Ports ──────────────────────────────────────────────────────────
+ports:
+  api_rest:     8000   # FastAPI REST endpoints
+  websocket:    8765   # Unified WebSocket bridge
+  frontend_dev: 3000   # Vite dev server
+
+# ─── Drone Telemetry (Backend → API → Frontend) ────────────────────────────
+telemetry:
+  drone_positions:
+    topic: /diamants/drones/positions
+    type:  std_msgs/String          # JSON: { "cf1": {"x":1,"y":2,"z":0.5}, … }
+    dir:   backend → api → frontend
+    freq:  10 Hz
+    note: >
+      Aggregated positions for all drones. Published by the backend
+      swarm coordinator (remapped from legacy /swarm/drone_positions).
+
+  drone_telemetry:
+    topic: /diamants/drones/telemetry
+    type:  std_msgs/String          # JSON: { "drone_id":"cf1", "battery":92, … }
+    dir:   backend → api → frontend
+    freq:  5 Hz
+
+  drone_battery:
+    topic: /diamants/drones/battery
+    type:  std_msgs/String          # JSON: { "cf1": 92, "cf2": 87 }
+    dir:   backend → api → frontend
+    freq:  1 Hz
+
+  propeller_speeds:
+    topic: /diamants/drones/propeller_speeds
+    type:  std_msgs/String          # JSON: { "cf1": [rpm1,rpm2,rpm3,rpm4] }
+    dir:   backend → api → frontend
+    freq:  10 Hz
+
+# ─── Swarm Intelligence (Backend → API → Frontend) ─────────────────────────
+swarm:
+  intelligence_score:
+    topic: /diamants/swarm/intelligence_score
+    type:  std_msgs/Float32         # 0.0–1.0
+    dir:   backend → api → frontend
+    freq:  0.1 Hz (every 10s)
+    note: >
+      Computed by SwarmIntelligenceMonitor. Composite of dispersion (25%),
+      coverage (30%), intelligence (30%), safety (15%).
+      Legacy topic: /swarm/score
+
+  coverage_area:
+    topic: /diamants/swarm/coverage_area
+    type:  std_msgs/Float32         # m²
+    dir:   backend → api → frontend
+    freq:  0.1 Hz
+    note:  "Legacy topic: /swarm/coverage_area"
+
+  swarm_status:
+    topic: /diamants/swarm/status
+    type:  std_msgs/String          # JSON: { "formation":"v-shape", "status":"scouting", … }
+    dir:   backend → api → frontend
+    freq:  0.1 Hz
+    note:  "Legacy topic: /swarm/swarm_status"
+
+  formation:
+    topic: /diamants/swarm/formation
+    type:  std_msgs/String          # JSON: { "type":"v-shape", "params":{} }
+    dir:   backend → api → frontend
+    freq:  on-change
+
+# ─── Mission (Backend → API → Frontend) ────────────────────────────────────
+mission:
+  mission_status:
+    topic: /diamants/mission/status
+    type:  std_msgs/String          # JSON: { "status":"in_progress", "progress":0.7 }
+    dir:   backend → api → frontend
+    freq:  1 Hz during mission
+
+  mission_waypoints:
+    topic: /diamants/mission/waypoints
+    type:  std_msgs/String          # JSON: [ {"x":1,"y":2,"z":3}, … ]
+    dir:   backend → api → frontend
+    freq:  on-change
+
+# ─── Commands (Frontend → API → Backend) ───────────────────────────────────
+commands:
+  drone_commands:
+    topic: /diamants/drones/commands
+    type:  std_msgs/String          # JSON: { "action":"takeoff", "drone_id":"cf1" }
+    dir:   frontend → api → backend
+    note:  "Legacy topic: /swarm/drone_commands"
+
+  drone_cmd_vel:
+    topic: /diamants/drones/cmd_vel
+    type:  geometry_msgs/Twist
+    dir:   frontend → api → backend
+    note:  "Per-drone remapping: /{drone_id}/cmd_vel in Gazebo bridge"
+
+  swarm_commands:
+    topic: /diamants/swarm/commands
+    type:  std_msgs/String          # JSON: { "action":"scatter" }
+    dir:   frontend → api → backend
+    note:  "Legacy topic: /swarm/web_commands"
+
+  mission_commands:
+    topic: /diamants/mission/commands
+    type:  std_msgs/String          # JSON: { "action":"start", "mission_id":"scout_01" }
+    dir:   frontend → api → backend
+
+  parameter_changes:
+    topic: /diamants/parameters
+    type:  std_msgs/String          # JSON: { "name":"max_speed", "value":2.5 }
+    dir:   frontend → api → backend
+    note:  "Legacy topic: /swarm/parameter_changes"
+
+# ─── System (Bidirectional) ────────────────────────────────────────────────
+system:
+  system_status:
+    topic: /diamants/system/status
+    type:  std_msgs/String          # JSON: { "simulation_active":true, … }
+    dir:   bidirectional
+    freq:  1 Hz
+
+  system_emergency:
+    topic: /diamants/system/emergency
+    type:  std_msgs/Bool
+    dir:   frontend → api → backend
+    note:  "Emergency stop — all drones land immediately"
+
+  system_heartbeat:
+    topic: /diamants/system/heartbeat
+    type:  std_msgs/String          # JSON: { "node":"bridge", "ts":1234567890 }
+    dir:   bidirectional
+    freq:  1 Hz
+
+# ─── AI Bridge (diamants-private, future) ──────────────────────────────────
+ai:
+  ai_decision:
+    topic: /diamants/ai/decision
+    type:  std_msgs/String          # JSON: { "action":"goto", "target":[x,y,z] }
+    dir:   private → api → frontend
+    note:  "Phase 2 — AI autonomy decisions from RL/LLM"
+
+  ai_perception:
+    topic: /diamants/ai/perception
+    type:  std_msgs/String          # JSON: sensor fusion data
+    dir:   backend → private
+    note:  "Phase 2"
+
+  ai_mavlink_state:
+    topic: /diamants/ai/mavlink_state
+    type:  std_msgs/String          # JSON: MAVLink vehicle state
+    dir:   private → api
+    note:  "Phase 2"
+
+# ─── Backend-internal topics (NOT bridged to API) ──────────────────────────
+# These exist inside the ROS2 backend but are NOT forwarded through
+# the WebSocket bridge. Listed here for completeness.
+backend_internal:
+  per_drone_odom:
+    topic: "/{drone_id}/odom"       # nav_msgs/Odometry — per Gazebo bridge
+  per_drone_scan:
+    topic: "/{drone_id}/scan"       # sensor_msgs/LaserScan
+  per_drone_pose:
+    topic: "/{drone_id}/pose"       # geometry_msgs/PoseStamped
+  per_drone_status:
+    topic: "/{drone_id}/status"     # std_msgs/String
+  map_merged:
+    topic: "/map_merged"            # nav_msgs/OccupancyGrid — SLAM output
+  map_fusion:
+    topic: "/map_fusion_weighted"   # nav_msgs/OccupancyGrid
+  map_golden:
+    topic: "/map_golden_zones"      # nav_msgs/OccupancyGrid
+  map_coverage:
+    topic: "/map_coverage"          # nav_msgs/OccupancyGrid
+  tf:
+    topic: "/tf"                    # tf2_msgs/TFMessage
+
+# ─── Legacy → New Topic Mapping ───────────────────────────────────────────
+# Use this table when migrating backend nodes to the /diamants/ namespace.
+legacy_mapping:
+  "/swarm/drone_positions":        "/diamants/drones/positions"
+  "/swarm/score":                  "/diamants/swarm/intelligence_score"
+  "/swarm/coverage_area":          "/diamants/swarm/coverage_area"
+  "/swarm/swarm_status":           "/diamants/swarm/status"
+  "/swarm/web_commands":           "/diamants/swarm/commands"
+  "/swarm/drone_commands":         "/diamants/drones/commands"
+  "/swarm/parameter_changes":      "/diamants/parameters"

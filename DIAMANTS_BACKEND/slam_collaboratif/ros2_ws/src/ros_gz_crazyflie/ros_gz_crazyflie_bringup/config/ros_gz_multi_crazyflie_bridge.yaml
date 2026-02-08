@@ -174,6 +174,48 @@
   gz_type_name: "gz.msgs.Pose_V"
   direction: GZ_TO_ROS 
 
+# ===== MulticopterVelocityControl enable topics (ROS2 Bool → Gazebo Boolean) =====
+- ros_topic_name: "/crazyflie/enable"
+  gz_topic_name: "/crazyflie/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie1/enable"
+  gz_topic_name: "/crazyflie1/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie2/enable"
+  gz_topic_name: "/crazyflie2/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie3/enable"
+  gz_topic_name: "/crazyflie3/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie4/enable"
+  gz_topic_name: "/crazyflie4/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie5/enable"
+  gz_topic_name: "/crazyflie5/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie6/enable"
+  gz_topic_name: "/crazyflie6/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+- ros_topic_name: "/crazyflie7/enable"
+  gz_topic_name: "/crazyflie7/enable"
+  ros_type_name: "std_msgs/msg/Bool"
+  gz_type_name: "gz.msgs.Boolean"
+  direction: ROS_TO_GZ
+
 # Clock (global)
 - ros_topic_name: "/clock"
   gz_topic_name: "/clock"

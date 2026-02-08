@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # DIAMANTS - Drone Intelligence for Advanced Mapping and Navigation Through Swarms
 # 
 # Copyright (c) 2025 DIAMANTS Project Contributors

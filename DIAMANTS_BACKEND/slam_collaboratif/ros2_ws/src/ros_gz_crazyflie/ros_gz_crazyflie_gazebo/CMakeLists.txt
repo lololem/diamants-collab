@@ -10,6 +10,11 @@ install(
   DESTINATION share/${PROJECT_NAME}/worlds
 )
 
+install(
+  DIRECTORY models/
+  DESTINATION share/${PROJECT_NAME}/models
+)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   ament_lint_auto_find_test_dependencies()

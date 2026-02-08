@@ -104,6 +104,7 @@ import { AuthenticProvencalEnvironment } from './environment/authentic-provencal
 import { AuthenticCrazyflie } from './drones/authentic-crazyflie.js';
 import { RosWebBridge, makeOdometry, yawToQuat } from './net/ros-bridge-simple.js';
 import { IntegratedDiamantsController } from './tools/integrated-controller.js';
+import { OrchestrationConsole } from './ui/orchestration-console.js';
 
 class DiamantsMissionSystem {
     constructor() {
@@ -126,6 +127,9 @@ class DiamantsMissionSystem {
         this._focusSmoothing = { center: null, radius: 10 }; // center sera initialisé plus tard
         this.clock = null; // clock sera initialisé plus tard
         
+        // Orchestration console — instantiated early so it captures all events
+        this.orchestrationConsole = new OrchestrationConsole();
+
         log('🚀 Initialisation DIAMANTS Mission System V3 avec EZ-Tree');
         this.init();
     }
@@ -402,77 +406,114 @@ class DiamantsMissionSystem {
 
     async setupRosWeb() {
         try {
-            this.ros = new RosWebBridge({ url: 'ws://localhost:8765' });
-            // Wait briefly for connection; don't block if fails
+            this.ros = new RosWebBridge({ silent: window.SILENT_MODE });
             await this.ros.connect().catch(() => {});
             
-            log(`🔌 ROS2 WebSocket Setup: Tentative de connexion à ws://localhost:8765`);
+            log(`🔌 ROS2 WebSocket: ${this.ros.connected ? 'Connected' : 'Offline'} — ${this.ros.url}`);
             
-            // Subscribe to simple command topic for each drone
-            this.drones.forEach((d) => {
-                const ns = `/${d.id}`;
-                
-                log(`📡 Configuration ROS2 pour drone ${d.id}: Topics ${ns}/cmd/*`);
-                
-                // Subscribe to target pose commands
-                this.ros.subscribe(`${ns}/cmd/target_pose`, 'geometry_msgs/PoseStamped', (msg) => {
+            // ── ID mapper ────────────────────────────────────────────
+            // Backend IDs (crazyflie_01, 1-indexed) ↔ Frontend IDs (crazyflie_0, 0-indexed)
+            this._findLocalDrone = (backendId) => {
+                if (!this.drones?.length) return null;
+                // 1) Exact match
+                let d = this.drones.find(dr => dr.id === backendId);
+                if (d) return d;
+                const m = backendId.match(/^(.+?)_0*(\d+)$/);
+                if (m) {
+                    const num = parseInt(m[2], 10);
+                    // 2) Backend 1-indexed → frontend 0-indexed (priority!)
+                    d = this.drones.find(dr => dr.id === `${m[1]}_${num - 1}`);
+                    if (d) return d;
+                    // 3) Strip leading zeros only: crazyflie_01 → crazyflie_1
+                    d = this.drones.find(dr => dr.id === `${m[1]}_${m[2]}`);
+                    if (d) return d;
+                }
+                // 4) Positional fallback
+                const idx = parseInt(backendId.replace(/\D/g, ''), 10);
+                if (!isNaN(idx) && idx > 0 && idx <= this.drones.length) return this.drones[idx - 1];
+                return null;
+            };
+
+            // ── Backend-driven position handler ──────────────────────
+            // Listen for the global CustomEvent emitted by RosWebBridge
+            // whenever it receives drone positions from the backend.
+            // This works regardless of whether per-drone subs are set up.
+            this._backendPosCount = 0;
+            this._lastBackendLog = 0;
+            window.addEventListener('diamants:drone-positions', (evt) => {
+                const drones = evt.detail;
+                if (!drones || typeof drones !== 'object') return;
+                let matched = 0;
+                for (const [backendId, info] of Object.entries(drones)) {
+                    // Accept both nested {position:{x,y,z}} and flat {x,y,z}
+                    const pos = info?.position || (info?.x !== undefined ? { x: info.x, y: info.y, z: info.z || 0 } : null);
+                    if (!pos) continue;
+                    const drone = this._findLocalDrone(backendId);
+                    if (!drone) continue;
+                    matched++;
                     try {
-                        const p = msg.pose.position;
-                        const previousState = d.state;
-                        const previousTarget = {x: d.targetPosition.x, y: d.targetPosition.y, z: d.targetPosition.z};
-                        
-                        d.targetPosition.set(p.x, p.y, p.z);
-                        d.targetAltitude = p.y;
-                        if (d.state === 'IDLE') d.state = 'TAKEOFF';
-                        
-                        // 🔍 LOGS DÉTAILLÉS COMMANDE ROS2
-                        log(`📥 ${d.id} | ROS2 TARGET_POSE: [${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}] | État: ${previousState} -> ${d.state}`);
-                        
-                        // Initialiser les données ROS2 pour cohérence
-                        if (!d.rosData) d.rosData = {};
-                        d.rosData.lastUpdate = Date.now();
-                        d.rosData.position = {x: p.x, y: p.y, z: p.z};
-                        d.rosData.command = 'target_pose';
-                        
-                    } catch (e) {
-                        console.error(`❌ ${d.id} | Erreur traitement ROS2 target_pose: ${e.message}`);
-                    }
-                });
-                
-                // Simple land command
-                this.ros.subscribe(`${ns}/cmd/land`, 'std_msgs/Empty', () => {
-                    try { 
-                        const previousState = d.state;
-                        d.state = 'LANDING';
-                        log(`📥 ${d.id} | ROS2 LAND COMMAND: État ${previousState} -> LANDING`);
-                        
-                        if (!d.rosData) d.rosData = {};
-                        d.rosData.lastUpdate = Date.now();
-                        d.rosData.command = 'land';
-                    } catch (e) {
-                        console.error(`❌ ${d.id} | Erreur traitement ROS2 land: ${e.message}`);
-                    }
-                });
-                
-                // Subscribe to takeoff command
-                this.ros.subscribe(`${ns}/cmd/takeoff`, 'std_msgs/Float32', (msg) => {
-                    try {
-                        const targetAlt = msg.data || 2.0;
-                        log(`📥 ${d.id} | ROS2 TAKEOFF COMMAND: altitude=${targetAlt}m`);
-                        
-                        // Utiliser la fonction takeoff existante avec logs détaillés
-                        d.takeoff(targetAlt);
-                        
-                        if (!d.rosData) d.rosData = {};
-                        d.rosData.lastUpdate = Date.now();
-                        d.rosData.command = 'takeoff';
-                        d.rosData.targetAltitude = targetAlt;
-                        
-                    } catch (e) {
-                        console.error(`❌ ${d.id} | Erreur traitement ROS2 takeoff: ${e.message}`);
-                    }
-                });
+                        // Set the target for smooth lerp interpolation
+                        drone.targetPosition.set(pos.x, pos.y, pos.z);
+                        if (drone.state === 'IDLE') drone.state = 'FLYING';
+
+                        // Tag with rosData for UI/debugging
+                        if (!drone.rosData) drone.rosData = {};
+                        drone.rosData.lastUpdate = Date.now();
+                        drone.rosData.position = { x: pos.x, y: pos.y, z: pos.z };
+                        drone.rosData.source = 'backend';
+                        // Forward backend battery & status
+                        if (info.battery !== undefined) drone.rosData.battery = info.battery;
+                        if (info.status) drone.rosData.status = info.status;
+                    } catch (_) { /* safe */ }
+                }
+                this._backendPosCount++;
+                const now = Date.now();
+                if (now - this._lastBackendLog > 5000) {
+                    this._lastBackendLog = now;
+                    console.warn(`📡 Backend positions: ${this._backendPosCount} updates, ${matched}/${Object.keys(drones).length} drones matched, ${this.drones?.length || 0} local drones`);
+                }
             });
+            
+            // ── Backend propeller speeds handler ────────────────────
+            window.addEventListener('diamants:propeller-speeds', (evt) => {
+                const data = evt.detail;
+                if (!data || typeof data !== 'object') return;
+                for (const [droneId, speeds] of Object.entries(data)) {
+                    const drone = this._findLocalDrone(droneId);
+                    if (!drone) continue;
+                    if (!drone.rosData) drone.rosData = {};
+                    drone.rosData.propeller_speeds = speeds; // [rpm1, rpm2, rpm3, rpm4]
+                    drone.rosData.lastUpdate = Date.now();
+                }
+            });
+
+            // ── Deferred per-drone subscriptions ─────────────────────
+            this._rosSubscribedDrones = new Set();
+            this._subscribeDronesToRos = () => {
+                if (!this.ros || !this.drones?.length) return;
+                this.drones.forEach((d) => {
+                    if (this._rosSubscribedDrones.has(d.id)) return;
+                    this._rosSubscribedDrones.add(d.id);
+                    const ns = `/${d.id}`;
+                    log(`📡 ROS2 subscriptions for ${d.id}`);
+                    this.ros.subscribe(`${ns}/cmd/target_pose`, 'geometry_msgs/PoseStamped', (msg) => {
+                        try {
+                            const p = msg.pose.position;
+                            d.targetPosition.set(p.x, p.y, p.z);
+                            d.targetAltitude = p.y;
+                            if (d.state === 'IDLE') d.state = 'TAKEOFF';
+                        } catch (_) {}
+                    });
+                    this.ros.subscribe(`${ns}/cmd/land`, 'std_msgs/Empty', () => {
+                        try { d.state = 'LANDING'; } catch (_) {}
+                    });
+                    this.ros.subscribe(`${ns}/cmd/takeoff`, 'std_msgs/Float32', (msg) => {
+                        try { d.takeoff(msg.data || 2.0); } catch (_) {}
+                    });
+                });
+            };
+            this._subscribeDronesToRos();
+            
             log('🌐 ROS-Web bridge prêt');
         } catch (e) {
             warn('ROS-Web non disponible:', e.message);
@@ -498,10 +539,10 @@ class DiamantsMissionSystem {
         const container = this.renderer.domElement.parentElement;
         const aspect = container.clientWidth / container.clientHeight;
         
-        this.camera = new THREE.PerspectiveCamera(60, aspect, 0.1, 2000);
-        // Position initiale optimisée pour voir les drones au centre
-        this.camera.position.set(40, 15, 40);
-        this.camera.lookAt(0, 6, 0); // Centré sur l'altitude des drones
+        this.camera = new THREE.PerspectiveCamera(60, aspect, 0.01, 1000);
+        // Elevated view: above tree canopy, looking down at the arena
+        this.camera.position.set(20, 18, 20);
+        this.camera.lookAt(0, 2, 0);
         
         log('📷 Caméra configurée');
     }
@@ -515,13 +556,13 @@ class DiamantsMissionSystem {
         this.controls.enableRotate = true;
         
         // Limites réalistes pour la caméra
-        this.controls.minDistance = 5;
-        this.controls.maxDistance = 200;
+        this.controls.minDistance = 1;
+        this.controls.maxDistance = 100;
         this.controls.minPolarAngle = Math.PI / 6; // Pas trop bas
         this.controls.maxPolarAngle = Math.PI / 2 + 0.1; // Légèrement sous l'horizon
         
-        // Centrer les contrôles sur l'altitude des drones - FIXE
-        this.controls.target.set(0, 6, 0);
+        // Centrer les contrôles sur l'altitude des drones (0.5m)
+        this.controls.target.set(0, 0.5, 0);
         
         // DÉSACTIVER toute animation automatique
         this.controls.autoRotate = false;
@@ -556,14 +597,19 @@ class DiamantsMissionSystem {
         
         try {
             this.environment = new AuthenticProvencalEnvironment(this.scene, {
-                // Moins d'arbres et davantage d'espace entre eux
-                terrainSize: { x: 300, y: 300 },
-                forestDensity: 0.5,
-                maxTrees: 110,
+                terrainSize: { x: 200, y: 200 },
+                forestDensity: 0.4,
+                maxTrees: 60,
                 minTreeSpacing: 16.0,
                 enableSkybox: true,
                 enableTerrain: true,
-                enableForest: true
+                enableForest: true,          // Forest AROUND the arena
+                enableFallenLeaves: true,
+                enableForestWood: true,
+                enableUndergrowth: true,
+                grassCount: 60000,
+                leavesCount: 2000,
+                arenaExclusionRadius: 12,    // No trees inside 12m radius — clear zone around heliport
             });
             
             // NOUVEAU: Exposer l'environnement globalement pour le système de collision
@@ -619,8 +665,8 @@ class DiamantsMissionSystem {
                 emergenceThreshold: 0.8,
                 
                 // Paramètres de performance
-                droneCount: 6, // Nombre de drones pour correspondre aux 6 cercles rouges
-                maxConcurrentDrones: 6,
+                droneCount: 8, // Must match backend (8 Crazyflie in Gazebo)
+                maxConcurrentDrones: 8,
                 updateFrequency: 30, // Hz
                 
                 // Mode développement
@@ -631,6 +677,8 @@ class DiamantsMissionSystem {
             // Mettre à jour le pont global pour l'UI principale
             try {
                 window.DIAMANTS = window.DIAMANTS || {};
+                // Expose system instance for diagnostic access
+                window.DIAMANTS.system = this;
                 // Exposer l'accès au MissionManager attendu par l'UI
                 window.DIAMANTS.getMissionManager = () => this.integratedController?.missionManager || null;
                 // Exposer le contrôleur pour outils debug
@@ -648,8 +696,8 @@ class DiamantsMissionSystem {
                 // Helpers caméra/viewport utilisés par l'UI historique
                 window.DIAMANTS.resetCamera = () => {
                     try {
-                        this.camera.position.set(40, 15, 40);
-                        this.controls.target.set(0, 6, 0);
+                        this.camera.position.set(12, 12, 12);
+                        this.controls.target.set(0, 0.5, 0);
                         this.controls.update();
                     } catch (_) { /* noop */ }
                 };
@@ -744,7 +792,7 @@ class DiamantsMissionSystem {
 
     // Calcule le centre et le rayon englobant de la flotte pour cadrer automatiquement la caméra
     computeFleetBounds() {
-        if (!this.drones.length) return { center: new THREE.Vector3(), radius: 10 };
+        if (!this.drones.length) return { center: new THREE.Vector3(0, 0.5, 0), radius: 5 };
         const center = new THREE.Vector3();
         let count = 0;
         this.drones.forEach(d => {
@@ -823,8 +871,8 @@ class DiamantsMissionSystem {
                 
             case 'KeyR':
                 // Reset caméra - centré sur les drones
-                this.camera.position.set(40, 15, 40);
-                this.controls.target.set(0, 6, 0);
+                this.camera.position.set(12, 12, 12);
+                this.controls.target.set(0, 0.5, 0);
                 this.controls.update();
                 break;
             case 'KeyA':
@@ -906,6 +954,25 @@ Souris: Navigation 3D
                 this.drones = this.integratedController.drones;
                 // Mettre à jour window.drones pour que le système de collision puisse les trouver
                 window.drones = this.drones;
+                // Deferred ROS subscriptions: register per-drone topics once drones exist
+                if (this._subscribeDronesToRos) this._subscribeDronesToRos();
+
+                // ── Update Mission Control UI panel ──
+                // Update drone count display
+                const droneCountEl = document.getElementById('drone_count');
+                if (droneCountEl) {
+                    const flyingCount = this.drones.filter(d => d.state && d.state !== 'IDLE').length;
+                    droneCountEl.textContent = `${flyingCount}/${this.drones.length}`;
+                }
+                // Update intelligence/emergence from backend metrics
+                const intelEl = document.getElementById('total_intelligence_display');
+                const emergeEl = document.getElementById('emergence_display');
+                if (intelEl && this.integratedController.metrics) {
+                    intelEl.textContent = (this.integratedController.metrics.collaborationEfficiency * 100 || 0).toFixed(0);
+                }
+                if (emergeEl && this.integratedController.metrics) {
+                    emergeEl.textContent = (this.integratedController.metrics.emergenceLevel * 100 || 0).toFixed(0);
+                }
             }
         }
         
@@ -931,30 +998,15 @@ Souris: Navigation 3D
             try { this.renderer.render(this.scene, this.camera); } catch (e) { /* ignore transient context errors */ }
         }
 
-        // Publish Odometry to ROS (browser as the simulator)
-        if (this.ros && this.ros.connected) {
-            this.drones.forEach((d) => {
-                try {
-                    const ns = `/${d.id}`;
-                    const yaw = d.mesh?.rotation?.y || 0;
-                    const odom = makeOdometry({
-                        frame_id: 'map',
-                        child_frame_id: `${d.id}/base_link`,
-                        position: { x: d.position.x, y: d.position.y, z: d.position.z },
-                        orientation: yawToQuat(yaw),
-                        linear: { x: d.velocity.x, y: d.velocity.y, z: d.velocity.z },
-                        angular: { x: 0, y: 0, z: 0 }
-                    });
-                    this.ros.publish(`${ns}/odom`, 'nav_msgs/Odometry', odom);
-                } catch (_) {}
-            });
-        }
+        // NOTE: Frontend does NOT publish odometry. All positions come from the
+        // ROS2 backend (Gazebo → PositionBroadcaster → WebSocket Bridge → here).
+        // The frontend is a pure viewer, never a simulator.
     }
 
     computeFleetBounds() {
         // Calcule le centre et le rayon de la flotte de drones pour l'autofocus
         if (this.drones.length === 0) {
-            return { center: new THREE.Vector3(0, 6, 0), radius: 10 };
+            return { center: new THREE.Vector3(0, 0.5, 0), radius: 5 };
         }
 
         const bounds = new THREE.Box3();
@@ -1045,78 +1097,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Mission lanceur utilisant les vrais AuthenticCrazyflie avec meshes
+// Mission lanceur — sends real mission commands to the backend via WebSocket
 window.launchMission = function() {
-    log('🚀 LANCEMENT MISSION - Utilisation AuthenticCrazyflie avec meshes');
-    log('🔍 DEBUG - Vérifications préliminaires...');
-    log('✅ scene:', !!window.scene);
-    log('✅ AuthenticDroneSwarm class:', typeof AuthenticDroneSwarm);
-    log('✅ AuthenticCrazyflie class:', typeof AuthenticCrazyflie);
+    log('🚀 LANCEMENT MISSION — envoi commande au backend ROS2');
     
-    if (!window.scene) {
-        console.error('No THREE.js scene found');
-        alert('Erreur: Scène THREE.js non trouvée');
-        return;
+    const system = window.diamantsSystem;
+    if (!system || !system.ros) {
+        log('⚠️ WebSocket bridge non disponible, tentative de connexion...');
     }
-    
-    // Créer ou utiliser le gestionnaire de drones authentiques
-    if (!window.authenticSwarm) {
-        window.authenticSwarm = new AuthenticDroneSwarm(window.scene);
+
+    // Send mission start command via WebSocket bridge
+    try {
+        if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+            system.ros.ws.send(JSON.stringify({
+                type: 'mission_command',
+                data: { action: 'start', mission_type: 'exploration' },
+            }));
+            log('✅ Commande mission:start envoyée au backend');
+        } else {
+            log('⚠️ WebSocket non connecté — la mission est déjà active côté backend');
+        }
+    } catch (e) {
+        log('⚠️ Envoi commande mission échoué:', e.message);
     }
-    
-    // Initialiser ou utiliser les drones existants
-    const droneCount = window.authenticSwarm.initializeDrones();
-    
-    if (droneCount === 0) {
-        console.error('No AuthenticCrazyflie drones could be initialized');
-        alert('Erreur: Aucun drone AuthenticCrazyflie trouvé ou créé');
-        return;
-    }
-    
-    // Démarrer la mission avec vrais drones
-    const success = window.authenticSwarm.startMission(15.0, 'hover'); // 15m d'altitude, mode hover stationnaire
-    
-    if (success) {
-        log(`✅ Mission lancée avec ${droneCount} drones AuthenticCrazyflie !`);
-        alert(`🚁 Mission lancée ! ${droneCount} drones AuthenticCrazyflie en mouvement avec vrais meshes.`);
-    } else {
-        console.error('Failed to start authentic mission');
-        alert('Erreur: Impossible de démarrer la mission authentique');
+
+    // Also notify the integrated controller
+    if (system && system.integratedController) {
+        try { system.integratedController.startMissionManual(); } catch (_) {}
     }
 };
 
 window.emergencyLand = function() {
-    log('🛑 Arrêt d\'urgence demandé');
+    log('🛑 Arrêt d\'urgence — envoi commande emergency au backend');
     
-    // Arrêter le système authentique en priorité
-    if (window.authenticSwarm) {
-        window.authenticSwarm.stop();
-        alert('🛑 Arrêt d\'urgence - Drones AuthenticCrazyflie stoppés');
-        return;
-    }
-    
-    // Fallback sur l'ancien système
-    if (window.droneAnimator) {
-        window.droneAnimator.stop();
-        alert('🛑 Arrêt d\'urgence - Animation simple stoppée');
+    const system = window.diamantsSystem;
+    try {
+        if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+            system.ros.ws.send(JSON.stringify({
+                type: 'mission_command',
+                data: { action: 'emergency' },
+            }));
+            log('✅ Commande emergency envoyée');
+        }
+    } catch (e) { log('⚠️ Erreur envoi emergency:', e.message); }
+
+    // Also trigger local emergency
+    if (system && system.integratedController) {
+        try { system.integratedController.emergencyStop(); } catch (_) {}
     }
 };
 
 window.resetSwarm = function() {
-    log('🔄 Reset essaim demandé');
+    log('🔄 Reset essaim — envoi commande return_home au backend');
     
-    // Reset le système authentique en priorité
-    if (window.authenticSwarm) {
-        window.authenticSwarm.reset();
-        alert('🔄 Essaim AuthenticCrazyflie remis à zéro');
-        return;
-    }
-    
-    // Fallback sur l'ancien système
-    if (window.droneAnimator) {
-        window.droneAnimator.reset();
-        alert('🔄 Essaim simple remis à zéro');
-    }
+    const system = window.diamantsSystem;
+    try {
+        if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+            system.ros.ws.send(JSON.stringify({
+                type: 'mission_command',
+                data: { action: 'return_home' },
+            }));
+            log('✅ Commande return_home envoyée');
+        }
+    } catch (e) { log('⚠️ Erreur envoi reset:', e.message); }
 };
 
 // changePattern défini dans drone-panel-controller.js

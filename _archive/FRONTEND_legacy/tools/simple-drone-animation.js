@@ -100,6 +100,13 @@ class SimpleDroneAnimator {
     animate() {
         if (!this.isAnimating) return;
 
+        // GUARD: Ne pas animer si IntegratedController gère les drones
+        if (window.DIAMANTS?.missionSystem?.integratedController) {
+            console.warn('SimpleDroneAnimator: IntegratedController active — stopping to avoid position fight');
+            this.stop();
+            return;
+        }
+
         const elapsed = (Date.now() - this.startTime) / 1000;
         const radius = 6;
         const speed = 0.5;
@@ -148,8 +155,12 @@ class SimpleDroneAnimator {
 // Rendre disponible globalement
 window.SimpleDroneAnimator = SimpleDroneAnimator;
 
-// Auto-initialisation si la scène est déjà disponible
-if (window.scene) {
-    window.droneAnimator = new SimpleDroneAnimator(window.scene);
-    console.log('SimpleDroneAnimator ready');
-}
+// DÉSACTIVÉ: Auto-initialisation supprimée pour éviter les conflits avec IntegratedController
+// SimpleDroneAnimator a sa propre boucle RAF qui écrit directement mesh.position,
+// ce qui entre en conflit avec le contrôleur intégré et provoque du flickering.
+// Utiliser IntegratedController comme unique source de vérité pour les positions.
+// if (window.scene) {
+//     window.droneAnimator = new SimpleDroneAnimator(window.scene);
+//     console.log('SimpleDroneAnimator ready');
+// }
+console.log('SimpleDroneAnimator class loaded (auto-init DISABLED — use IntegratedController)');
