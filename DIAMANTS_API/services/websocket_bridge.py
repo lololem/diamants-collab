@@ -186,6 +186,12 @@ class DiamantsBridge(Node):
             self._on_system_status, 10,
         )
 
+        # SLAM map (from SLAMFusion microservice)
+        self._sub_slam_map = self.create_subscription(
+            String, "/diamants/slam/map_json",
+            self._on_slam_map, 10,
+        )
+
         # --- Publishers (Frontend → Bridge → Backend) ---
         self._pub_drone_cmd = self.create_publisher(
             String, TOPICS_COMMANDS["drone_commands"], 10,
@@ -268,6 +274,14 @@ class DiamantsBridge(Node):
             self._schedule_broadcast({"type": "system_status", "data": data})
         except Exception as e:
             logger.debug(f"system_status parse error: {e}")
+
+    def _on_slam_map(self, msg):
+        """Forward SLAM map JSON from SLAMFusion to frontend."""
+        try:
+            data = json.loads(msg.data)
+            self._schedule_broadcast({"type": "slam_map", "data": data})
+        except Exception as e:
+            logger.debug(f"slam_map parse error: {e}")
 
     # =========================================================================
     # WebSocket → ROS2 command handlers
@@ -382,6 +396,11 @@ class DiamantsBridge(Node):
             "get_status":      lambda: websocket.send(json.dumps({
                 "type": "current_status", "data": self.state, "timestamp": time.time(),
             })),
+            # Telemetry injection (from simulators, test tools, or frontend)
+            "telemetry_positions": lambda: self._handle_telemetry_positions(data),
+            "drone_telemetry":    lambda: self._handle_drone_telemetry_ws(data),
+            "propeller_speeds":   lambda: self._handle_propeller_speeds_ws(data),
+            "ros_publish":        lambda: self._handle_ros_publish(data),
         }
 
         handler = handlers.get(msg_type)
@@ -394,6 +413,51 @@ class DiamantsBridge(Node):
         topics = data.get("topics", [])
         self.client_subscriptions.setdefault(client_id, set()).update(topics)
         logger.debug(f"{client_id} subscribed to: {topics}")
+
+    async def _handle_telemetry_positions(self, data: Dict):
+        """Handle drone positions injected via WebSocket (simulators, test tools)."""
+        drones = data.get("drones", data)
+        if not isinstance(drones, dict):
+            return
+        for drone_id, info in drones.items():
+            self.state["drones"].setdefault(drone_id, {})
+            self.state["drones"][drone_id].update(info)
+            self.state["drones"][drone_id]["last_seen"] = time.time()
+        self.state["last_update"] = time.time()
+        await self._broadcast({"type": "drone_positions", "data": drones})
+
+    async def _handle_drone_telemetry_ws(self, data: Dict):
+        """Handle single-drone telemetry injected via WebSocket."""
+        drone_id = data.get("drone_id")
+        if not drone_id:
+            return
+        self.state["drones"].setdefault(drone_id, {})
+        self.state["drones"][drone_id].update(data)
+        self.state["drones"][drone_id]["last_seen"] = time.time()
+        self.state["last_update"] = time.time()
+        await self._broadcast({"type": "drone_telemetry", "drone_id": drone_id, "data": data})
+
+    async def _handle_propeller_speeds_ws(self, data: Dict):
+        """Handle propeller RPMs injected via WebSocket (simulators, test tools).
+
+        Accepts data as either:
+          - {drone_id: [rpm1..4], ...}  (per-drone dict)
+        Broadcasts to all frontend clients.
+        """
+        if not isinstance(data, dict):
+            return
+        for drone_id, speeds in data.items():
+            if isinstance(speeds, list):
+                self.state["propeller_speeds"][drone_id] = speeds
+        self.state["last_update"] = time.time()
+        await self._broadcast({"type": "propeller_speeds", "data": data})
+
+    async def _handle_ros_publish(self, data: Dict):
+        """Handle a generic publish request from a WebSocket client (e.g. frontend odometry)."""
+        topic = data.get("topic", "")
+        message = data.get("message", {})
+        # Broadcast to other WS clients for now
+        await self._broadcast({"type": "ros_publish", "topic": topic, "data": message})
 
     # =========================================================================
     # LIFECYCLE

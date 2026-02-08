@@ -158,6 +158,15 @@ class AuthenticDroneSwarm {
     animate() {
         if (!this.isRunning) return;
 
+        // GUARD: Ne pas animer si IntegratedController gère les drones
+        // IntegratedController appelle déjà drone.update() dans updateDronesBehaviors()
+        // Avoir 2 boucles RAF qui appellent drone.update() = physique à 2× la vitesse + flickering
+        if (window.DIAMANTS?.missionSystem?.integratedController) {
+            log('⚠️ AuthenticDroneSwarm: IntegratedController active — stopping independent RAF loop');
+            this.isRunning = false;
+            return;
+        }
+
         const currentTime = Date.now();
         const deltaTime = Math.min((currentTime - this.lastUpdate) / 1000, 0.1); // Max 100ms
         this.lastUpdate = currentTime;

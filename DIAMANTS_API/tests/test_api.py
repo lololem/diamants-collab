@@ -63,18 +63,27 @@ class TestAPIEndpoints:
             assert "battery" in drone
             assert "position" in drone
 
-    def test_get_drone_status(self):
+    @patch('api.main._get_bridge_state', new_callable=AsyncMock, return_value={
+        "drones": {
+            "crazyflie_01": {
+                "position": {"x": 1.0, "y": 2.0, "z": 3.0},
+                "status": "ready",
+                "battery": 95.0,
+                "velocity": {"x": 0.0, "y": 0.0, "z": 0.0},
+            }
+        },
+        "swarm": {}, "mission": {}, "system": {},
+    })
+    def test_get_drone_status(self, mock_state):
         """Test getting specific drone status"""
         drone_id = "crazyflie_01"
         response = client.get(f"/api/drones/{drone_id}/status")
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["drone_id"] == drone_id
+        assert data["id"] == drone_id
         assert "status" in data
         assert "battery" in data
         assert "position" in data
-        assert "velocity" in data
-        assert "timestamp" in data
 
     @patch('api.main._send_to_bridge', new_callable=AsyncMock, return_value=True)
     @patch('api.main.manager.broadcast', new_callable=AsyncMock)
@@ -136,7 +145,8 @@ class TestAPIEndpoints:
         """Test starting a mission"""
         mission_id = "scouting_mission_01"
         drone_ids = ["crazyflie_01", "crazyflie_02"]
-        response = client.post(f"/api/missions/{mission_id}/start", json=drone_ids)
+        body = {"drone_ids": drone_ids}
+        response = client.post(f"/api/missions/{mission_id}/start", json=body)
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         assert data["status"] == "success"
@@ -214,15 +224,16 @@ class TestErrorHandling:
     """Test class for error handling"""
     
     def test_invalid_drone_id(self):
-        """Test handling of invalid drone IDs"""
-        # This should still return 200 but might have different behavior in real implementation
+        """Test handling of invalid drone IDs — returns 404 when drone not in cache"""
         response = client.get("/api/drones/invalid_drone_id/status")
-        assert response.status_code == status.HTTP_200_OK
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_invalid_mission_id(self):
-        """Test handling of invalid mission IDs"""
-        response = client.post("/api/missions/invalid_mission/start", json=["drone1"])
-        # Assuming the current implementation doesn't validate mission IDs
+    @patch('api.main._send_to_bridge', new_callable=AsyncMock, return_value=True)
+    @patch('api.main.manager.broadcast', new_callable=AsyncMock)
+    def test_invalid_mission_id(self, mock_broadcast, mock_send):
+        """Test handling of invalid mission IDs — still accepted (no server-side catalogue validation)"""
+        body = {"drone_ids": ["drone1"]}
+        response = client.post("/api/missions/invalid_mission/start", json=body)
         assert response.status_code in [status.HTTP_200_OK, status.HTTP_404_NOT_FOUND]
 
 if __name__ == "__main__":

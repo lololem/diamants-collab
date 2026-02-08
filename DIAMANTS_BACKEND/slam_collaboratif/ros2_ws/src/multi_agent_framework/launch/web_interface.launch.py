@@ -88,6 +88,16 @@ def generate_launch_description():
             {'ws_host': ws_host},
             {'ws_port': ws_port}
         ],
+        remappings=[
+            # Legacy topics → standardized /diamants/ namespace
+            ('/swarm/drone_positions',   '/diamants/drones/positions'),
+            ('/swarm/score',             '/diamants/swarm/intelligence_score'),
+            ('/swarm/coverage_area',     '/diamants/swarm/coverage_area'),
+            ('/swarm/swarm_status',      '/diamants/swarm/status'),
+            ('/swarm/web_commands',      '/diamants/swarm/commands'),
+            ('/swarm/drone_commands',    '/diamants/drones/commands'),
+            ('/swarm/parameter_changes', '/diamants/parameters'),
+        ],
         output='screen',
         respawn=True,
         respawn_delay=5.0

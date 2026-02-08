@@ -42,6 +42,13 @@ TOPICS_MISSION = {
     "mission_waypoints":     "/diamants/mission/waypoints",         # String (JSON)
 }
 
+# --- SLAM (Backend → API → Frontend) ---
+TOPICS_SLAM = {
+    "slam_map":              "/diamants/slam/map",                  # OccupancyGrid
+    "slam_map_json":         "/diamants/slam/map_json",             # String (JSON - sparse format)
+    "slam_coverage":         "/diamants/slam/coverage",             # Float32
+}
+
 # --- Commands (Frontend → API → Backend) ---
 TOPICS_COMMANDS = {
     "drone_commands":        "/diamants/drones/commands",           # String (JSON)
@@ -73,6 +80,7 @@ ALL_TOPICS = {}
 ALL_TOPICS.update(TOPICS_TELEMETRY)
 ALL_TOPICS.update(TOPICS_SWARM)
 ALL_TOPICS.update(TOPICS_MISSION)
+ALL_TOPICS.update(TOPICS_SLAM)
 ALL_TOPICS.update(TOPICS_COMMANDS)
 ALL_TOPICS.update(TOPICS_SYSTEM)
 ALL_TOPICS.update(TOPICS_AI)
@@ -104,6 +112,7 @@ WS_OUTBOUND = {
     "swarm_status",
     "mission_status",
     "system_status",
+    "slam_map",
     "ai_decision",
 }
 

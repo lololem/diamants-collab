@@ -34,6 +34,7 @@ import { DronePhysics } from '../physics/drone-physics.js';
 import { PIDController } from '../physics/pid-controller.js';
 import { RealisticFlightDynamics } from '../physics/realistic-flight-dynamics.js';
 import { GLSLGrassField } from '../environment/glsl-grass-field.js';
+import { AutonomousFlightEngine, DRONE_PROFILES } from '../physics/autonomous-flight-engine.js';
 // SAMPLE_MODE import removed - sample files moved to DEMO/ directory
 
 export class IntegratedDiamantsController {
@@ -74,7 +75,7 @@ export class IntegratedDiamantsController {
         this.dronePhysics = null;
         this.pidController = null;
         this.grassFieldBasic = null;
-        this.sampleMode = SAMPLE_MODE;
+        this.sampleMode = false; // SAMPLE_MODE import removed - sample files in DEMO/
 
         // Collections
         this.drones = [];
@@ -239,16 +240,25 @@ export class IntegratedDiamantsController {
      * Initialisation environnement
      */
     async initializeEnvironment() {
+        // NOTE: main.js already creates the primary AuthenticProvencalEnvironment with
+        // forest, terrain, etc. This second instance is lightweight — NO forest, NO terrain
+        // to avoid doubling trees/objects in the scene.
         this.environment = new AuthenticProvencalEnvironment(this.scene, {
             lightweight: true,
-            terrainSize: { x: 70, y: 70 },
+            terrainSize: { x: 200, y: 200 },
             structuredLayout: true,
             visibilityBubbles: true,
-            terrainAmplitude: 1.2,
-            terrainDetail: 1.25,
-            maxTrees: 160,
-            forestDensity: 0.75,
-            minTreeSpacing: 2.4
+            terrainAmplitude: 0.0,  // Flat terrain to match Gazebo ground plane
+            terrainDetail: 1.0,
+            enableForest: false,    // Forest already created by main.js
+            enableTerrain: false,   // Terrain already created by main.js
+            enableSkybox: false,    // Skybox already created by main.js
+            enableGrass: false,     // Grass already created by main.js
+            enableFallenLeaves: false,
+            enableForestWood: false,
+            maxTrees: 0,
+            forestDensity: 0,
+            minTreeSpacing: 16.0
         });
 
         logger.info('Controller', '🌲 Environnement provençal créé');
@@ -258,22 +268,38 @@ export class IntegratedDiamantsController {
      * Création flotte de drones
      */
     async createDroneFleet() {
-        logger.info('Controller', `🚁 Création flotte de ${this.config.droneCount} drones...`);
+        logger.info('Controller', `🚁 Création flotte de ${this.config.droneCount} drones mixtes...`);
+
+        // ── Create AutonomousFlightEngine ──
+        this.autonomousFlightEngine = new AutonomousFlightEngine({
+            explorationBounds: 50,
+        });
+
+        // ── Mixed drone type assignment ──
+        // First 4 = Crazyflie, next 2 = Mavic, last 2 = Phantom
+        const typeAssignment = [];
+        for (let i = 0; i < this.config.droneCount; i++) {
+            if (i < 4)       typeAssignment.push('CRAZYFLIE');
+            else if (i < 6)  typeAssignment.push('MAVIC');
+            else             typeAssignment.push('PHANTOM');
+        }
 
         for (let i = 0; i < this.config.droneCount; i++) {
-            const droneId = `crazyflie_${i}`;
+            // 1-indexed, zero-padded to match backend IDs (crazyflie_01 .. crazyflie_08)
+            const droneId = `crazyflie_${String(i + 1).padStart(2, '0')}`;
+            const profileName = typeAssignment[i];
+            const profile = DRONE_PROFILES[profileName];
 
-            // Position initiale en cercle sur la plateforme
+            // Initial position — drones on the enlarged heliport (radius 5.5m)
             const angle = (i / this.config.droneCount) * 2 * Math.PI;
-            const radius = 8.0; // Même rayon que dans main.js
-            const platformHeight = 8.5; // Hauteur de la plateforme + offset
+            const spawnRadius = 5.5; // Matches the drone markers on platform
             const startPosition = {
-                x: Math.cos(angle) * radius,
-                y: platformHeight + 0.5, // 0.5m au-dessus de la plateforme pour éviter collisions
-                z: Math.sin(angle) * radius
+                x: Math.cos(angle) * spawnRadius,
+                y: 0.02,  // Ground level
+                z: Math.sin(angle) * spawnRadius
             };
 
-            // Créer drone Crazyflie authentique avec le bon ordre des paramètres
+            // Créer drone Crazyflie authentique
             const drone = new AuthenticCrazyflie({
                 id: droneId,
                 position: startPosition,
@@ -283,14 +309,18 @@ export class IntegratedDiamantsController {
                 collaborativeMode: this.config.enableCollaborativeScouting
             });
 
-            // NOUVEAU: Initialiser physique réaliste pour chaque drone - DÉSACTIVÉ pour débogage
-            if (this.realisticFlightDynamics) {
-                this.realisticFlightDynamics.initializeDrone(droneId, new THREE.Vector3(
-                    startPosition.x,
-                    startPosition.y,
-                    startPosition.z
-                ));
+            // Tag with drone profile for UI display
+            drone.droneProfile = profileName;
+            drone.profileLabel = profile.label;
+
+            // Override visual scale based on drone type
+            if (drone.mesh) {
+                try { drone.mesh.scale.setScalar(profile.scale); } catch(_) {}
             }
+
+            // Register with autonomous flight engine
+            const startVec = new THREE.Vector3(startPosition.x, startPosition.y, startPosition.z);
+            this.autonomousFlightEngine.registerDrone(droneId, profileName, startVec);
 
             // Initialiser physique de vol si activée (ancienne méthode)
             if (this.flightBehaviors) {
@@ -298,31 +328,56 @@ export class IntegratedDiamantsController {
             }
 
             this.drones.push(drone);
-            logger.debug('Controller', `✅ Drone ${droneId} créé à position (${startPosition.x.toFixed(1)}, ${startPosition.z.toFixed(1)})`);
-
-            // Vérifier que le drone a bien un mesh et qu'il est dans la scène
-            if (drone.mesh) {
-                logger.debug('Controller', `🎯 Drone ${droneId} mesh créé, position:`, drone.mesh.position);
-                if (this.scene.children.includes(drone.mesh)) {
-                    logger.debug('Controller', `✅ Drone ${droneId} ajouté à la scène`);
-                } else {
-                    logger.warning('Controller', `⚠️ Drone ${droneId} mesh non trouvé dans la scène`);
-                }
-            } else {
-                logger.error('Controller', `❌ Drone ${droneId} n'a pas de mesh!`);
-            }
+            logger.debug('Controller', `✅ Drone ${droneId} [${profile.label}] créé à (${startPosition.x.toFixed(1)}, ${startPosition.z.toFixed(1)})`);
         }
+
+        // Register trees from the environment
+        this._registerEnvironmentTrees();
 
         // Connecter les drones aux systèmes avancés
         this.connectDronesToSystems();
 
-        logger.info('Controller', `🎯 TOTAL: ${this.drones.length} drones créés et configurés`);
+        logger.info('Controller', `🎯 TOTAL: ${this.drones.length} drones créés (mixed fleet)`);
         
-        // Vérification des positions des drones du contrôleur intégré
-        log('🔍 Contrôleur intégré - Positions des drones:');
+        // Vérification des positions
+        log('🔍 Fleet positions:');
         this.drones.forEach((drone, index) => {
-            log(`  Drone intégré ${index + 1}: x=${drone.position.x.toFixed(2)}, y=${drone.position.y.toFixed(2)}, z=${drone.position.z.toFixed(2)}`);
+            const profile = typeAssignment[index];
+            log(`  ${drone.id} [${profile}]: x=${drone.position.x.toFixed(2)}, y=${drone.position.y.toFixed(2)}, z=${drone.position.z.toFixed(2)}`);
         });
+    }
+
+    /**
+     * Register trees from the environment as collision obstacles
+     */
+    _registerEnvironmentTrees() {
+        // Look for trees in the scene
+        const env = window.environment || this.environment;
+        if (!env) return;
+
+        let treeCount = 0;
+        // Search for tree objects in the scene
+        this.scene.traverse((obj) => {
+            if (obj.name && (obj.name.includes('tree') || obj.name.includes('Tree') ||
+                obj.name.includes('arbre') || obj.name.includes('Arbre') ||
+                obj.name.includes('Pin') || obj.name.includes('Ch') ||
+                obj.name.includes('Olivier'))) {
+                const pos = new THREE.Vector3();
+                obj.getWorldPosition(pos);
+                // Estimate trunk radius from bounding box or default
+                let radius = 2.0; // default trunk exclusion
+                try {
+                    const box = new THREE.Box3().setFromObject(obj);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+                    radius = Math.max(size.x, size.z) * 0.5; // horizontal extent
+                    radius = Math.max(1.5, Math.min(radius, 5.0)); // clamp 1.5-5m
+                } catch(_) {}
+                this.autonomousFlightEngine.registerTree(pos, radius);
+                treeCount++;
+            }
+        });
+        log(`🌲 Registered ${treeCount} trees as collision obstacles`);
     }
 
     /**
@@ -384,7 +439,12 @@ export class IntegratedDiamantsController {
         if (!this.isRunning) return;
 
         try {
-            // 1. NOUVEAU: Mettre à jour dynamique de vol réaliste en priorité
+            // 1. Update AutonomousFlightEngine (PID + collision avoidance)
+            if (this.autonomousFlightEngine) {
+                this.autonomousFlightEngine.update(deltaTime);
+            }
+
+            // 1b. Legacy realistic flight dynamics (disabled)
             if (this.realisticFlightDynamics) {
                 this.realisticFlightDynamics.update(deltaTime);
             }
@@ -437,129 +497,73 @@ export class IntegratedDiamantsController {
     }
 
     /**
-     * Mise à jour comportements des drones avec physique réaliste
+     * Mise à jour comportements des drones — AutonomousFlightEngine prioritaire
      */
     updateDronesBehaviors(deltaTime) {
-        // Mettre à jour physique réaliste - DÉSACTIVÉ pour débogage
-        if (this.realisticFlightDynamics) {
-            this.realisticFlightDynamics.update(deltaTime);
-        }
+        // Ground level — no platform clamping, backend is authoritative
+        const GROUND_LEVEL = 0.0;
         
         this.drones.forEach(drone => {
-            // 1. Obtenir état physique réaliste en priorité - DÉSACTIVÉ pour débogage
-            let realisticState = null;
-            if (this.realisticFlightDynamics) {
-                realisticState = this.realisticFlightDynamics.getDroneState(drone.id);
-                
-                // Diagnostic pour résoudre problème NaN
-                if (!realisticState && Math.random() < 0.005) { // Log rare
-                    console.warn(`⚠️ DIAGNOSTIC: Drone ${drone.id} pas dans système réaliste`);
-                    console.log('🔧 Drones dans système réaliste:', Array.from(this.realisticFlightDynamics.drones.keys()));
-                }
-            }
-            
-            // 2. Récupérer télémétrie ancienne méthode (fallback)
-            let telemetry = null;
-            if (this.flightBehaviors) {
-                telemetry = this.flightBehaviors.getTelemetry(drone.id);
-            }
+            // Déterminer si le drone est piloté par le backend (position vient du ROS)
+            const isBackendDriven = drone.rosData && drone.rosData.position
+                && (Date.now() - (drone.rosData.lastUpdate || 0)) < 5000;
 
-            // 3. Utiliser physique réaliste si disponible, sinon fallback télémétrie
-            const activeState = realisticState || telemetry;
-            
-            if (activeState) {
-                // Appliquer forces Wahoo si intelligence avancée active ET drone non IDLE
-                if (this.advancedIntelligence && activeState && drone.state !== 'IDLE') {
-                    const wahooForce = this.advancedIntelligence.getWahooForceAt(activeState.position);
+            // ──────────────────────────────────────────────────
+            // CAS 1: Drone piloté par le backend (position via ROS)
+            // ──────────────────────────────────────────────────
+            if (isBackendDriven && drone.mesh) {
+                const bp = drone.rosData.position;
+                let targetY = Math.max(GROUND_LEVEL, bp.y);
 
-                    // Appliquer la force au système physique réaliste
-                    if (realisticState) {
-                        realisticState.velocity.x += wahooForce.x * deltaTime * 0.1;
-                        realisticState.velocity.y += wahooForce.y * deltaTime * 0.1;
-                        realisticState.velocity.z += wahooForce.z * deltaTime * 0.1;
+                // Smooth lerp towards backend position
+                const lerpFactor = Math.min(deltaTime * 5.0, 1.0);
+                drone.mesh.position.x += (bp.x - drone.mesh.position.x) * lerpFactor;
+                drone.mesh.position.y += (targetY - drone.mesh.position.y) * lerpFactor;
+                drone.mesh.position.z += (bp.z - drone.mesh.position.z) * lerpFactor;
+
+                try {
+                    if (drone.position) drone.position.copy(drone.mesh.position);
+                    if (drone.velocity) drone.velocity.set(0, 0, 0);
+                } catch (_) { /* safe */ }
+
+                if (drone.state === 'IDLE') drone.state = 'FLYING';
+
+                // Propeller animation from backend
+                if (drone.rosData.propeller_speeds && drone.motors) {
+                    const speeds = drone.rosData.propeller_speeds;
+                    for (let i = 0; i < Math.min(4, speeds.length); i++) {
+                        drone.motors[i].rpm = speeds[i];
+                        drone.motors[i].omega = (speeds[i] / 60) * 2 * Math.PI;
                     }
-                    // Fallback: appliquer aux anciennes physics
-                    else if (this.flightBehaviors) {
-                        const physics = this.flightBehaviors.dronePhysics.get(drone.id);
-                        if (physics) {
-                            physics.velocity.x += wahooForce.x * deltaTime * 0.1;
-                            physics.velocity.y += wahooForce.y * deltaTime * 0.1;
-                            physics.velocity.z += wahooForce.z * deltaTime * 0.1;
-                        }
+                } else if (drone.motors) {
+                    for (let i = 0; i < 4; i++) {
+                        drone.motors[i].rpm = 14200;
+                        drone.motors[i].omega = (14200 / 60) * 2 * Math.PI;
                     }
                 }
 
-                // 4. Mise à jour position visuelle du drone
-                if (drone.mesh) {
-                    // PRIORITÉ: Position physique réaliste
-                    if (realisticState) {
-                        drone.mesh.position.set(
-                            realisticState.position.x,
-                            realisticState.position.y,
-                            realisticState.position.z
-                        );
-                        
-                        // Synchroniser état interne drone
-                        try {
-                            if (drone.position) {
-                                drone.position.set(
-                                    realisticState.position.x,
-                                    realisticState.position.y,
-                                    realisticState.position.z
-                                );
-                            }
-                            if (drone.velocity) {
-                                drone.velocity.set(
-                                    realisticState.velocity.x,
-                                    realisticState.velocity.y,
-                                    realisticState.velocity.z
-                                );
-                            }
-                        } catch (_) { /* safe */ }
-                    }
-                    // FALLBACK: Ancienne télémétrie
-                    else if (telemetry) {
-                        drone.mesh.position.set(
-                            telemetry.position.x,
-                            telemetry.position.y,
-                            telemetry.position.z
-                        );
-                        
-                        try {
-                            if (drone.position) {
-                                drone.position.set(
-                                    telemetry.position.x,
-                                    telemetry.position.y,
-                                    telemetry.position.z
-                                );
-                            }
-                            if (drone.velocity) {
-                                drone.velocity.set(
-                                    telemetry.velocity.x,
-                                    telemetry.velocity.y,
-                                    telemetry.velocity.z
-                                );
-                            }
-                        } catch (_) { /* safe */ }
-                    }
+                if (drone.updateVisuals) drone.updateVisuals(deltaTime);
+                if (drone.rosData.battery !== undefined) drone.battery = drone.rosData.battery;
+                if (drone.rosData.status) drone.backendStatus = drone.rosData.status;
+                return; // Backend mode — no autonomous physics
+            }
 
-                    // Animation hélices basée sur vitesse
-                    const velocityState = realisticState || telemetry;
-                    const speed = Math.sqrt(
-                        velocityState.velocity.x ** 2 +
-                        velocityState.velocity.y ** 2 +
-                        velocityState.velocity.z ** 2
-                    );
-                    
-                    if (drone.animateRotors) {
-                        drone.animateRotors(speed * 100); // Vitesse des hélices proportionnelle
-                    }
+            // ──────────────────────────────────────────────────
+            // CAS 2: Autonomous flight via AutonomousFlightEngine
+            // Fast, fluid, dynamic exploration with PID + collision avoidance
+            // ──────────────────────────────────────────────────
+            if (this.autonomousFlightEngine) {
+                const flightState = this.autonomousFlightEngine.getDroneState(drone.id);
+                if (flightState) {
+                    this.autonomousFlightEngine.applyToDrone(drone, flightState);
+                    if (drone.updateVisuals) drone.updateVisuals(deltaTime);
+                    return;
                 }
             }
 
-            // 5. Mise à jour état drone avec les autres drones pour la collision
+            // CAS 3: Fallback — simple update
             if (drone.update) {
-                drone.update(deltaTime, this.drones); // Passer la liste des drones pour la collision
+                drone.update(deltaTime, this.drones);
             }
         });
     }
@@ -646,8 +650,8 @@ export class IntegratedDiamantsController {
         log('🚁 Décollage de tous les drones...');
 
         const takeoffPromises = this.drones.map(async (drone, index) => {
-            const PLATFORM_HEIGHT = 8.5; // Hauteur de la plateforme
-            const altitude = PLATFORM_HEIGHT + 1.0 + (index * 0.2); // 1m au-dessus plateforme + échelonnement léger
+            // Gazebo drones fly at ~0.5m — no elevated platform
+            const altitude = 0.5 + (index * 0.1); // Slight stagger
 
             if (this.flightBehaviors) {
                 return this.flightBehaviors.performTakeoff(drone.id, altitude);
@@ -941,25 +945,22 @@ export class IntegratedDiamantsController {
     }
 
     getCPUUsage() {
-        // Simulation d'usage CPU basé sur le nombre de modules actifs
-        const activeModules = this.getActiveModulesCount();
-        return Math.min(95, 20 + (activeModules * 8) + Math.random() * 10);
+        // Real browser performance data (no fake simulation)
+        return typeof performance !== 'undefined' && performance.measureUserAgentSpecificMemory
+            ? 0 : 0; // Placeholder — backend should provide real telemetry
     }
 
     getMemoryUsage() {
-        // Simulation d'usage mémoire
-        const baseMemory = 150;
-        const moduleMemory = this.getActiveModulesCount() * 25;
-        const droneMemory = this.drones.length * 5;
-        return baseMemory + moduleMemory + droneMemory + Math.random() * 50;
+        // Real browser memory if available
+        if (performance && performance.memory) {
+            return Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
+        }
+        return 0;
     }
 
     getFPS() {
-        // Simulation du FPS basée sur la charge système
-        const activeModules = this.getActiveModulesCount();
-        const baseFPS = 60;
-        const fpsDrop = activeModules * 2;
-        return Math.max(15, baseFPS - fpsDrop + Math.random() * 5);
+        // Return 0 — real FPS should be measured by the render loop, not faked
+        return 0;
     }
 
     getActiveModulesCount() {

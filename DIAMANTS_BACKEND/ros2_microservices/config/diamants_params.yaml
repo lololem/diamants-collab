@@ -1,0 +1,33 @@
+# DIAMANTS Microservices Configuration
+# =====================================
+
+# Swarm Controller
+swarm_controller:
+  num_drones: 8
+  control_rate_hz: 10.0
+  target_altitude: 0.5        # Gazebo meters
+  exploration_radius: 8.0     # meters
+  safe_distance: 1.0          # inter-drone min distance
+  max_speed: 0.4              # m/s
+  takeoff_stagger_sec: 2.0    # seconds between each drone takeoff
+  exploration_cell_size: 1.0  # meters per exploration grid cell
+
+# Position Broadcaster
+position_broadcaster:
+  position_rate_hz: 10.0
+  telemetry_rate_hz: 5.0
+  frontend_scale: 10.0        # Gazebo meters → frontend units
+
+# SLAM Fusion
+slam_fusion:
+  map_resolution: 0.1         # meters per cell
+  map_size: 200               # grid dimension (200x200 = 20m x 20m)
+  fusion_rate_hz: 2.0         # map merge rate
+  publish_rate_hz: 1.0        # JSON publish rate
+  pheromone_evap: 0.98        # evaporation rate per cycle
+
+# Mission Coordinator
+mission_coordinator:
+  auto_start: true
+  auto_start_delay_sec: 8.0   # wait for Gazebo + bridge
+  mission_timeout_sec: 300.0  # 5 minutes
