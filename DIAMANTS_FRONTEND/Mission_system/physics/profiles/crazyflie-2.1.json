@@ -1,0 +1,35 @@
+{
+    "id": "CRAZYFLIE",
+    "label": "Crazyflie 2.1",
+    "manufacturer": "Bitcraze",
+    "category": "nano",
+
+    "physical": {
+        "mass": 0.034,
+        "armLength": 0.046,
+        "boundingRadius": 0.25,
+        "propCount": 4
+    },
+
+    "performance": {
+        "maxSpeed": 2.5,
+        "maxClimb": 1.5,
+        "cruiseAlt": 3.0,
+        "maxAlt": 8.0,
+        "agility": 1.8,
+        "explorationRadius": 40,
+        "endurance_min": 7
+    },
+
+    "pid": {
+        "pos":  { "kp": 3.0, "ki": 0.05, "kd": 1.2 },
+        "alt":  { "kp": 4.0, "ki": 0.1,  "kd": 1.5 },
+        "yaw":  { "kp": 2.0, "ki": 0.0,  "kd": 0.3 }
+    },
+
+    "visual": {
+        "scale": 15,
+        "color": "0x00FF88",
+        "model": "crazyflie"
+    }
+}

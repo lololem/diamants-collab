@@ -16,63 +16,13 @@
  */
 import * as THREE from 'three';
 
-// ─── Drone Type Profiles ──────────────────────────────────────────────
-export const DRONE_PROFILES = {
-    CRAZYFLIE: {
-        label: 'Crazyflie 2.1',
-        mass: 0.034,            // kg
-        maxSpeed: 2.5,          // m/s
-        maxClimb: 1.5,          // m/s vertical
-        cruiseAlt: 3.0,         // m
-        maxAlt: 8.0,            // m
-        agility: 1.8,           // turn rate multiplier
-        scale: 15,              // visual scale
-        color: 0x00FF88,
-        pid: {
-            pos:  { kp: 3.0, ki: 0.05, kd: 1.2 },   // position → velocity
-            alt:  { kp: 4.0, ki: 0.1,  kd: 1.5 },   // altitude
-            yaw:  { kp: 2.0, ki: 0.0,  kd: 0.3 },   // heading
-        },
-        boundingRadius: 0.25,   // collision sphere (m)
-        explorationRadius: 40,  // how far it wanders (m)
-    },
-    MAVIC: {
-        label: 'DJI Mavic Pro',
-        mass: 0.734,
-        maxSpeed: 5.0,          // m/s — much faster
-        maxClimb: 3.0,
-        cruiseAlt: 5.0,
-        maxAlt: 15.0,
-        agility: 1.2,
-        scale: 18,
-        color: 0x4488FF,
-        pid: {
-            pos:  { kp: 2.5, ki: 0.03, kd: 1.0 },
-            alt:  { kp: 3.5, ki: 0.08, kd: 1.2 },
-            yaw:  { kp: 1.5, ki: 0.0,  kd: 0.2 },
-        },
-        boundingRadius: 0.35,
-        explorationRadius: 60,
-    },
-    PHANTOM: {
-        label: 'DJI Phantom 4',
-        mass: 1.380,
-        maxSpeed: 4.0,
-        maxClimb: 2.5,
-        cruiseAlt: 6.0,
-        maxAlt: 20.0,
-        agility: 1.0,
-        scale: 20,
-        color: 0xFF8800,
-        pid: {
-            pos:  { kp: 2.0, ki: 0.02, kd: 0.8 },
-            alt:  { kp: 3.0, ki: 0.06, kd: 1.0 },
-            yaw:  { kp: 1.2, ki: 0.0,  kd: 0.15 },
-        },
-        boundingRadius: 0.40,
-        explorationRadius: 50,
-    },
-};
+// ─── Drone profiles — loaded from JSON via DronePhysicsRegistry ──────
+// Profiles are defined in physics/profiles/*.json
+// The registry normalises them to the exact same shape as the old
+// hardcoded DRONE_PROFILES object → zero regression.
+import { DRONE_PROFILES, DronePhysicsRegistry } from './drone-physics-registry.js';
+import { NoopSwarmIntelligence } from '../intelligence/swarm-intelligence-interface.js';
+export { DRONE_PROFILES };
 
 // ─── Simple PID ──────────────────────────────────────────────────────
 class PID {
@@ -134,6 +84,9 @@ export class AutonomousFlightEngine {
         this.visitedCells = new Set();
         this.cellSize = 3.0; // m
 
+        // Swarm intelligence slot (pluggable from diamants-private)
+        this.swarmIntelligence = new NoopSwarmIntelligence();
+
         console.log('🚀 AutonomousFlightEngine initialised');
     }
 
@@ -153,6 +106,16 @@ export class AutonomousFlightEngine {
         this.treeBounds = [];
     }
 
+    /**
+     * Plug a SwarmIntelligenceInterface implementation.
+     * The concrete engine (stigmergy, RL, etc.) lives in diamants-private.
+     */
+    setSwarmIntelligence(impl) {
+        this.swarmIntelligence = impl || new NoopSwarmIntelligence();
+        this.swarmIntelligence.initialize(this.drones, this.treeBounds);
+        console.log(`🧠 Swarm intelligence loaded: ${impl?.constructor?.name || 'noop'}`);
+    }
+
     // ─── Main update (call every frame) ──────────────────────────────
     update(dt) {
         if (!this.enabled) return;
@@ -161,6 +124,9 @@ export class AutonomousFlightEngine {
         for (const [id, state] of this.drones) {
             this._updateDrone(state, clamped);
         }
+
+        // Global swarm intelligence tick (pheromone evaporation, etc.)
+        this.swarmIntelligence.tick(clamped);
     }
 
     // ─── Per-drone update ────────────────────────────────────────────
@@ -200,6 +166,14 @@ export class AutonomousFlightEngine {
         vxCmd += droneAvoid.x;
         vzCmd += droneAvoid.z;
 
+        // 5b. Swarm intelligence velocity modulation (stigmergy, RL, etc.)
+        const modulated = this.swarmIntelligence.modulateVelocity(
+            state.id, { x: vxCmd, y: vyCmd, z: vzCmd }, state
+        );
+        vxCmd = modulated.x;
+        vyCmd = modulated.y;
+        vzCmd = modulated.z;
+
         // 6. Smooth velocity (low-pass)
         const alpha = Math.min(1.0, prof.agility * 3.0 * dt);
         state.smoothVelocity.x += (vxCmd - state.smoothVelocity.x) * alpha;
@@ -231,6 +205,14 @@ export class AutonomousFlightEngine {
         const cz = Math.floor(state.position.z / this.cellSize);
         this.visitedCells.add(`${cx},${cz}`);
 
+        // 11. Swarm intelligence environment update (deposit pheromones, etc.)
+        this.swarmIntelligence.updateEnvironment(state.id, state.position, {
+            speed: hSpeed,
+            heading: state.heading,
+            phase: state.phase,
+            waypointsVisited: state.waypointsVisited,
+        });
+
         // Store velocity for external use
         state.velocity.copy(state.smoothVelocity);
     }
@@ -261,7 +243,12 @@ export class AutonomousFlightEngine {
 
                 // Pick a new waypoint when close or timeout
                 if (!state.waypoint || distToWP < 2.0 || state.waypointTimer > 12.0) {
-                    state.waypoint = this._pickExplorationWaypoint(state);
+                    // Ask swarm intelligence first (stigmergy, RL, etc.)
+                    const neighbors = this._getNeighbors(state.id);
+                    const suggested = this.swarmIntelligence.computeNextWaypoint(
+                        state.id, state, neighbors
+                    );
+                    state.waypoint = suggested || this._pickExplorationWaypoint(state);
                     state.waypointTimer = 0;
                     state.waypointsVisited++;
                 }
@@ -409,10 +396,21 @@ export class AutonomousFlightEngine {
             treesRegistered: this.treeBounds.length,
             cellsVisited: this.visitedCells.size,
             coverageArea: this.visitedCells.size * this.cellSize * this.cellSize,
+            swarmIntelligence: this.swarmIntelligence.getMetrics(),
+            profiles: DronePhysicsRegistry.getInstance().listProfiles(),
         };
     }
 
     getDroneState(id) {
         return this.drones.get(id);
+    }
+
+    // ─── Helpers ────────────────────────────────────────────────────
+    _getNeighbors(droneId) {
+        const neighbors = [];
+        for (const [id, state] of this.drones) {
+            if (id !== droneId) neighbors.push(state);
+        }
+        return neighbors;
     }
 }

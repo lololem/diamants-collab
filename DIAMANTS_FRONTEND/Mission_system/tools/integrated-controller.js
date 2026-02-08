@@ -38,7 +38,8 @@ import { DronePhysics } from '../physics/drone-physics.js';
 import { PIDController } from '../physics/pid-controller.js';
 import { RealisticFlightDynamics } from '../physics/realistic-flight-dynamics.js';
 import { GLSLGrassField } from '../environment/glsl-grass-field.js';
-import { AutonomousFlightEngine, DRONE_PROFILES } from '../physics/autonomous-flight-engine.js';
+import { AutonomousFlightEngine } from '../physics/autonomous-flight-engine.js';
+import { DRONE_PROFILES, DronePhysicsRegistry } from '../physics/drone-physics-registry.js';
 // SAMPLE_MODE import removed - sample files moved to DEMO/ directory
 
 export class IntegratedDiamantsController {
