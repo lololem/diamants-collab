@@ -1,0 +1,35 @@
+{
+    "id": "PHANTOM",
+    "label": "DJI Phantom 4",
+    "manufacturer": "DJI",
+    "category": "medium",
+
+    "physical": {
+        "mass": 1.380,
+        "armLength": 0.25,
+        "boundingRadius": 0.40,
+        "propCount": 4
+    },
+
+    "performance": {
+        "maxSpeed": 4.0,
+        "maxClimb": 2.5,
+        "cruiseAlt": 6.0,
+        "maxAlt": 20.0,
+        "agility": 1.0,
+        "explorationRadius": 50,
+        "endurance_min": 28
+    },
+
+    "pid": {
+        "pos":  { "kp": 2.0, "ki": 0.02, "kd": 0.8 },
+        "alt":  { "kp": 3.0, "ki": 0.06, "kd": 1.0 },
+        "yaw":  { "kp": 1.2, "ki": 0.0,  "kd": 0.15 }
+    },
+
+    "visual": {
+        "scale": 20,
+        "color": "0xFF8800",
+        "model": "phantom"
+    }
+}

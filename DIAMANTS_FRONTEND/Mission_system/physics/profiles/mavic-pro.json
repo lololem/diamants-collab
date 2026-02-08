@@ -1,0 +1,35 @@
+{
+    "id": "MAVIC",
+    "label": "DJI Mavic Pro",
+    "manufacturer": "DJI",
+    "category": "compact",
+
+    "physical": {
+        "mass": 0.734,
+        "armLength": 0.17,
+        "boundingRadius": 0.35,
+        "propCount": 4
+    },
+
+    "performance": {
+        "maxSpeed": 5.0,
+        "maxClimb": 3.0,
+        "cruiseAlt": 5.0,
+        "maxAlt": 15.0,
+        "agility": 1.2,
+        "explorationRadius": 60,
+        "endurance_min": 27
+    },
+
+    "pid": {
+        "pos":  { "kp": 2.5, "ki": 0.03, "kd": 1.0 },
+        "alt":  { "kp": 3.5, "ki": 0.08, "kd": 1.2 },
+        "yaw":  { "kp": 1.5, "ki": 0.0,  "kd": 0.2 }
+    },
+
+    "visual": {
+        "scale": 18,
+        "color": "0x4488FF",
+        "model": "mavic"
+    }
+}
