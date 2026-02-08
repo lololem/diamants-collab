@@ -38,6 +38,7 @@
   "devDependencies": {
     "@vitest/coverage-v8": "^1.6.0",
     "browser-sync": "^3.0.4",
+    "chrome-remote-interface": "^0.33.3",
     "concurrently": "^9.2.1",
     "get-port": "^7.1.0",
     "live-server": "^1.2.2",

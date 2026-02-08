@@ -942,12 +942,6 @@
     <!-- Diagnostic et réparation -->
     <script src="./scripts/diagnostic-repair.js"></script>
 
-    <!-- Simple drone animation system -->
-    <script src="./tools/simple-drone-animation.js"></script>
-    
-    <!-- Authentic Drone Swarm Manager -->
-    <script src="./tools/authentic-drone-swarm.js"></script>
-    
     <!-- Point d'entrée principal pour Vite -->
     <!-- Re-enabled main.js for proper GitHub functioning -->
     <script type="module" src="./main.js"></script>
@@ -1001,359 +995,123 @@
         }
     </script>
 
-    <!-- Fonctions UI temporaires pour test -->
+    <!-- Fonctions UI — delegates to backend via WebSocket -->
     <script>
         log('🔧 Chargement des fonctions UI...');
-        
-        // 🚁 SOLUTION DIRECTE: MOUVEMENT IMMÉDIAT DES DRONES
-        let directDroneMovement = false;
-        let animationStartTime = 0;
-        let droneObjects = [];
-        
-        // Test simple pour vérifier que les fonctions marchent
+
+        // ── Stubs for functions defined later in main.js (ES module) ──
         if (typeof window.launchMission === 'undefined') {
             window.launchMission = function() {
-                alert('🚀 Launch Mission clicked!'); // DEBUG: Test si la fonction est appelée
-                console.log('🚀 Launch Mission function called'); // DEBUG: Log dans la console
-                
-                if (typeof window.log === 'function') {
-                    window.log('🚀 PATTERN COMPLET: Décollage + Formation à 5m+');
-                } else {
-                    console.log('🚀 PATTERN COMPLET: Décollage + Formation à 5m+');
-                }
-            
-            // ÉTAPE 1: Forcer l'altitude à 5m+ pour tous les drones
-            if (window.diamantsSystem?.integratedController) {
-                const controller = window.diamantsSystem.integratedController;
-                
-                // DÉCOLLAGE FORCÉ À 5M+
-                controller.drones.forEach((drone, index) => {
-                    if (drone.mesh) {
-                        const targetAltitude = 5.0 + (index * 0.3); // 5m minimum + espacement
-                        window.log(`🚁 Décollage drone ${drone.id} vers ${targetAltitude}m`);
-                        
-                        // Animation directe vers la bonne altitude
-                        const mesh = drone.mesh;
-                        const startY = mesh.position.y;
-                        const startTime = Date.now();
-                        
-                        function animateUp() {
-                            const elapsed = Date.now() - startTime;
-                            const progress = Math.min(elapsed / 2000, 1.0); // 2 secondes
-                            const currentY = startY + (targetAltitude - startY) * progress;
-                            
-                            mesh.position.y = currentY;
-                            
-                            if (progress < 1.0) {
-                                requestAnimationFrame(animateUp);
-                            } else {
-                                window.log(`✅ Drone ${drone.id} à ${targetAltitude}m`);
-                            }
-                        }
-                        
-                        animateUp();
-                    }
-                });
-            }
-            
-            // ÉTAPE 2: Formation après 3 secondes
-            setTimeout(() => {
-                if (window.setFormation) {
-                    const patterns = ['grid', 'line', 'circle', 'triangle'];
-                    const current = document.getElementById('currentPattern')?.textContent || 'grid';
-                    const index = patterns.indexOf(current);
-                    const next = patterns[(index + 1) % patterns.length];
-                    window.log(`📐 Formation ${next} à 5m+ activée`);
-                    window.setFormation(next);
-                }
-            }, 3000);
+                log('🚀 Launch Mission — en attente du chargement de main.js...');
+                setTimeout(() => { if (window.launchMission) window.launchMission(); }, 1000);
             };
         }
-        
-        // Fonction startDirectDroneAnimation pour les anciens scripts
-        
-        // � FONCTION DE DEBUG : Force la création des boundary boxes
-        window.forceCreateCollisionBoxes = function() {
-            console.warn('🔧 FORCE CREATE COLLISION BOXES - DEBUG FUNCTION');
-            
-            // Chercher les drones dans tous les endroits possibles
-            let dronesFound = [];
-            
-            if (window.drones && window.drones.length > 0) {
-                dronesFound = window.drones;
-                console.warn(`✅ Trouvé ${dronesFound.length} drones dans window.drones`);
-            } else if (window.authenticSwarm && window.authenticSwarm.drones) {
-                dronesFound = window.authenticSwarm.drones;
-                console.warn(`✅ Trouvé ${dronesFound.length} drones dans window.authenticSwarm.drones`);
-            } else if (window.diamantsSystem && window.diamantsSystem.drones) {
-                dronesFound = window.diamantsSystem.drones;
-                console.warn(`✅ Trouvé ${dronesFound.length} drones dans window.diamantsSystem.drones`);
-            }
-            
-            console.warn(`🔍 Total drones trouvés: ${dronesFound.length}`);
-            
-            dronesFound.forEach((drone, index) => {
-                console.warn(`🔧 Drone ${index}: id=${drone.id}, createCollisionBox=${typeof drone.createCollisionBox}`);
-                if (drone.createCollisionBox) {
-                    try {
-                        drone.createCollisionBox();
-                        console.warn(`✅ Boundary box forcée pour ${drone.id}`);
-                    } catch (error) {
-                        console.warn(`❌ Erreur création boundary box ${drone.id}:`, error);
-                    }
-                }
-            });
-        };
-        
-        // �🚁 ANIMATION DIRECTE DE SECOURS - FORCE LE MOUVEMENT DES DRONES
-        function startDirectDroneAnimation() {
-            log('🚁 Démarrage de l\'animation directe des drones...');
-            
-            // Rechercher tous les objets qui ressemblent à des drones dans la scène
-            function findAndAnimateDrones() {
-                if (window.diamantsSystem && window.diamantsSystem.scene) {
-                    const scene = window.diamantsSystem.scene;
-                    
-                    // Rechercher des meshes de drones existants
-                    droneObjects = [];
-                    scene.traverse(function(child) {
-                        if (child.name && (
-                            child.name.includes('drone') || 
-                            child.name.includes('crazyflie') || 
-                            child.name.includes('Drone') ||
-                            child.name.includes('Crazyflie')
-                        )) {
-                            droneObjects.push(child);
-                        }
-                        
-                        // Chercher aussi par type de mesh
-                        if (child.isMesh && child.geometry) {
-                            // Si c'est un petit objet complexe, c'est probablement un drone
-                            try {
-                                const bbox = new THREE.Box3().setFromObject(child);
-                                const size = bbox.getSize(new THREE.Vector3());
-                                if (size.x < 2 && size.y < 2 && size.z < 2 && size.x > 0.1) {
-                                    droneObjects.push(child);
-                                }
-                            } catch (e) { /* ignore */ }
-                        }
-                    });
-                    
-                    log(`🔍 Trouvé ${droneObjects.length} objets drones potentiels`);
-                    
-                    // Si on n'a pas trouvé de drones, créer des cubes simples
-                    if (droneObjects.length === 0) {
-                        log('🚁 Création de drones de test...');
-                        for (let i = 0; i < 4; i++) {
-                            const geometry = new THREE.BoxGeometry(0.8, 0.3, 0.8);
-                            const material = new THREE.MeshLambertMaterial({ 
-                                color: 0x00ff88,
-                                wireframe: false 
-                            });
-                            const drone = new THREE.Mesh(geometry, material);
-                            drone.position.set(
-                                (Math.random() - 0.5) * 10,
-                                3 + Math.random() * 2,
-                                (Math.random() - 0.5) * 10
-                            );
-                            drone.name = `testDrone${i}`;
-                            scene.add(drone);
-                            droneObjects.push(drone);
-                        }
-                        log('✅ Créé 4 drones de test');
-                    }
-                    
-                    // Animation des drones trouvés
-                    function animateDrones() {
-                        if (!directDroneMovement) return;
-                        
-                        const time = (Date.now() - animationStartTime) / 1000;
-                        
-                        droneObjects.forEach((drone, index) => {
-                            if (!drone.position) return;
-                            
-                            // Pattern d'exploration circulaire
-                            const radius = 8 + index * 2;
-                            const speed = 0.4 + index * 0.15;
-                            const angleOffset = (index / droneObjects.length) * Math.PI * 2;
-                            
-                            const angle = time * speed + angleOffset;
-                            
-                            drone.position.x = Math.cos(angle) * radius;
-                            drone.position.z = Math.sin(angle) * radius;
-                            drone.position.y = 3 + Math.sin(time * 2 + index) * 0.8; // Variation altitude
-                            
-                            // Rotation pour orienter le drone
-                            if (drone.rotation) {
-                                drone.rotation.y = angle + Math.PI/2;
-                            }
-                        });
-                        
-                        // Log de progression
-                        if (Math.floor(time * 2) % 60 === 0) { // Toutes les 30 secondes
-                            log(`🚁 Animation drones: ${droneObjects.length} drones en mouvement depuis ${time.toFixed(1)}s`);
-                        }
-                        
-                        requestAnimationFrame(animateDrones);
-                    }
-                    
-                    animateDrones();
-                    log('🎯 Animation des drones démarrée!');
+
+        window.startMissionManual = function() {
+            log('🎯 Start Mission Manual — envoi au backend');
+            const system = window.diamantsSystem;
+            try {
+                if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+                    system.ros.ws.send(JSON.stringify({
+                        type: 'mission_command',
+                        data: { action: 'start', mission_type: 'exploration' },
+                    }));
+                    log('✅ Commande mission:start envoyée au backend');
                 } else {
-                    // Réessayer dans 1 seconde
-                    log('⏳ Attente initialisation scène...');
-                    setTimeout(findAndAnimateDrones, 1000);
+                    log('⚠️ WebSocket non connecté — la mission est probablement déjà active');
                 }
-            }
-            
-            findAndAnimateDrones();
-        }
-        
-        window.emergencyLand = function() {
-            log('🛑 Emergency Land clicked - Arrêt mouvement direct');
-            directDroneMovement = false;
-            
-            // Faire atterrir les drones
-            droneObjects.forEach((drone, index) => {
-                if (drone.position) {
-                    // Animation d'atterrissage
-                    let landingAnimation = function() {
-                        if (drone.position.y > 0.5) {
-                            drone.position.y -= 0.05; // Descendre lentement
-                            requestAnimationFrame(landingAnimation);
-                        }
-                    };
-                    landingAnimation();
-                }
-            });
-            
-            log('🛬 Drones en cours d\'atterrissage');
-        };
-        
-        window.resetSwarm = function() {
-            log('🔄 Reset Swarm clicked');
-            alert('🔄 Reset Swarm');
-        };
-        
-        // SOLUTION D'URGENCE: Forcer tous les drones à 8m+ immédiatement
-        window.forceDronesUp = function() {
-            window.log('🚨 REMONTÉE D\'URGENCE: Tous les drones à 8m+');
-            
-            if (window.drones && window.drones.length > 0) {
-                window.drones.forEach((drone, index) => {
-                    if (drone.mesh) {
-                        const emergencyAltitude = 8.5 + (index * 0.3);
-                        window.log(`🚁 URGENCE: ${drone.id} → ${emergencyAltitude}m`);
-                        
-                        // Force position immédiate
-                        drone.mesh.position.y = emergencyAltitude;
-                        
-                        // Mettre à jour la position cible
-                        if (drone.targetPosition) {
-                            drone.targetPosition.y = emergencyAltitude;
-                        } else {
-                            drone.targetPosition = {
-                                x: drone.mesh.position.x,
-                                y: emergencyAltitude,
-                                z: drone.mesh.position.z
-                            };
-                        }
-                        
-                        // Forcer l'état FLYING
-                        if (drone.setState) {
-                            drone.setState('FLYING');
-                        }
-                        drone.state = 'FLYING';
-                    }
-                });
-            }
-            
-            // Vérifier les drones alternatifs
-            if (window.diamantsSystem?.integratedController?.drones) {
-                window.diamantsSystem.integratedController.drones.forEach((drone, index) => {
-                    if (drone.mesh) {
-                        const emergencyAltitude = 8.5 + (index * 0.3);
-                        window.log(`🚁 URGENCE ALT: ${drone.id} → ${emergencyAltitude}m`);
-                        drone.mesh.position.y = emergencyAltitude;
-                    }
-                });
+            } catch (e) { log('⚠️ Erreur envoi mission:', e.message); }
+            if (system && system.integratedController) {
+                try { system.integratedController.startMissionManual(); } catch (_) {}
             }
         };
 
-        // changePattern défini dans drone-panel-controller.js
-        // SOLUTION COMPLÈTE: Pattern button fait décollage + formation à 5m+
+        window.forceDronesUp = function() {
+            log('🚨 UP! — envoi commande disperse au backend');
+            const system = window.diamantsSystem;
+            try {
+                if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+                    system.ros.ws.send(JSON.stringify({
+                        type: 'swarm_command',
+                        data: { action: 'disperse' },
+                    }));
+                    log('✅ Commande disperse envoyée');
+                }
+            } catch (e) { log('⚠️ Erreur envoi disperse:', e.message); }
+        };
+
+        if (typeof window.emergencyLand === 'undefined') {
+            window.emergencyLand = function() {
+                log('🛑 Emergency Land — envoi au backend');
+                const system = window.diamantsSystem;
+                try {
+                    if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+                        system.ros.ws.send(JSON.stringify({
+                            type: 'mission_command',
+                            data: { action: 'emergency_land' },
+                        }));
+                        log('✅ Commande emergency_land envoyée');
+                    }
+                } catch (e) { log('⚠️ Erreur envoi emergency_land:', e.message); }
+            };
+        }
+
+        if (typeof window.resetSwarm === 'undefined') {
+            window.resetSwarm = function() {
+                log('🔄 Reset Swarm — envoi au backend');
+                const system = window.diamantsSystem;
+                try {
+                    if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
+                        system.ros.ws.send(JSON.stringify({
+                            type: 'swarm_command',
+                            data: { action: 'reset' },
+                        }));
+                        log('✅ Commande reset envoyée');
+                    }
+                } catch (e) { log('⚠️ Erreur envoi reset:', e.message); }
+            };
+        }
+
         if (typeof window.changePattern === 'undefined') {
             window.changePattern = function() {
-                window.log('🚀 PATTERN COMPLET: Décollage + Formation à 5m+');
-                
-                // ÉTAPE 1: Forcer l'altitude à 5m+ pour tous les drones
-                if (window.diamantsSystem?.integratedController) {
-                    const controller = window.diamantsSystem.integratedController;
-                    
-                    // DÉCOLLAGE FORCÉ À 5M+
-                    controller.drones.forEach((drone, index) => {
-                        if (drone.mesh) {
-                            const targetAltitude = 5.0 + (index * 0.3); // 5m minimum + espacement
-                            window.log(`🚁 Décollage drone ${drone.id} vers ${targetAltitude}m`);
-                            
-                            // Animation directe vers la bonne altitude
-                            const mesh = drone.mesh;
-                            const startY = mesh.position.y;
-                            const startTime = Date.now();
-                            
-                            function animateUp() {
-                                const elapsed = Date.now() - startTime;
-                                const progress = Math.min(elapsed / 2000, 1.0); // 2 secondes
-                                const currentY = startY + (targetAltitude - startY) * progress;
-                                
-                                mesh.position.y = currentY;
-                                
-                                if (progress < 1.0) {
-                                    requestAnimationFrame(animateUp);
-                                } else {
-                                    window.log(`✅ Drone ${drone.id} à ${targetAltitude}m`);
-                                }
-                            }
-                            
-                            animateUp();
-                        }
-                    });
-                }
-                
-                // ÉTAPE 2: Formation après 3 secondes
-                setTimeout(() => {
-                    if (window.setFormation) {
-                        const patterns = ['grid', 'line', 'circle', 'triangle'];
-                        const current = document.getElementById('currentPattern')?.textContent || 'grid';
-                        const index = patterns.indexOf(current);
-                        const next = patterns[(index + 1) % patterns.length];
-                        window.log(`📐 Formation ${next} à 5m+ activée`);
-                        window.setFormation(next);
-                    }
-                }, 3000);
+                const patterns = ['grid', 'line', 'circle', 'triangle'];
+                const patternEl = document.getElementById('currentPattern');
+                const current = patternEl?.textContent || 'grid';
+                const index = patterns.indexOf(current);
+                const next = patterns[(index + 1) % patterns.length];
+                if (patternEl) patternEl.textContent = next;
+                log('📐 Pattern: ' + next);
             };
         }
-        
+
+        window.setFormation = function(name) {
+            const patternEl = document.getElementById('currentPattern');
+            if (patternEl) patternEl.textContent = name;
+            log('📐 Formation: ' + name);
+        };
+
         window.toggleDebugLogs = function() {
-            log('📋 Toggle Debug Logs');
-            alert('📋 Toggle Debug Logs');
+            const logsPanel = document.getElementById('debug-logs');
+            const btn = document.getElementById('btn-toggle-logs');
+            if (logsPanel) {
+                const isVisible = logsPanel.style.display !== 'none';
+                logsPanel.style.display = isVisible ? 'none' : 'block';
+                if (btn) btn.textContent = isVisible ? '📋 Show Logs' : '📋 Hide Logs';
+            }
         };
-        
+
         window.clearDebugLogs = function() {
-            log('🧹 Clear Debug Logs');  
-            alert('🧹 Clear Debug Logs');
+            const logsContent = document.getElementById('debug-logs-content');
+            if (logsContent) logsContent.innerHTML = '';
+            log('🧹 Logs nettoyés');
         };
-        
+
         window.toggleDebugPanels = function() {
             log('🛠️ Toggle Debug Panels');
-            alert('🛠️ Toggle Debug Panels');
         };
-        
+
         log('✅ Fonctions UI chargées');
     </script>
-
-    <!-- Charger le contrôleur du panneau -->
-    <script src="./tools/drone-panel-controller.js"></script>
 
     <!-- Charger la forêt EZ-Tree (authentic) -->
     <!-- <script type="module" src="./forest_authentic.js"></script> -->

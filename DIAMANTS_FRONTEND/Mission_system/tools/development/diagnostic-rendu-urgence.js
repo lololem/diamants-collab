@@ -174,6 +174,13 @@ function diagnosticRenduUrgence() {
 function forcerRenduTest() {
     log('🎯 FORÇAGE RENDU DE TEST...');
     
+    // GUARD: Ne jamais écraser le renderer principal — cela crée un competing RAF loop
+    // et provoque du flickering en remplaçant le canvas par innerHTML=''
+    if (window.renderer || (window.DIAMANTS?.missionSystem)) {
+        log('✅ Renderer principal déjà actif — forcerRenduTest() annulé (anti-flickering)');
+        return;
+    }
+    
     if (!window.THREE) {
         error('❌ THREE.js non disponible pour test');
         return;
