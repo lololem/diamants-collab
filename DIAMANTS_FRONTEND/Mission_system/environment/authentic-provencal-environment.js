@@ -1,14 +1,11 @@
 /**
- * DIAMANTS - Environn            enableFallenLeaves: config.enableFallenLeaves !== false,
-            enableForestWood: config.enableForestWood !== false, // NOUVEAU : Système de bois
-            enableUndergrowth: config.enableUndergrowth !== false, // NOUVEAU : Sous-bois
-            enableTreeEnhancement: config.enableTreeEnhancement !== false, // NOUVEAU : Amélioration textures arbres
-            grassCount: config.grassCount || 120000, // AUGMENTÉ : Plus d'herbe comme demandé
-            leavesCount: config.leavesCount || 4500, // AUGMENTÉ : Plus de feuilles colorées
-            woodCount: config.woodCount || 2600, // NOUVEAU : 2.6k éléments de bois (branches, troncs, brindilles)
-            undergrowthCount: config.undergrowthCount || 2600, // NOUVEAU : Sous-bois (fougères, buissons, petites plantes) Provençal Authentique avec EZ-Tree
+ * DIAMANTS - Environnement Provençal Authentique avec EZ-Tree
  * =============================================================
+ * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
+ * Restaurer : git checkout v0-origin -- environment/authentic-provencal-environment.js
+ *
  * Utilise la vraie API EZ-Tree avec presets JSON et textures haute qualité
+ * Heliport rayon 8m, exclusion herbe 10m, exclusion arbres 12m, pas de murs d'arène.
  */
 
 import * as THREE from 'three';
