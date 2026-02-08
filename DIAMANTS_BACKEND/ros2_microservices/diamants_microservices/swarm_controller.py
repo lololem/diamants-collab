@@ -2,6 +2,9 @@
 """
 DIAMANTS - Swarm Controller Microservice
 ==========================================
+⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
+Restaurer : git checkout v0-origin -- swarm_controller.py
+
 Core swarm intelligence node. Subscribes to all drone odometry,
 computes social forces + exploration incentive, and publishes
 cmd_vel commands for each drone.

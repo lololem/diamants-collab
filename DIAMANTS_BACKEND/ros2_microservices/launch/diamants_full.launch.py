@@ -2,6 +2,9 @@
 """
 DIAMANTS - Full Microservice Launch
 =====================================
+⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
+Restaurer : git checkout v0-origin -- launch/diamants_full.launch.py
+
 Launches the entire DIAMANTS backend:
 
 1. Gazebo Harmonic (headless, 8 Crazyflie drones)
