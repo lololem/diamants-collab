@@ -1,0 +1,152 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DIAMANTS Unified DroneState Protocol",
+  "description": "Format télémétrie unifié entre ground station et frontend. Compatible WebSocket port 8765. Ce schéma est le CONTRAT PUBLIC — toute source de données (MAVLink, Gazebo, SITL, JS engine) DOIT produire ce format.",
+  "version": "1.0.0",
+
+  "definitions": {
+    "drone_state": {
+      "type": "object",
+      "description": "État complet d'un drone. Envoyé dans le message WebSocket type='drone_positions'.",
+      "required": ["position"],
+      "properties": {
+        "position": {
+          "type": "object",
+          "description": "Position dans le repère Three.js (Y-up). La conversion NED→Three.js est faite côté gateway.",
+          "required": ["x", "y", "z"],
+          "properties": {
+            "x": { "type": "number", "description": "Axe X (correspond à North en NED)" },
+            "y": { "type": "number", "description": "Axe Y (altitude, correspond à -Down en NED)" },
+            "z": { "type": "number", "description": "Axe Z (correspond à -East en NED)" }
+          }
+        },
+        "velocity": {
+          "type": "object",
+          "properties": {
+            "vx": { "type": "number", "description": "m/s axe X" },
+            "vy": { "type": "number", "description": "m/s axe Y (vertical)" },
+            "vz": { "type": "number", "description": "m/s axe Z" }
+          }
+        },
+        "attitude": {
+          "type": "object",
+          "properties": {
+            "roll":  { "type": "number", "description": "radians" },
+            "pitch": { "type": "number", "description": "radians" },
+            "yaw":   { "type": "number", "description": "radians" }
+          }
+        },
+        "battery": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "Pourcentage batterie restant"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["idle", "takeoff", "cruise", "explore", "return", "land", "emergency", "offline", "unknown"],
+          "description": "État machine du drone"
+        },
+        "mode": {
+          "type": "string",
+          "description": "Mode PX4 brut (OFFBOARD, LOITER, RTL, LAND, MANUAL, etc.)"
+        },
+        "armed": {
+          "type": "boolean",
+          "description": "Drone armé ou non"
+        },
+        "gps": {
+          "type": "object",
+          "properties": {
+            "lat":        { "type": "number" },
+            "lon":        { "type": "number" },
+            "alt_msl":    { "type": "number", "description": "Altitude MSL en mètres" },
+            "fix":        { "type": "integer", "description": "0=no, 2=2D, 3=3D" },
+            "satellites": { "type": "integer" }
+          }
+        },
+        "propellers": {
+          "type": "array",
+          "items": { "type": "number" },
+          "description": "RPM de chaque moteur [M1, M2, M3, M4]"
+        },
+        "source": {
+          "type": "string",
+          "enum": ["mavlink", "gazebo", "sitl", "simulator", "unknown"],
+          "description": "Origine de la télémétrie — permet au frontend de savoir si c'est du réel"
+        },
+        "profile": {
+          "type": "string",
+          "description": "Identifiant du profil drone (ex: 'crazyflie-2.1', 'mavic-pro'). Doit correspondre à un fichier dans physics/profiles/"
+        },
+        "sysid": {
+          "type": "integer",
+          "description": "MAVLink System ID (1-255). Identifiant unique sur le lien radio."
+        },
+        "timestamp": {
+          "type": "number",
+          "description": "Epoch ms de la dernière mise à jour télémétrie"
+        }
+      }
+    }
+  },
+
+  "type": "object",
+  "description": "Message WebSocket envoyé sur le canal drone_positions",
+  "properties": {
+    "type": {
+      "type": "string",
+      "const": "drone_positions"
+    },
+    "drones": {
+      "type": "object",
+      "description": "Map drone_id → drone_state. Les IDs suivent le format 'drone_01', 'drone_02', etc.",
+      "additionalProperties": { "$ref": "#/definitions/drone_state" }
+    },
+    "source": {
+      "type": "string",
+      "enum": ["mavlink_gateway", "gazebo_bridge", "js_engine"],
+      "description": "Quel système a produit ce message"
+    },
+    "timestamp": {
+      "type": "number",
+      "description": "Epoch ms de l'émission du message"
+    }
+  },
+  "required": ["type", "drones"],
+
+  "examples": [
+    {
+      "type": "drone_positions",
+      "source": "mavlink_gateway",
+      "timestamp": 1707400000000,
+      "drones": {
+        "drone_01": {
+          "position": { "x": 5.2, "y": 3.0, "z": -1.8 },
+          "velocity": { "vx": 0.5, "vy": 0.0, "vz": -0.2 },
+          "attitude": { "roll": 0.02, "pitch": -0.01, "yaw": 1.57 },
+          "battery": 87.5,
+          "status": "cruise",
+          "mode": "OFFBOARD",
+          "armed": true,
+          "source": "mavlink",
+          "profile": "crazyflie-2.1",
+          "sysid": 1,
+          "timestamp": 1707400000000
+        },
+        "drone_02": {
+          "position": { "x": 10.1, "y": 5.0, "z": 3.4 },
+          "velocity": { "vx": 1.2, "vy": 0.1, "vz": 0.0 },
+          "battery": 62.0,
+          "status": "explore",
+          "mode": "OFFBOARD",
+          "armed": true,
+          "source": "mavlink",
+          "profile": "mavic-pro",
+          "sysid": 2,
+          "timestamp": 1707400000000
+        }
+      }
+    }
+  ]
+}
