@@ -1,0 +1,31 @@
+{
+    "$comment": "Engine-level constants for AutonomousFlightEngine. Per-drone overrides live in profiles/*.json.",
+    "version": "1.0.0",
+
+    "avoidance": {
+        "treeDistance": 5.0,
+        "treeForceScale": 8.0,
+        "treeVerticalPush": 2.0,
+        "droneDistance": 4.0,
+        "droneForceScale": 6.0
+    },
+
+    "exploration": {
+        "waypointTimeout": 12.0,
+        "waypointReachDist": 2.0,
+        "candidates": 8,
+        "spiralAngleMin": 0.4,
+        "spiralAngleMax": 1.0,
+        "minWaypointDist": 8,
+        "altitudeVariation": 2.0,
+        "cellSize": 3.0
+    },
+
+    "visual": {
+        "baseRPM": 12000,
+        "rpmSpeedFactor": 2000,
+        "rpmJitter": 500,
+        "maxRollPitch": 0.3,
+        "velocityTilt": 0.08
+    }
+}

@@ -279,11 +279,14 @@ export class RosWebBridge {
         const drones = data.drones || data;
         if (typeof drones !== 'object') return;
 
-        // Normalize: backend may send flat {x,y,z,...} or nested {position:{x,y,z}}
+        // Normalize incoming data to match drone-state.schema.json (v1.0.0).
+        // Backend may send flat {x,y,z,...} or nested {position:{x,y,z}}.
+        // We pass through ALL schema fields so the rest of the frontend
+        // has access to the full DroneState contract.
         const normalized = {};
         for (const [droneId, info] of Object.entries(drones)) {
             if (!info || typeof info !== 'object') continue;
-            // Already has position sub-object
+            // Already has position sub-object → pass everything through
             if (info.position && typeof info.position === 'object') {
                 normalized[droneId] = info;
             }
@@ -291,10 +294,18 @@ export class RosWebBridge {
             else if (info.x !== undefined && info.y !== undefined) {
                 normalized[droneId] = {
                     position: { x: info.x, y: info.y, z: info.z || 0 },
+                    velocity: info.vx !== undefined ? { vx: info.vx, vy: info.vy, vz: info.vz } : undefined,
+                    attitude: info.roll !== undefined ? { roll: info.roll, pitch: info.pitch, yaw: info.yaw } : (info.yaw !== undefined ? { roll: 0, pitch: 0, yaw: info.yaw } : undefined),
                     battery: info.battery,
                     status: info.status,
-                    vx: info.vx, vy: info.vy, vz: info.vz,
-                    yaw: info.yaw,
+                    mode: info.mode,
+                    armed: info.armed,
+                    gps: info.gps,
+                    propellers: info.propellers,
+                    source: info.source,
+                    profile: info.profile,
+                    sysid: info.sysid,
+                    timestamp: info.timestamp,
                 };
             }
         }
