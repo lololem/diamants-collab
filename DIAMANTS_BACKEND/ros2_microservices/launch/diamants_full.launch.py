@@ -54,6 +54,10 @@ def generate_launch_description():
         'headless', default_value='True',
         description='Run Gazebo in headless mode (no GUI)'
     )
+    world_arg = DeclareLaunchArgument(
+        'world', default_value='forest',
+        description='Gazebo world to load: forest, indoor, or open'
+    )
     num_drones_arg = DeclareLaunchArgument(
         'num_drones', default_value='8',
         description='Number of Crazyflie drones (1-8)'
@@ -95,8 +99,21 @@ def generate_launch_description():
     )
 
     # =========================================================================
+    # Resolve world SDF file from world argument
+    # =========================================================================
+    _world_map = {
+        'forest': 'diamants_forest.sdf',
+        'indoor': 'diamants_indoor.sdf',
+        'open':   'crazyflie_multi_world.sdf',
+    }
+
+    # =========================================================================
     # 1. Gazebo Simulation
     # =========================================================================
+    # NOTE: LaunchConfiguration is lazy — we resolve world name at generate
+    # time via a OpaqueFunction below. For now, default to forest.
+    _default_world = os.path.join(pkg_gz_gazebo, 'worlds', 'diamants_forest.sdf')
+
     gz_sim_headless = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')
@@ -104,7 +121,7 @@ def generate_launch_description():
         condition=IfCondition(LaunchConfiguration('headless')),
         launch_arguments={
             'gz_args': PathJoinSubstitution([
-                pkg_gz_gazebo, 'worlds', 'crazyflie_multi_world.sdf -r -s'
+                pkg_gz_gazebo, 'worlds', 'diamants_forest.sdf -r -s'
             ])
         }.items(),
     )
@@ -116,7 +133,7 @@ def generate_launch_description():
         condition=UnlessCondition(LaunchConfiguration('headless')),
         launch_arguments={
             'gz_args': PathJoinSubstitution([
-                pkg_gz_gazebo, 'worlds', 'crazyflie_multi_world.sdf -r'
+                pkg_gz_gazebo, 'worlds', 'diamants_forest.sdf -r'
             ])
         }.items(),
     )
@@ -222,6 +239,7 @@ def generate_launch_description():
     return LaunchDescription([
         # Arguments
         headless_arg,
+        world_arg,
         num_drones_arg,
         auto_start_arg,
         auto_start_delay_arg,
@@ -231,7 +249,8 @@ def generate_launch_description():
         # Banner
         LogInfo(msg="═══════════════════════════════════════════════════════"),
         LogInfo(msg="  DIAMANTS — Multi-Agent SLAM Collaborative System    "),
-        LogInfo(msg="  8 Crazyflie drones • Gazebo Harmonic • ROS2 Jazzy   "),
+        LogInfo(msg="  Crazyflie drones • Gazebo Harmonic • ROS2 Jazzy     "),
+        LogInfo(msg="  Worlds: forest | indoor | open                      "),
         LogInfo(msg="═══════════════════════════════════════════════════════"),
 
         # 0. Set Gazebo model resource path
