@@ -122,6 +122,3 @@ export class NoopSwarmIntelligence extends SwarmIntelligenceInterface {
         return { name: 'noop', enabled: false };
     }
 }
-
-// Re-export stigmergy interface for convenience
-export { StigmergyInterface, PheromoneType } from './stigmergy-interface.js';
