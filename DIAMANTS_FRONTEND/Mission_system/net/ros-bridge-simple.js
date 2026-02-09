@@ -28,6 +28,7 @@ export class RosWebBridge {
         this._reconnectDelay = RECONNECT_MIN_MS;
         this._reconnectTimer = null;
         this._closing = false;
+        this._errorEmitted = false;
 
         // Cache of last state received from bridge
         this.state = {};
@@ -60,6 +61,7 @@ export class RosWebBridge {
             this._ws.onopen = () => {
                 this.connected = true;
                 this._reconnectDelay = RECONNECT_MIN_MS;
+                this._errorEmitted = false;
                 this._log('log', `✅ Connected to DiamantsBridge at ${this.url}`);
 
                 try { window.dispatchEvent(new CustomEvent('diamants:ws-connected')); } catch (_) {}
@@ -94,7 +96,11 @@ export class RosWebBridge {
             this._ws.onerror = (err) => {
                 // onclose will fire right after
                 this.connected = false;
-                try { window.dispatchEvent(new CustomEvent('diamants:ws-error', { detail: { message: err?.message || 'connection error' } })); } catch (_) {}
+                // Only emit the error event once — suppress repeated reconnect noise
+                if (!this._errorEmitted) {
+                    this._errorEmitted = true;
+                    try { window.dispatchEvent(new CustomEvent('diamants:ws-error', { detail: { message: err?.message || 'connection error' } })); } catch (_) {}
+                }
                 resolve(false);
             };
         });
