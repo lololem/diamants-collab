@@ -176,8 +176,7 @@ export PYTHONPATH="/opt/ros/jazzy/lib/python3.12/site-packages:$PYTHONPATH"
 
 ### Ports utilisés
 - `8000` - API REST
-- `8765` - WebSocket Service
-- `9001` - WebSocket Bridge ROS2
+- `8765` - WebSocket Bridge (DiamantsBridge)
 - `5550-5552` - Frontend (si activé)
 
 ## 🆘 Dépannage

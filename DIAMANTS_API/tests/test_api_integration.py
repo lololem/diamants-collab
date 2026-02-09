@@ -135,13 +135,7 @@ class TestDiamantsAPI:
         result1 = sock1.connect_ex(('localhost', 8765))
         sock1.close()
         
-        # Test du WebSocket bridge (port 9001)
-        sock2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        result2 = sock2.connect_ex(('localhost', 9001))
-        sock2.close()
-        
-        assert result1 == 0, "WebSocket Service non disponible sur port 8765"
-        assert result2 == 0, "WebSocket Bridge non disponible sur port 9001"
+        assert result1 == 0, "WebSocket Bridge non disponible sur port 8765"
         print("✅ Test WebSocket Availability: OK")
 
 if __name__ == '__main__':

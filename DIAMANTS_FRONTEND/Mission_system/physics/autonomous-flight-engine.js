@@ -24,6 +24,12 @@ import { DRONE_PROFILES, DronePhysicsRegistry } from './drone-physics-registry.j
 import { NoopSwarmIntelligence } from '../intelligence/swarm-intelligence-interface.js';
 export { DRONE_PROFILES };
 
+// ─── Engine-level flight constants (externalized from code) ──────────
+import FLIGHT_CONFIG from './flight-config.json' with { type: 'json' };
+const AVOID  = FLIGHT_CONFIG.avoidance;
+const EXPLORE = FLIGHT_CONFIG.exploration;
+const VISUAL  = FLIGHT_CONFIG.visual;
+
 // ─── Simple PID ──────────────────────────────────────────────────────
 class PID {
     constructor({ kp = 1, ki = 0, kd = 0 } = {}) {
@@ -82,7 +88,7 @@ export class AutonomousFlightEngine {
 
         // Coverage tracking
         this.visitedCells = new Set();
-        this.cellSize = 3.0; // m
+        this.cellSize = EXPLORE.cellSize;
 
         // Swarm intelligence slot (pluggable from diamants-private)
         this.swarmIntelligence = new NoopSwarmIntelligence();
@@ -242,7 +248,7 @@ export class AutonomousFlightEngine {
                     ) : Infinity;
 
                 // Pick a new waypoint when close or timeout
-                if (!state.waypoint || distToWP < 2.0 || state.waypointTimer > 12.0) {
+                if (!state.waypoint || distToWP < EXPLORE.waypointReachDist || state.waypointTimer > EXPLORE.waypointTimeout) {
                     // Ask swarm intelligence first (stigmergy, RL, etc.)
                     const neighbors = this._getNeighbors(state.id);
                     const suggested = this.swarmIntelligence.computeNextWaypoint(
@@ -266,17 +272,17 @@ export class AutonomousFlightEngine {
         let bestWP = null;
         let bestScore = -Infinity;
 
-        for (let i = 0; i < 8; i++) {
+        for (let i = 0; i < EXPLORE.candidates; i++) {
             // Bias towards expanding outward in a spiral pattern
-            state.explorationAngle += 0.4 + Math.random() * 0.6; // ~30-60° turn
-            const dist = 8 + Math.random() * (maxR - 8);
+            state.explorationAngle += EXPLORE.spiralAngleMin + Math.random() * (EXPLORE.spiralAngleMax - EXPLORE.spiralAngleMin);
+            const dist = EXPLORE.minWaypointDist + Math.random() * (maxR - EXPLORE.minWaypointDist);
             const angle = state.explorationAngle;
 
             const wx = Math.cos(angle) * dist;
             const wz = Math.sin(angle) * dist;
 
             // Vary altitude slightly for dynamic feel
-            const wy = prof.cruiseAlt + (Math.random() - 0.5) * 2.0;
+            const wy = prof.cruiseAlt + (Math.random() - 0.5) * EXPLORE.altitudeVariation;
 
             // Score: prefer unvisited cells
             const cx = Math.floor(wx / this.cellSize);
@@ -313,23 +319,20 @@ export class AutonomousFlightEngine {
     // ─── Tree collision avoidance ────────────────────────────────────
     _computeTreeAvoidance(state) {
         const force = new THREE.Vector3();
-        const AVOID_DIST = 5.0;   // start avoiding at 5m from trunk
-        const FORCE_SCALE = 8.0;  // strong repulsion
-
         for (const tree of this.treeBounds) {
             const dx = state.position.x - tree.center.x;
             const dz = state.position.z - tree.center.z;
             const dist = Math.sqrt(dx * dx + dz * dz);
-            const minDist = tree.radius + AVOID_DIST;
+            const minDist = tree.radius + AVOID.treeDistance;
 
             if (dist < minDist && dist > 0.01) {
-                const strength = FORCE_SCALE * (1 - dist / minDist);
+                const strength = AVOID.treeForceScale * (1 - dist / minDist);
                 force.x += (dx / dist) * strength;
                 force.z += (dz / dist) * strength;
 
                 // If really close, push up too
                 if (dist < tree.radius + 2) {
-                    force.y += 2.0;
+                    force.y += AVOID.treeVerticalPush;
                 }
             }
         }
@@ -339,17 +342,14 @@ export class AutonomousFlightEngine {
     // ─── Inter-drone collision avoidance ──────────────────────────────
     _computeDroneAvoidance(state) {
         const force = new THREE.Vector3();
-        const AVOID_DIST = 4.0;   // keep 4m between drones
-        const FORCE_SCALE = 6.0;
-
         for (const [otherId, other] of this.drones) {
             if (otherId === state.id) continue;
             const dx = state.position.x - other.position.x;
             const dz = state.position.z - other.position.z;
             const dist = Math.sqrt(dx * dx + dz * dz);
 
-            if (dist < AVOID_DIST && dist > 0.01) {
-                const strength = FORCE_SCALE * (1 - dist / AVOID_DIST);
+            if (dist < AVOID.droneDistance && dist > 0.01) {
+                const strength = AVOID.droneForceScale * (1 - dist / AVOID.droneDistance);
                 force.x += (dx / dist) * strength;
                 force.z += (dz / dist) * strength;
             }
@@ -369,8 +369,8 @@ export class AutonomousFlightEngine {
         try {
             drone.mesh.rotation.y = state.heading;
             // Slight roll/pitch based on velocity for visual dynamism
-            const rollAngle = Math.max(-0.3, Math.min(0.3, state.velocity.x * 0.08));
-            const pitchAngle = Math.max(-0.3, Math.min(0.3, -state.velocity.z * 0.08));
+            const rollAngle = Math.max(-VISUAL.maxRollPitch, Math.min(VISUAL.maxRollPitch, state.velocity.x * VISUAL.velocityTilt));
+            const pitchAngle = Math.max(-VISUAL.maxRollPitch, Math.min(VISUAL.maxRollPitch, -state.velocity.z * VISUAL.velocityTilt));
             drone.mesh.rotation.z = rollAngle;
             drone.mesh.rotation.x = pitchAngle;
         } catch (_) { /* safe */ }
@@ -380,10 +380,10 @@ export class AutonomousFlightEngine {
 
         // Motor RPM proportional to speed for visual effect
         const speed = state.velocity.length();
-        const baseRPM = 12000 + speed * 2000;
+        const baseRPM = VISUAL.baseRPM + speed * VISUAL.rpmSpeedFactor;
         if (drone.motors) {
             for (let i = 0; i < 4; i++) {
-                drone.motors[i].rpm = baseRPM + (Math.random() - 0.5) * 500;
+                drone.motors[i].rpm = baseRPM + (Math.random() - 0.5) * VISUAL.rpmJitter;
                 drone.motors[i].omega = (drone.motors[i].rpm / 60) * 2 * Math.PI;
             }
         }

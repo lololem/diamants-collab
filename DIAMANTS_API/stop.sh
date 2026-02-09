@@ -24,7 +24,7 @@ pkill -f "websocket" 2>/dev/null || echo -e "${YELLOW}⚠️  Aucun processus We
 
 # Free ports
 echo -e "${BLUE}🧹 Libération des ports...${NC}"
-for port in 8000 8765 9001; do
+for port in 8000 8765; do
     lsof -ti:$port | xargs kill -9 2>/dev/null || true
 done
 
