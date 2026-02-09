@@ -90,7 +90,7 @@ pkill -f "websocket_bridge.py" 2>/dev/null && echo -e "${GREEN}✅ WebSocket bri
 
 # Kill processes on specific ports
 echo -e "${YELLOW}🛑 Freeing ports...${NC}"
-for port in 8000 8765 9001 5550 5551 5552 5553 5554 5555; do
+for port in 8000 8765 5550 5551 5552 5553 5554 5555; do
     local pid=$(lsof -ti:$port 2>/dev/null)
     if [ ! -z "$pid" ]; then
         kill -TERM "$pid" 2>/dev/null

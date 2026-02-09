@@ -47,8 +47,7 @@ check_service() {
 # Check API
 echo -e "${BLUE}📡 API Services:${NC}"
 check_service "DIAMANTS API" "8000"
-check_service "WebSocket Service" "8765" "websocket"
-check_service "WebSocket Bridge" "9001" "websocket"
+check_service "WebSocket Bridge" "8765" "websocket"
 echo ""
 
 # Check Frontend
@@ -145,9 +144,6 @@ if curl -s "http://localhost:8000" > /dev/null 2>&1; then healthy_count=$((healt
 services_count=$((services_count+1))
 
 if nc -z localhost 8765 2>/dev/null; then healthy_count=$((healthy_count+1)); fi
-services_count=$((services_count+1))
-
-if nc -z localhost 9001 2>/dev/null; then healthy_count=$((healthy_count+1)); fi
 services_count=$((services_count+1))
 
 for port in 5550 5551 5552 5553 5554 5555; do
