@@ -25,7 +25,7 @@ import { NoopSwarmIntelligence } from '../intelligence/swarm-intelligence-interf
 export { DRONE_PROFILES };
 
 // ─── Engine-level flight constants (externalized from code) ──────────
-import FLIGHT_CONFIG from './flight-config.json' with { type: 'json' };
+import FLIGHT_CONFIG from './flight-config.json' assert { type: 'json' };
 const AVOID  = FLIGHT_CONFIG.avoidance;
 const EXPLORE = FLIGHT_CONFIG.exploration;
 const VISUAL  = FLIGHT_CONFIG.visual;
