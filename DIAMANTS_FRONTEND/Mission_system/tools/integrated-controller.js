@@ -40,6 +40,7 @@ import { RealisticFlightDynamics } from '../physics/realistic-flight-dynamics.js
 import { GLSLGrassField } from '../environment/glsl-grass-field.js';
 import { AutonomousFlightEngine } from '../physics/autonomous-flight-engine.js';
 import { DRONE_PROFILES, DronePhysicsRegistry } from '../physics/drone-physics-registry.js';
+import { loadStigmergyEngine, isStigmergyAvailable } from '../intelligence/stigmergy-loader.js';
 // SAMPLE_MODE import removed - sample files moved to DEMO/ directory
 
 export class IntegratedDiamantsController {
@@ -279,6 +280,17 @@ export class IntegratedDiamantsController {
         this.autonomousFlightEngine = new AutonomousFlightEngine({
             explorationBounds: 50,
         });
+
+        // ── Load Stigmergy Engine (if available from diamants-private) ──
+        const stigmergyEngine = await loadStigmergyEngine({
+            gridSize: 100,
+            gridResolution: 1.0,
+            evaporationRate: 0.02,
+        });
+        if (stigmergyEngine) {
+            this.autonomousFlightEngine.setSwarmIntelligence(stigmergyEngine);
+            logger.info('Controller', '🧠 Stigmergy engine loaded and attached');
+        }
 
         // ── Mixed drone type assignment ──
         // First 4 = Crazyflie, next 2 = Mavic, last 2 = Phantom
