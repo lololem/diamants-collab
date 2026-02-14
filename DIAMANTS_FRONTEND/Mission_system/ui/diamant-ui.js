@@ -1,7 +1,7 @@
 /**
  * DIAMANTS - Interface Utilisateur Complète
  * ============================================
- * Interface ROS2/Gazebo style avec contrôles DIAMANTS
+ * Interface de contrôle DIAMANTS
  */
 
 // Mode silencieux global
@@ -252,21 +252,30 @@ export class DiamantUI {
 
         if (pauseBtn) {
             pauseBtn.addEventListener('click', () => {
-                if (this.config.application && this.config.application.simulationState) {
-                    const isRunning = this.config.application.simulationState.running;
-                    if (isRunning) {
-                        this.config.application.pauseSimulation();
-                    } else {
-                        this.config.application.resumeSimulation();
+                console.log('[UI-BTN] Pause/Resume clicked');
+                const system = window.diamantsSystem;
+                if (system?.integratedController) {
+                    const engine = system.integratedController.autonomousFlightEngine;
+                    if (engine) {
+                        engine.paused = !engine.paused;
+                        console.log(`[UI-BTN] Simulation ${engine.paused ? 'PAUSED' : 'RESUMED'}`);
+                        pauseBtn.textContent = engine.paused ? '▶️ Resume' : '⏸ Pause';
                     }
+                } else {
+                    console.warn('[UI-BTN] Pause: système non initialisé');
                 }
             });
         }
 
         if (resetBtn) {
             resetBtn.addEventListener('click', () => {
-                if (this.config.application && this.config.application.resetSimulation) {
-                    this.config.application.resetSimulation();
+                console.log('[UI-BTN] Reset clicked');
+                if (typeof window.resetMission === 'function') {
+                    window.resetMission();
+                } else if (typeof window.resetSwarm === 'function') {
+                    window.resetSwarm();
+                } else {
+                    console.warn('[UI-BTN] Reset: aucune fonction disponible');
                 }
             });
         }
@@ -380,17 +389,17 @@ export class DiamantUI {
                 const module = this.config.controller[moduleName];
                 if (module && typeof module.setEnabled === 'function') {
                     module.setEnabled(enabled);
-                    log(`📋 Module ${moduleName}: ${enabled ? 'Activé' : 'Désactivé'}`);
+                    console.log(`📋 Module ${moduleName}: ${enabled ? 'Activé' : 'Désactivé'}`);
                 } else if (this.config.controller.config) {
                     const configKey = `enable${moduleName.charAt(0).toUpperCase() + moduleName.slice(1)}`;
                     this.config.controller.config[configKey] = enabled;
-                    log(`📋 Config ${configKey}: ${enabled}`);
+                    console.log(`📋 Config ${configKey}: ${enabled}`);
                 }
             }
             
             this.updateModuleStatus();
-        } catch (error) {
-            error(`❌ Erreur toggle module ${moduleName}:`, error);
+        } catch (err) {
+            console.error(`❌ Erreur toggle module ${moduleName}:`, err);
         }
     }
 
@@ -604,7 +613,7 @@ export class DiamantUI {
     }
 
     createMainInterface() {
-        // Interface principale ROS2/Gazebo style
+        // Interface principale
         const mainUI = document.createElement('div');
         mainUI.id = 'diamants-ui';
         mainUI.className = 'diamants-interface';

@@ -342,11 +342,11 @@ captures the collective effect of local rules f, g, h, π at the macro scale, re
 
 ### 🚀 Implementation with Hardware Stack
 
-#### 🔧 Jetson Orin NX (Embedded Intelligence)
+#### 🔧 Embedded Compute Module (Onboard Intelligence)
 - **Role**: Distributed brain for each agent/drone
 - **Implementation**: 
   - Local micro-agent equations `ẋᵢ = f(xᵢ) + Σg + h(φ) + πᵢ`
-  - Real-time ROS2 communication for inter-agent coordination
+  - Real-time communication for inter-agent coordination
   - Local field computation φ/σ from OAK-D perception
   - Embedded policy πᵢ execution with minimal latency
 
@@ -364,7 +364,7 @@ captures the collective effect of local rules f, g, h, π at the macro scale, re
   - Large-scale DIAMANTS simulation (1000+ agents)
   - Policy πᵢ training via Multi-Agent RL
   - Global DIAMANTS(t) monitoring and analysis
-  - Model export to Jetson (ONNX → TensorRT)
+  - Model export for edge deployment (ONNX → TensorRT)
 
 #### 🌐 Practical Application Pipeline
 1. **Simulation Phase** (RTX 4070):
@@ -377,7 +377,7 @@ captures the collective effect of local rules f, g, h, π at the macro scale, re
    policy_i = train_marl_agent(state_i, goal_i, I_t)
    ```
 
-2. **Deployment Phase** (Jetson Orin NX):
+2. **Deployment Phase** (Embedded Compute):
    ```cpp
    // Embedded agent loop
    Vec3 f_intrinsic = computeIntrinsicDynamics(state);

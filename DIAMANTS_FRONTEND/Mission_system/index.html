@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAMANTS - Crazyflie Gazebo Simulation (Vrais Mesh)</title>
+    <title>DIAMANTS - Crazyflie Drone Simulation</title>
     <link rel="icon" href="data:,">
     
     <!-- Fonctions globales IMMÉDIATEMENT disponibles -->
@@ -55,8 +55,8 @@
     <script type="importmap">
         {
             "imports": {
-                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+                "three": "https://unpkg.com/three@0.167.1/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.167.1/examples/jsm/"
             }
         }
     </script>
@@ -161,7 +161,7 @@
             /* Force refresh marker */
         }
 
-        /* Interface ROS2/Gazebo-like */
+        /* Interface contrôle simulation */
         #ros_interface {
             position: fixed !important;
             top: 0 !important;
@@ -242,11 +242,14 @@
             display: none;
         }
 
-        /* ✅ MASQUER LOADING SCREEN ET MINIMAP AU DÉMARRAGE */
-        #loading_screen,
+        /* ✅ MASQUER LOADING SCREEN AU DÉMARRAGE */
+        #loading_screen {
+            display: none !important;
+        }
+        /* Minimap masquée par défaut (toggle JS via style.display) */
         #minimap,
         #tactical-minimap {
-            display: none !important;
+            display: none;
         }
 
         /* Contrôle strict de la mini-carte tactique créée par l'UI */
@@ -549,33 +552,35 @@
         /* Minimap - Toujours visible et bien positionnée */
         #minimap {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 220px;
-            height: 220px;
-            background: rgba(0, 0, 0, 0.9);
-            border: 2px solid #00AAFF;
-            border-radius: 8px;
+            bottom: 20px;
+            right: 20px;
+            width: 320px;
+            background: rgba(10, 22, 40, 0.95);
+            border: 2px solid #00FF88;
+            border-radius: 10px;
             z-index: 150;
             display: block;
+            padding-bottom: 8px;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
         }
 
         #minimap canvas {
-            width: calc(100% - 10px);
-            height: calc(100% - 35px);
-            margin: 5px;
+            width: calc(100% - 16px);
+            height: 260px;
+            margin: 8px;
             border-radius: 6px;
-            background: #87CEEB;
+            background: #0a1628;
         }
 
         #minimap h4 {
             margin: 0;
-            padding: 5px;
-            background: rgba(0, 170, 255, 0.8);
+            padding: 8px 12px;
+            background: linear-gradient(90deg, #059669, #10b981);
             color: white;
-            font-size: 12px;
+            font-size: 11px;
             text-align: center;
-            border-radius: 6px 6px 0 0;
+            border-radius: 8px 8px 0 0;
+            letter-spacing: 0.5px;
         }
 
         .loading_status {
@@ -601,293 +606,199 @@
 
     <!-- Loading screen -->
     <div id="loading_screen" class="loading_status">
-        <h3>🚁 Chargement DIAMANTS Gazebo</h3>
+        <h3>🚁 Chargement DIAMANTS Simulation</h3>
         <p>Chargement des mesh Crazyflie...</p>
         <div id="loading_progress">0%</div>
     </div>
 
-    <!-- Interface ROS2/Gazebo -->
+    <!-- Interface Simulation -->
     <div id="ros_interface">
-    <!-- DIAMANTS Status Panel (themed like Mission Control) -->
+    
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 1: STATUS — Toujours visible
+         ═══════════════════════════════════════════════════════════════════ -->
     <div id="status_panel" class="ros_panel">
-            <h3>🚁 DIAMANTS</h3>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 10px;">
-                <div style="color: #00FF88; font-weight: bold;">Status: <span id="system_status">Active</span></div>
-                <div style="color: #FFAA00;">Drones: <span id="drone_count">0</span></div>
-                <div style="color: #FF6699;">Intel: <span id="total_intelligence_display">0.0</span></div>
-                <div style="color: #66CCFF;">Emerge: <span id="emergence_display">0.0</span></div>
+        <h3>🚁 DIAMANTS</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px;">
+            <div style="color: #00FF88;"><strong>Status:</strong> <span id="system_status">Active</span></div>
+            <div style="color: #FFAA00;"><strong>Drones:</strong> <span id="drone_count">0/8</span></div>
+        </div>
+        <div class="emergence_indicator" style="margin-top: 8px;">
+            <div class="emergence_bar" id="emergence_bar" style="width: 0%"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 9px; color: #888; margin-top: 4px;">
+            <span>Intel: <span id="total_intelligence_display">0</span></span>
+            <span>Coverage: <span id="mission_coverage">0%</span></span>
+            <span>Emerge: <span id="emergence_display">0</span></span>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 2: MISSION CONTROL — Actions principales
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3>🎯 Mission Control</h3>
+        <div class="mission_control">
+            <button class="btn_ros" onclick="launchMission()" style="background: linear-gradient(45deg, #059669, #10b981);">▶️ Launch</button>
+            <button class="btn_ros" onclick="emergencyLand()" style="background: linear-gradient(45deg, #dc2626, #ef4444);">⏹ Stop</button>
+        </div>
+        <div class="mission_control" style="margin-top: 4px;">
+            <button class="btn_ros" onclick="takeoffAllDrones()">🛫 Takeoff</button>
+            <button class="btn_ros" onclick="landAllDrones()">🛬 Land</button>
+            <button class="btn_ros" onclick="resetMission()" style="background: linear-gradient(45deg, #f59e0b, #d97706);">🔄 Reset</button>
+        </div>
+        <div style="margin-top: 8px;">
+            <label style="font-size: 10px; color: #00CCFF;">Doctrine:</label>
+            <select id="mission_type" style="width: 100%; padding: 6px; margin: 4px 0; background: #1a1a2e; color: #00FFFF; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;">
+                <option value="stigmergy" selected>🧠 Stigmergie</option>
+                <option value="swarm">🐝 Essaim</option>
+                <option value="coverage">📐 Couverture</option>
+                <option value="formation">🔢 Formation</option>
+                <option value="search">🔍 Recherche</option>
+            </select>
+        </div>
+        <div style="margin-top: 4px;">
+            <label style="font-size: 10px; color: #00CCFF;">Course of Action:</label>
+            <select id="mode_select" style="width: 100%; padding: 6px; margin: 4px 0; background: #1a1a2e; color: #00FFFF; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;">
+                <option value="adaptive" selected>🌟 Adaptatif</option>
+                <option value="grid">⊞ Grille</option>
+                <option value="boustrophedon">↔ Boustrophedon</option>
+                <option value="spiral">🌀 Spirale</option>
+                <option value="radial">☀ Radial</option>
+                <option value="perimeter">⬜ Périmètre</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 3: INTELLIGENCE COLLECTIVE — Métriques clés
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3 onclick="toggleSection('metrics-content')" style="cursor: pointer;">📊 Intelligence Collective ▼</h3>
+        <div id="metrics-content">
+            <div class="metric_display">
+                <div class="metric_item">
+                    <div style="font-size: 9px;">Stigmergie</div>
+                    <div class="metric_value" id="stigmergy_value">0%</div>
+                </div>
+                <div class="metric_item">
+                    <div style="font-size: 9px;">Émergence</div>
+                    <div class="metric_value" id="emergence_level">0%</div>
+                </div>
+                <div class="metric_item">
+                    <div style="font-size: 9px;">Cohésion</div>
+                    <div class="metric_value" id="cohesion_index">0%</div>
+                </div>
+                <div class="metric_item">
+                    <div style="font-size: 9px;">Coordination</div>
+                    <div class="metric_value" id="coordination_score">0%</div>
+                </div>
+            </div>
+            <div style="margin-top: 10px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 4px;">
+                <div style="font-size: 9px; color: #888; margin-bottom: 4px;">Phéromones actives:</div>
+                <div style="display: flex; gap: 8px; font-size: 10px;">
+                    <span style="color: #00FF88;">🟢 Exploration</span>
+                    <span style="color: #FFD700;">🟡 Intérêt</span>
+                    <span style="color: #FF4444;">🔴 Danger</span>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Mission Control Panel -->
-        <div class="ros_panel">
-            <h3>🚁 Mission Control</h3>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 4: VISUALISATION — Caméra et affichage
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3 onclick="toggleSection('camera-content')" style="cursor: pointer;">📹 Visualisation ▼</h3>
+        <div id="camera-content">
             <div class="mission_control">
-                <button class="btn_ros" onclick="launchMission()">Launch Mission</button>
-                <button class="btn_ros" onclick="emergencyLand()">Emergency Land</button>
-                <button class="btn_ros" onclick="resetSwarm()">Reset Swarm</button>
-                <button class="btn_ros" onclick="changePattern()">🌟 Pattern</button>
-                <button class="btn_emergency" onclick="forceDronesUp()" style="background: #FF4444; color: white; font-weight: bold;">🚨 UP!</button>
+                <button class="btn_ros" onclick="resetCamera()">🔄 Reset</button>
+                <button class="btn_ros" onclick="topView()">⬆️ Vue Top</button>
+                <button class="btn_ros" onclick="zoomToSwarm()">🎯 Vue All</button>
+                <button class="btn_ros" onclick="toggleFollowMode()">👁 Follow</button>
             </div>
-            <div class="mission_control">
-                <button class="btn_ros" onclick="toggleDebugLogs()" id="btn-toggle-logs">📋 Show Logs</button>
-                <button class="btn_ros" onclick="clearDebugLogs()">🧹 Clear Logs</button>
-            </div>
-            
-            <!-- ✅ NOUVEAU: Contrôles d'affichage Debug -->
-            <div class="mission_control">
-                <button class="btn_ros" onclick="toggleDebugPanels()" id="btn-toggle-debug">🛠️ Show Debug</button>
-                <button class="btn_ros" onclick="toggleConsoleNinja()" id="btn-toggle-ninja">🥷 Console</button>
-                <button class="btn_ros" onclick="toggleCollisionDebug()" id="btn-collision-debug">🔲 Show Collisions</button>
-            </div>
-            <div style="margin: 6px 0;">
-                <button class="btn_ros" onclick="togglePanel()"
-                    style="width: 100%; background: linear-gradient(45deg, #dc2626, #ef4444); font-size: 11px; font-weight: bold;">
-                    🖼️ PLEIN ÉCRAN
+            <div style="margin-top: 8px;">
+                <button class="btn_ros" onclick="togglePanel()" style="width: 100%; background: linear-gradient(45deg, #6366f1, #8b5cf6);">
+                    🖼️ Plein Écran
                 </button>
             </div>
-            <div>
-                <label>Mission Type:</label>
-                <select id="mission_type"
-                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
-                    <option value="exploration">Exploration</option>
-                    <option value="mapping">SLAM Mapping</option>
-                    <option value="surveillance">Surveillance</option>
-                    <option value="formation_flight">Formation Flight</option>
-                </select>
-            </div>
-            <div>
-                <label>Pattern: <span class="value" id="currentPattern">grid</span></label>
+            <div class="mission_control" style="margin-top: 6px;">
+                <button class="btn_ros" onclick="toggleMinimap()" style="font-size: 9px;">🗺️ Minimap</button>
+                <button class="btn_ros" onclick="toggleDebugPanels()" id="btn-toggle-debug" style="font-size: 9px;">🛠️ Debug</button>
             </div>
         </div>
+    </div>
 
-        <!-- Drone Status Panel -->
-        <div class="ros_panel">
-            <h3>🤖 Drone Status (/odom topics)</h3>
-            <div id="drone_status_list">
-                <!-- Populated dynamically -->
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 5: CONFIGURATION — Paramètres avancés (collapsible)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3 onclick="toggleSection('config-content')" style="cursor: pointer;">⚙️ Configuration ▶</h3>
+        <div id="config-content" style="display: none;">
+            <div style="margin: 8px 0;">
+                <label style="font-size: 10px;">Altitude (m): <span id="altitude_display" style="color: #00FFFF;">3.0m</span></label>
+                <input type="range" id="altitude_slider" min="1.0" max="8.0" step="0.5" value="3.0" style="width: 100%;" oninput="updateAltitudeDisplay(this.value)">
             </div>
-        </div>
-
-        <!-- DIAMANTS Metrics Panel -->
-        <div class="ros_panel">
-            <h3>🧠 DIAMANTS Intelligence Metrics</h3>
-            <div class="metric_display">
-                <div class="metric_item">
-                    <div>Total I(t)</div>
-                    <div class="metric_value" id="total_intelligence">0.0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Emergence</div>
-                    <div class="metric_value" id="emergence_level">0.0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Cohesion</div>
-                    <div class="metric_value" id="cohesion_index">0.0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Coordination</div>
-                    <div class="metric_value" id="coordination_score">0.0</div>
-                </div>
+            <div style="margin: 8px 0;">
+                <label style="font-size: 10px;">Distance sécurité (m): <span id="safety_distance_value" style="color: #FFAA00;">3.0m</span></label>
+                <input type="range" id="safety_distance" min="1" max="8" value="3" style="width: 100%;" onchange="updateSafetyDistance(this.value)">
             </div>
-            <div class="emergence_indicator">
-                <div class="emergence_bar" id="emergence_bar" style="width: 0%"></div>
-            </div>
-        </div>
-
-        <!-- Mission Metrics Panel -->
-        <div class="ros_panel">
-            <h3>🎯 Mission Progress</h3>
-            <div class="metrics_grid">
-                <div class="metric_item">
-                    <div>Coverage</div>
-                    <div class="metric_value" id="mission_coverage">0.0%</div>
-                </div>
-                <div class="metric_item">
-                    <div>Targets</div>
-                    <div class="metric_value" id="targets_discovered">0/0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Efficiency</div>
-                    <div class="metric_value" id="mission_efficiency">0.0%</div>
-                </div>
-                <div class="metric_item">
-                    <div>Speed</div>
-                    <div class="metric_value" id="exploration_speed">0.00 zones/min</div>
+            <div style="margin: 8px 0;">
+                <label style="font-size: 10px;">Zone exploration:</label>
+                <div style="display: flex; gap: 8px; margin-top: 4px;">
+                    <input type="number" id="bounds_x" value="80" min="10" max="200" step="10" style="width: 50%; padding: 4px; background: #1a1a2e; color: #fff; border: 1px solid #00AAFF; border-radius: 4px; font-size: 10px;" placeholder="X">
+                    <input type="number" id="bounds_y" value="80" min="10" max="200" step="10" style="width: 50%; padding: 4px; background: #1a1a2e; color: #fff; border: 1px solid #00AAFF; border-radius: 4px; font-size: 10px;" placeholder="Y">
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Camera Controls Panel -->
-        <div class="ros_panel">
-            <h3>📹 Camera Controls</h3>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 6: BENCHMARK — Recherche (collapsible)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3 onclick="toggleSection('benchmark-content')" style="cursor: pointer;">🧪 Benchmark ▶</h3>
+        <div id="benchmark-content" style="display: none;">
+            <div id="benchmark_status" style="font-size: 10px; color: #888; margin-bottom: 8px;">
+                Prêt pour analyse scaling
+            </div>
             <div class="mission_control">
-                <button class="btn_ros" onclick="resetCamera()">Reset View</button>
-                <button class="btn_ros" onclick="topView()">Top View</button>
-                <button class="btn_ros" onclick="toggleFollowMode()">Follow Mode</button>
-                <button class="btn_ros" onclick="zoomToSwarm()">View All</button>
+                <button class="btn_ros" onclick="window.runQuickBenchmark?.([1,2,4,8], 30)" style="font-size: 10px;">⚡ Quick 30s</button>
+                <button class="btn_ros" onclick="window.runQuickBenchmark?.([1,2,4,8], 60)" style="font-size: 10px;">📊 Full 60s</button>
             </div>
-            <div>
-                <label>Select Drone to Follow:</label>
-                <select id="drone_selector" onchange="selectDroneToFollow()"
-                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
-                    <option value="">No Selection</option>
-                </select>
+            <div class="mission_control" style="margin-top: 4px;">
+                <button class="btn_ros" onclick="window.benchmarkExportCSV?.()" style="font-size: 9px;">📄 CSV</button>
+                <button class="btn_ros" onclick="window.benchmarkExportJSON?.()" style="font-size: 9px;">📋 JSON</button>
             </div>
+            <div id="benchmark_charts" style="margin-top: 10px;"></div>
         </div>
+    </div>
 
-        <!-- Anti-Collision System -->
-        <div class="ros_panel">
-            <h3>⚠️ Anti-Collision DIAMANTS</h3>
-            <div id="collision_warnings">
-                <div style="font-size: 10px; color: #888;">No collision warnings</div>
-            </div>
-            <div style="margin: 10px 0;">
-                <label>Safety Distance (m):</label>
-                <input type="range" id="safety_distance" min="1" max="10" value="3" style="width: 100%;"
-                    onchange="updateSafetyDistance(this.value)">
-                <span id="safety_distance_value">3.0m</span>
-            </div>
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 7: SYSTÈME — Info rapide
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel" style="padding: 6px;">
+        <div style="display: flex; justify-content: space-between; font-size: 10px; color: #888;">
+            <span>FPS: <span id="fps_display" style="color: #00FF88;">60</span></span>
+            <span>Mode: <span style="color: #FFD700;">STIGMERGY</span></span>
+            <span>v3.0</span>
         </div>
+    </div>
 
-        <!-- Topic Monitor -->
-        <div class="ros_panel">
-            <h3>📡 ROS2 Topics Monitor</h3>
-            <div class="topic_monitor collapsed" id="topic_monitor" onclick="toggleTopicMonitor()">
-                <div>[INFO] Multi-agent framework initialized</div>
-                <div>[INFO] Waiting for drone connections...</div>
-                <div>[DEBUG] DIAMANTS - Gazebo Style avec Mesh Réels</div>
-                <div>[INFO] Initializing...</div>
-            </div>
-        </div>
-
-        <!-- Swarm Formation Panel -->
-        <div class="ros_panel">
-            <h3>🔢 Formation Control</h3>
-            <div class="mission_control">
-                <button class="btn_ros" onclick="setFormation('line')">Line</button>
-                <button class="btn_ros" onclick="setFormation('circle')">Circle</button>
-                <button class="btn_ros" onclick="setFormation('triangle')">Triangle</button>
-                <button class="btn_ros" onclick="setFormation('grid')">Grid</button>
-            </div>
-        </div>
-
-        <!-- Flight Control Panel -->
-        <div class="ros_panel">
-            <h3>🚁 Flight Control</h3>
-            <div class="mission_control">
-                <button class="btn_ros" onclick="takeoffAllDrones()">🛫 Takeoff All</button>
-                <button class="btn_ros" onclick="startMissionManual()">🎯 Start Mission</button>
-                <button class="btn_ros" onclick="landAllDrones()">🛬 Land All</button>
-                <button class="btn_ros" onclick="stopAllDrones()">⏹️ Stop All</button>
-                <button class="btn_ros" onclick="testSingleExploration()">🎯 Test Explorer</button>
-            </div>
-            <div>
-                <label>Flight Altitude (m):</label>
-                <input type="range" id="altitude_slider" min="0.5" max="5.0" step="0.1" value="2.0"
-                    style="width: 100%; margin: 5px 0;" oninput="updateAltitudeDisplay(this.value)">
-                <span id="altitude_display" style="color: #00FFFF;">2.0m</span>
-            </div>
-            <div style="margin-top: 10px;">
-                <label>Exploration Bounds:</label>
-                <div style="display: flex; gap: 10px; margin: 5px 0;">
-                    <div>
-                        <label style="font-size: 10px;">X:</label>
-                        <input type="number" id="bounds_x" value="20" min="5" max="50" step="5"
-                            style="width: 60px; padding: 2px; background: #2a2a2a; color: #fff; border: 1px solid #666;">
-                    </div>
-                    <div>
-                        <label style="font-size: 10px;">Y:</label>
-                        <input type="number" id="bounds_y" value="20" min="5" max="50" step="5"
-                            style="width: 60px; padding: 2px; background: #2a2a2a; color: #fff; border: 1px solid #666;">
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Drone Modes -->
-        <div class="ros_panel">
-            <h3>🌟 Drone Modes</h3>
-            <div>
-                <label>Mode:</label>
-                <select id="mode_select"
-                    style="width: 100%; padding: 4px; margin: 5px 0; background: #2a2a2a; color: #fff; border: 1px solid #666;">
-                    <option value="grid">Grid</option>
-                    <option value="boustrophedon">Boustrophedon</option>
-                    <option value="spiral">Spiral</option>
-                    <option value="coverage">Coverage</option>
-                    <option value="follow_leader">Follow Leader</option>
-                    <option value="random">Random</option>
-                </select>
-                <button class="btn_ros" onclick="applyMode()">Apply Mode</button>
-            </div>
-        </div>
-
-        <!-- Intelligence Collective Panel -->
-        <div class="ros_panel">
-            <h3>🧠 Intelligence Collective</h3>
-            <div class="metric_display">
-                <div class="metric_item">
-                    <div>Stigmergie</div>
-                    <div class="metric_value" id="stigmergy_value">0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Consensus</div>
-                    <div class="metric_value" id="consensus_value">0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Communication</div>
-                    <div class="metric_value" id="communication_value">0.0</div>
-                </div>
-                <div class="metric_item">
-                    <div>Adaptation</div>
-                    <div class="metric_value" id="adaptation_value">0%</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Metrics Bars -->
-        <div class="ros_panel">
-            <h3>📊 DIAMANTS Metrics</h3>
-            <div class="metric_value">Phi (φ): <span id="phi_value">0.00</span></div>
-            <div class="metric_bar">
-                <div id="phi_bar" class="metric_fill" style="width: 0%"></div>
-            </div>
-
-            <div class="metric_value">Sigma (σ): <span id="sigma_value">0.00</span></div>
-            <div class="metric_bar">
-                <div id="sigma_bar" class="metric_fill" style="width: 0%"></div>
-            </div>
-
-            <div class="metric_value">Emergence: <span id="emergence_value">0.00</span></div>
-            <div class="metric_bar">
-                <div id="emergence_bar" class="metric_fill" style="width: 0%"></div>
-            </div>
-        </div>
-
-        <!-- System Panel -->
-        <div class="ros_panel">
-            <h3>⚙️ System</h3>
-            <div class="metric_value">Status: <span style="color: #00FF88;">GAZEBO</span></div>
-            <div class="metric_value">FPS: <span id="fps_display">60</span></div>
-            <div class="metric_value">Mesh: <span style="color: #FFAA00;">COLLADA</span></div>
-            <button class="ros_button" onclick="toggleMinimap()">📋 Minimap</button>
-            <button class="ros_button" onclick="toggleSAROverlay()">🧭 SAR Lanes</button>
-        </div>
     </div>
 
     <!-- Zone de rendu 3D -->
     <div id="canvas_container"></div>
 
-    <!-- Minimap -->
+    <!-- Minimap avec Timer d'Exploration -->
     <div id="minimap">
-        <h4>🎯 Tactical Overview - Mission Intel</h4>
-        <canvas id="minimap_canvas" width="180" height="170"></canvas>
+        <h4>🗺️ Exploration Map</h4>
+        <canvas id="minimap_canvas" width="300" height="260"></canvas>
     </div>
 
     <!-- Status Display -->
     <div id="status_display">
-        🚁 DIAMANTS - Gazebo Style avec Mesh Réels<br>
+        🚁 DIAMANTS - Simulation avec Mesh Réels<br>
         <span id="system_status">Initializing...</span>
     </div>
 
@@ -979,6 +890,22 @@
             }
         }
 
+        // Toggle sections collapsibles
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (!section) return;
+            
+            const isHidden = section.style.display === 'none';
+            section.style.display = isHidden ? 'block' : 'none';
+            
+            // Update header arrow
+            const header = section.previousElementSibling;
+            if (header && header.tagName === 'H3') {
+                const text = header.textContent;
+                header.textContent = text.replace(/[▼▶]/g, isHidden ? '▼' : '▶');
+            }
+        }
+
         // Fonctions UI basiques
         function toggleMinimap() {
             const m = document.getElementById('minimap');
@@ -1039,6 +966,27 @@
                 }
             } catch (e) { log('⚠️ Erreur envoi disperse:', e.message); }
         };
+
+        if (typeof window.takeoffAllDrones === 'undefined') {
+            window.takeoffAllDrones = function() {
+                log('🛫 Takeoff — en attente du chargement...');
+                setTimeout(() => { if (window.takeoffAllDrones) window.takeoffAllDrones(); }, 1000);
+            };
+        }
+
+        if (typeof window.landAllDrones === 'undefined') {
+            window.landAllDrones = function() {
+                log('🛬 Land — en attente du chargement...');
+                setTimeout(() => { if (window.landAllDrones) window.landAllDrones(); }, 1000);
+            };
+        }
+
+        if (typeof window.resetMission === 'undefined') {
+            window.resetMission = function() {
+                log('🔄 Reset — en attente du chargement...');
+                setTimeout(() => { if (window.resetMission) window.resetMission(); }, 1000);
+            };
+        }
 
         if (typeof window.emergencyLand === 'undefined') {
             window.emergencyLand = function() {

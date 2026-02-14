@@ -24,7 +24,14 @@ export default defineConfig({
     hmr: true,
   open: '/index.html',
   // Laisser Vite choisir un autre port si le 5550 est occupé
-  strictPort: false
+  strictPort: false,
+  fs: {
+    // Permettre l'accès aux fichiers en dehors du projet (symlinks vers diamants-private)
+    allow: [
+      path.resolve(__dirname, '../../../'),
+      '/home/loic/diamants-private'
+    ]
+  }
   },
   build: {
     outDir: 'dist',

@@ -73,62 +73,6 @@ export class DiamantFormulas {
             y: this.createField3D(nx, ny, nz),
             z: this.createField3D(nx, ny, nz)
         };
-        
-        // NOUVEAU: Initialiser avec des patterns de démonstration
-        this.seedInitialPatterns(nx, ny, nz);
-    }
-    
-    /**
-     * Crée des patterns initiaux pour visualisation immédiate
-     * Simule des zones d'intérêt et des traces stigmergiques
-     */
-    seedInitialPatterns(nx, ny, nz) {
-        const cx = nx / 2, cy = ny / 2, cz = nz / 2;
-        
-        // Pattern spectaculaire: plusieurs attracteurs + spirales
-        for (let i = 0; i < nx; i++) {
-            for (let j = 0; j < ny; j++) {
-                for (let k = 0; k < nz; k++) {
-                    // Plusieurs blobs attracteurs
-                    const attractors = [
-                        { x: cx * 0.5, y: cy * 0.5, z: cz, strength: 3.0 },
-                        { x: cx * 1.5, y: cy * 0.5, z: cz, strength: 2.5 },
-                        { x: cx, y: cy * 1.5, z: cz, strength: 2.0 },
-                        { x: cx, y: cy, z: cz * 1.5, strength: 1.5 }
-                    ];
-                    
-                    let phi_val = 0;
-                    for (const att of attractors) {
-                        const dx = (i - att.x) / 3;
-                        const dy = (j - att.y) / 3;
-                        const dz = (k - att.z) / 2;
-                        const r2 = dx*dx + dy*dy + dz*dz;
-                        phi_val += att.strength * Math.exp(-r2);
-                    }
-                    this.phi_field[i][j][k] = phi_val;
-                    
-                    // Traces stigmergiques en vortex spiral
-                    const dx = (i - cx) / (nx / 2);
-                    const dy = (j - cy) / (ny / 2);
-                    const angle = Math.atan2(dy, dx);
-                    const r = Math.sqrt(dx*dx + dy*dy);
-                    const spiral = Math.sin(4 * angle + r * 8) * Math.exp(-r * r * 2);
-                    const heightFactor = Math.exp(-Math.pow((k - cz) / cz, 2));
-                    this.sigma_field[i][j][k] = Math.max(0, spiral * 2.0 * heightFactor);
-                }
-            }
-        }
-        
-        // Calculer psi initial et gradients
-        this.updatePsiField();
-        const grad = this.computeGradient(this.psi_field);
-        // Copier le gradient dans gradient_field (structure compatible avec visualizer)
-        this.gradient_field = grad;
-        
-        // Calculer harmoniques initiales
-        this.calculateDiamants();
-        
-        console.log('✅ DIAMANTS: Patterns initiaux générés', {nx, ny, nz, I: this.diamants_value.toFixed(2)});
     }
 
     createField3D(nx, ny, nz) {

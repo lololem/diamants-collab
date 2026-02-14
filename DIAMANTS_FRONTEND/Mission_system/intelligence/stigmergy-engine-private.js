@@ -1,0 +1,1 @@
+/home/loic/diamants-private/src/intelligence/stigmergy-engine.js

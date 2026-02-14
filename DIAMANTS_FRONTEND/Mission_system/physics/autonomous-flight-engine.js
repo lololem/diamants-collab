@@ -65,7 +65,7 @@ class DroneFlightState {
         this.pidYaw = new PID(profile.pid.yaw);
 
         // Exploration state machine
-        this.phase = 'TAKEOFF'; // TAKEOFF → EXPLORE → RETURN
+        this.phase = 'IDLE'; // IDLE → TAKEOFF → EXPLORE → LAND → LANDED
         this.waypoint = null;
         this.waypointTimer = 0;
         this.explorationAngle = Math.random() * Math.PI * 2;
@@ -92,6 +92,11 @@ export class AutonomousFlightEngine {
 
         // Swarm intelligence slot (pluggable from diamants-private)
         this.swarmIntelligence = new NoopSwarmIntelligence();
+
+        // Doctrine system slot (waypoint patterns from DoctrineManager)
+        this.doctrineManager = null;
+        // Per-drone doctrine waypoint queues: droneId → [Vec3, ...]
+        this._doctrineWaypoints = new Map();
 
         console.log('🚀 AutonomousFlightEngine initialised');
     }
@@ -120,6 +125,55 @@ export class AutonomousFlightEngine {
         this.swarmIntelligence = impl || new NoopSwarmIntelligence();
         this.swarmIntelligence.initialize(this.drones, this.treeBounds);
         console.log(`🧠 Swarm intelligence loaded: ${impl?.constructor?.name || 'noop'}`);
+    }
+
+    /**
+     * Command a drone to land
+     */
+    land(droneId) {
+        const state = this.drones.get(droneId);
+        if (state) {
+            const prevPhase = state.phase;
+            state.phase = 'LAND';
+            state.waypoint = state.position.clone();
+            state.waypoint.y = 0.15; // Platform surface (PLATFORM_HEIGHT)
+            console.log(`[STATE-MACHINE] 🛬 ${droneId} ${prevPhase} → LAND`);
+        }
+    }
+
+    /**
+     * Command a drone to takeoff
+     */
+    takeoff(droneId, targetAltitude) {
+        const state = this.drones.get(droneId);
+        if (state) {
+            if (targetAltitude !== undefined) {
+                state.profile.cruiseAlt = targetAltitude;
+            }
+            state.phase = 'TAKEOFF';
+            state.hoverPosition = null; // Will be set fresh when reaching HOVER
+            console.log(`[STATE-MACHINE] 🛫 ${droneId} → TAKEOFF (alt: ${state.profile.cruiseAlt}m)`);
+        }
+    }
+
+    /**
+     * Transition all drones from HOVER to EXPLORE (called by Launch)
+     */
+    startExploration() {
+        let count = 0;
+        // Flush any cached doctrine waypoints so drones get fresh routes
+        this._doctrineWaypoints.clear();
+        for (const [id, state] of this.drones) {
+            if (state.phase === 'HOVER' || state.phase === 'TAKEOFF') {
+                state.phase = 'EXPLORE';
+                state.waypointTimer = 0;
+                state.lastWaypointTime = 0;
+                state.waypoint = null; // Force new waypoint pick
+                count++;
+                console.log(`[STATE-MACHINE] 🚀 ${id} HOVER → EXPLORE`);
+            }
+        }
+        return count;
     }
 
     // ─── Main update (call every frame) ──────────────────────────────
@@ -161,24 +215,33 @@ export class AutonomousFlightEngine {
         }
         vyCmd = Math.max(-prof.maxClimb, Math.min(prof.maxClimb, vyCmd));
 
-        // 4. Tree avoidance (repulsion force)
-        const avoidance = this._computeTreeAvoidance(state);
-        vxCmd += avoidance.x;
-        vzCmd += avoidance.z;
-        vyCmd += avoidance.y;
+        // 4-5. Avoidance & swarm intelligence — ONLY during EXPLORE
+        // During HOVER/TAKEOFF/LAND, drones must hold position without drift
+        if (state.phase === 'EXPLORE') {
+            // 4. Tree avoidance (repulsion force)
+            const avoidance = this._computeTreeAvoidance(state);
+            vxCmd += avoidance.x;
+            vzCmd += avoidance.z;
+            vyCmd += avoidance.y;
 
-        // 5. Drone-drone avoidance
-        const droneAvoid = this._computeDroneAvoidance(state);
-        vxCmd += droneAvoid.x;
-        vzCmd += droneAvoid.z;
+            // 5. Drone-drone avoidance
+            const droneAvoid = this._computeDroneAvoidance(state);
+            vxCmd += droneAvoid.x;
+            vzCmd += droneAvoid.z;
 
-        // 5b. Swarm intelligence velocity modulation (stigmergy, RL, etc.)
-        const modulated = this.swarmIntelligence.modulateVelocity(
-            state.id, { x: vxCmd, y: vyCmd, z: vzCmd }, state
-        );
-        vxCmd = modulated.x;
-        vyCmd = modulated.y;
-        vzCmd = modulated.z;
+            // 5b. Swarm intelligence velocity modulation (stigmergy, RL, etc.)
+            const modulated = this.swarmIntelligence.modulateVelocity(
+                state.id, { x: vxCmd, y: vyCmd, z: vzCmd }, state
+            );
+            vxCmd = modulated.x;
+            vyCmd = modulated.y;
+            vzCmd = modulated.z;
+
+            // 5c. Boundary containment — soft repulsion near zone edges
+            const boundary = this._computeBoundaryForce(state);
+            vxCmd += boundary.x;
+            vzCmd += boundary.z;
+        }
 
         // 6. Smooth velocity (low-pass)
         const alpha = Math.min(1.0, prof.agility * 3.0 * dt);
@@ -191,10 +254,22 @@ export class AutonomousFlightEngine {
         state.position.y += state.smoothVelocity.y * dt;
         state.position.z += state.smoothVelocity.z * dt;
 
-        // 8. Ground clamp
-        if (state.position.y < 0.05) {
-            state.position.y = 0.05;
+        // 8. Ground clamp — platform surface is at y=0.15 (PLATFORM_HEIGHT)
+        const PLATFORM_SURFACE = 0.15;
+        if (state.position.y < PLATFORM_SURFACE) {
+            state.position.y = PLATFORM_SURFACE;
             state.smoothVelocity.y = Math.max(0, state.smoothVelocity.y);
+        }
+
+        // 8b. Horizontal boundary hard clamp — keep drones inside zone
+        const halfZone = this._getHalfZone();
+        if (Math.abs(state.position.x) > halfZone) {
+            state.position.x = Math.sign(state.position.x) * halfZone;
+            state.smoothVelocity.x = 0;
+        }
+        if (Math.abs(state.position.z) > halfZone) {
+            state.position.z = Math.sign(state.position.z) * halfZone;
+            state.smoothVelocity.z = 0;
         }
 
         // 9. Update heading (face movement direction)
@@ -233,10 +308,29 @@ export class AutonomousFlightEngine {
                 state.waypoint = state.position.clone();
                 state.waypoint.y = prof.cruiseAlt;
                 if (state.position.y > prof.cruiseAlt * 0.85) {
-                    state.phase = 'EXPLORE';
+                    state.phase = 'HOVER';
                     state.lastWaypointTime = 0;
-                    console.log(`🛫 ${state.id} takeoff complete → EXPLORE`);
+                    // Save the hover hold position (fixed X/Z)
+                    state.hoverPosition = state.position.clone();
+                    state.hoverPosition.y = prof.cruiseAlt;
+                    console.log(`[STATE-MACHINE] 🛫 ${state.id} TAKEOFF → HOVER (alt=${state.position.y.toFixed(2)}, holdAt x=${state.hoverPosition.x.toFixed(2)} z=${state.hoverPosition.z.toFixed(2)})`);
                 }
+                break;
+            }
+            case 'HOVER': {
+                // Maintenir position FIXE — pas de dérive
+                // Utiliser la position sauvegardée au moment de la transition
+                if (!state.hoverPosition) {
+                    state.hoverPosition = state.position.clone();
+                    state.hoverPosition.y = prof.cruiseAlt;
+                }
+                if (!state.waypoint) state.waypoint = state.hoverPosition.clone();
+                state.waypoint.x = state.hoverPosition.x;
+                state.waypoint.z = state.hoverPosition.z;
+                state.waypoint.y = prof.cruiseAlt;
+                // Freiner toute vélocité horizontale
+                state.smoothVelocity.x *= 0.90;
+                state.smoothVelocity.z *= 0.90;
                 break;
             }
             case 'EXPLORE': {
@@ -260,13 +354,125 @@ export class AutonomousFlightEngine {
                 }
                 break;
             }
+            case 'LAND': {
+                // Descend to platform surface (y=0.15 = PLATFORM_HEIGHT)
+                state.waypoint = state.position.clone();
+                state.waypoint.y = 0.15;
+                if (state.position.y < 0.20) {
+                    state.phase = 'LANDED';
+                    state.velocity.set(0, 0, 0);
+                    state.smoothVelocity.set(0, 0, 0);
+                    console.log(`[STATE-MACHINE] 🛬 ${state.id} LAND → LANDED`);
+                }
+                break;
+            }
+            case 'LANDED': {
+                // Stay on platform surface
+                state.waypoint = state.position.clone();
+                state.waypoint.y = 0.15;
+                state.velocity.set(0, 0, 0);
+                break;
+            }
+            case 'IDLE': {
+                // Drone au sol, en attente de commande takeoff
+                state.waypoint = null;
+                state.velocity.set(0, 0, 0);
+                state.smoothVelocity.set(0, 0, 0);
+                break;
+            }
         }
+    }
+
+    // ─── Doctrine integration ────────────────────────────────────────
+    /**
+     * Attach the DoctrineManager so the engine uses doctrine-based waypoints.
+     */
+    setDoctrineManager(dm) {
+        this.doctrineManager = dm;
+        console.log('[ENGINE] DoctrineManager connecté');
+
+        // Listen for real-time doctrine/COA changes to flush cached waypoints
+        if (dm && dm.addListener) {
+            dm.addListener((event, data) => {
+                if (event === 'doctrine' || event === 'coa') {
+                    this.flushDoctrineWaypoints();
+                }
+            });
+        }
+    }
+
+    /**
+     * Flush all cached doctrine waypoints.
+     * Called when doctrine or COA changes so drones immediately
+     * pick up the new pattern on their next waypoint request.
+     */
+    flushDoctrineWaypoints() {
+        this._doctrineWaypoints.clear();
+        // Also force every EXPLORE drone to re-pick a waypoint NOW
+        for (const [id, state] of this.drones) {
+            if (state.phase === 'EXPLORE') {
+                state.waypoint = null;
+                state.waypointTimer = 999; // trigger immediate re-pick
+            }
+        }
+        const coaName = this.doctrineManager?.currentCOA?.name || '?';
+        console.log(`[ENGINE] Waypoints flushed → nouveau pattern: ${coaName}`);
     }
 
     // ─── Waypoint generation ─────────────────────────────────────────
     _pickExplorationWaypoint(state) {
+        // ── 1. Try doctrine-based waypoints first ──
+        if (this.doctrineManager && this.doctrineManager.missionState?.isActive) {
+            const wp = this._pickDoctrineWaypoint(state);
+            if (wp) return wp;
+        }
+
+        // ── 2. Fallback: coverage-optimised spiral ──
+        return this._pickDefaultExplorationWaypoint(state);
+    }
+
+    /**
+     * Pick next waypoint from doctrine waypoint queue.
+     * Lazily generates a queue per drone, pops one waypoint at a time.
+     */
+    _pickDoctrineWaypoint(state) {
+        let queue = this._doctrineWaypoints.get(state.id);
+
+        // Generate a fresh queue when empty
+        if (!queue || queue.length === 0) {
+            try {
+                const raw = this.doctrineManager.generateWaypoints(
+                    state.id,
+                    { x: state.position.x, y: state.position.y, z: state.position.z }
+                );
+                if (raw && raw.length > 0) {
+                    queue = raw.map(p => new THREE.Vector3(p.x, p.y, p.z));
+                    this._doctrineWaypoints.set(state.id, queue);
+                    console.log(`[DOCTRINE] ${state.id}: ${queue.length} waypoints (${this.doctrineManager.currentCOA.name})`);
+                }
+            } catch (e) {
+                console.warn('[DOCTRINE] waypoint generation error:', e);
+            }
+        }
+
+        if (queue && queue.length > 0) {
+            return queue.shift();
+        }
+        return null;
+    }
+
+    /**
+     * Default coverage-optimised exploration (spiral + unvisited bias).
+     * Used when no doctrine is active or as fallback.
+     */
+    _pickDefaultExplorationWaypoint(state) {
         const prof = state.profile;
-        const maxR = Math.min(prof.explorationRadius, this.explorationBounds);
+        // Use doctrine zone bounds if available, else engine default
+        let maxR = Math.min(prof.explorationRadius, this.explorationBounds);
+        if (this.doctrineManager) {
+            const z = this.doctrineManager.zoneParams;
+            maxR = Math.min(maxR, Math.max(z.sizeX, z.sizeZ) / 2);
+        }
 
         // Try multiple candidates, pick the one with least coverage
         let bestWP = null;
@@ -357,6 +563,42 @@ export class AutonomousFlightEngine {
         return force;
     }
 
+    // ─── Boundary containment force ─────────────────────────────────
+    _getHalfZone() {
+        if (this.doctrineManager) {
+            const z = this.doctrineManager.zoneParams;
+            return Math.max(z.sizeX, z.sizeZ) / 2;
+        }
+        return this.explorationBounds;
+    }
+
+    _computeBoundaryForce(state) {
+        const force = new THREE.Vector3();
+        const half = this._getHalfZone();
+        const margin = 5; // start pushing back 5m before edge
+        const strength = 8.0;
+
+        // X boundaries
+        if (state.position.x > half - margin) {
+            const pen = (state.position.x - (half - margin)) / margin;
+            force.x -= strength * Math.min(pen, 1);
+        } else if (state.position.x < -(half - margin)) {
+            const pen = (-(half - margin) - state.position.x) / margin;
+            force.x += strength * Math.min(pen, 1);
+        }
+
+        // Z boundaries
+        if (state.position.z > half - margin) {
+            const pen = (state.position.z - (half - margin)) / margin;
+            force.z -= strength * Math.min(pen, 1);
+        } else if (state.position.z < -(half - margin)) {
+            const pen = (-(half - margin) - state.position.z) / margin;
+            force.z += strength * Math.min(pen, 1);
+        }
+
+        return force;
+    }
+
     // ─── Apply state to Three.js drone ──────────────────────────────
     applyToDrone(drone, state) {
         if (!drone || !drone.mesh) return;
@@ -375,12 +617,19 @@ export class AutonomousFlightEngine {
             drone.mesh.rotation.x = pitchAngle;
         } catch (_) { /* safe */ }
 
-        // Mark as flying
-        if (drone.state === 'IDLE') drone.state = 'FLYING';
+        // Mark as flying (only if engine phase is active)
+        if (state.phase !== 'IDLE' && state.phase !== 'LANDED') {
+            if (drone.state === 'IDLE') drone.state = 'FLYING';
+        } else {
+            drone.state = 'IDLE';
+        }
 
-        // Motor RPM proportional to speed for visual effect
+        // Motor RPM: idle RPM when hovering, full RPM when exploring
         const speed = state.velocity.length();
-        const baseRPM = VISUAL.baseRPM + speed * VISUAL.rpmSpeedFactor;
+        const isHovering = state.phase === 'HOVER';
+        const baseRPM = isHovering
+            ? VISUAL.baseRPM * 0.7
+            : VISUAL.baseRPM + speed * VISUAL.rpmSpeedFactor;
         if (drone.motors) {
             for (let i = 0; i < 4; i++) {
                 drone.motors[i].rpm = baseRPM + (Math.random() - 0.5) * VISUAL.rpmJitter;

@@ -413,9 +413,9 @@ export class AuthenticCrazyflie {
             } else {
                 throw new Error('DAE non confirmé');
             }
-        }).catch(error => {
+        }).catch(err => {
             clearTimeout(loadingTimeout);
-            error('❌ ÉCHEC DAE pour drone', this.id, ':', error);
+            console.error('❌ ÉCHEC DAE pour drone', this.id, ':', err);
             warn('🟡 Fallback debug créé (cube) car DAE indisponible', this.id);
 
             // Créer le fallback uniquement en cas d'échec (évite les cubes par défaut)
@@ -429,6 +429,9 @@ export class AuthenticCrazyflie {
                     emissive: 0x221100
                 });
                 const debugBody = new THREE.Mesh(debugGeometry, debugMaterial);
+                // Décaler le cube pour que son bas soit à y=0 en espace local
+                // (half-height = 0.03/2 = 0.015)
+                debugBody.position.y = 0.015;
                 debugBody.userData = { fallbackType: 'body', debug: true, temporary: true };
                 debugBody.visible = true;
                 debugBody.castShadow = true;
@@ -786,15 +789,21 @@ export class AuthenticCrazyflie {
                             if (firstMesh) logger.info('Drone', `🧩 Premier mesh DAE: ${firstMesh.name || '(sans nom)'} | geom=${firstMesh.geometry?.type}`);
                         } catch (_) {}
 
-                        // Recentre horizontalement le modèle pour que (0,0,0) corresponde au centre
+                        // Recentre le modèle: horizontalement au centre, verticalement le bas à y=0
+                        // Ceci garantit que position.y du groupe = altitude du bas du drone
                         try {
                             const bbox = new THREE.Box3().setFromObject(model);
                             const center = new THREE.Vector3();
                             bbox.getCenter(center);
                             model.position.x -= center.x;
                             model.position.z -= center.z;
-                            logger.trace('Drone', `📐 Drone ${this.id}: Centre calculé:`, center);
+                            // Décaler verticalement pour que le bas du modèle soit à y=0 en espace local
+                            model.position.y -= bbox.min.y;
+                            // Stocker l'offset pour aligner les hélices au même niveau
+                            this._bodyYOffset = -bbox.min.y;
+                            logger.info('Drone', `📐 Drone ${this.id}: bbox min.y=${bbox.min.y.toFixed(4)}, max.y=${bbox.max.y.toFixed(4)}, bodyYOffset=${this._bodyYOffset.toFixed(4)}`);
                         } catch (e) {
+                            this._bodyYOffset = 0;
                             logger.warning('Drone', `⚠️ Drone ${this.id}: Calcul centre échoué:`, e);
                         }
 
@@ -885,6 +894,19 @@ export class AuthenticCrazyflie {
                         model.rotation.x = -Math.PI / 2;
                         model.scale.set(1, 1, 1);
                         model.position.set(0, 0, 0);
+
+                        // Décaler verticalement pour que le bas du modèle soit à y=0
+                        try {
+                            const bbox2 = new THREE.Box3().setFromObject(model);
+                            const center2 = new THREE.Vector3();
+                            bbox2.getCenter(center2);
+                            model.position.x -= center2.x;
+                            model.position.z -= center2.z;
+                            model.position.y -= bbox2.min.y;
+                            this._bodyYOffset = -bbox2.min.y;
+                        } catch (_) {
+                            this._bodyYOffset = 0;
+                        }
 
                         // Prepare/refresh model group (remove older instance if present)
                         if (this.modelGroup && this.modelGroup.parent) {
@@ -1050,9 +1072,9 @@ export class AuthenticCrazyflie {
                         log(`🌀 Moteur ${i + 1}: ${isCW ? 'CW' : 'CCW'} (SDF: ${expectedDir})`);
 
                         // Correction d'orientation selon CW/CCW
-                        // Dans Gazebo SDF: joint axis est 0 0 1 (Z-up), joints revolute Z
+                        // Joint axis est 0 0 1 (Z-up), joints revolute Z
                         // Après conversion Z-up DAE -> Y-up Three.js (rotation.x = PI/2 + PI)
-                        // Orientation basée sur le type de fichier DAE et direction Gazebo
+                        // Orientation basée sur le type de fichier DAE et direction moteur
                         realPropGeometry.rotation.y = isCW ? Math.PI : 0;
 
                         // Matériaux DAE - conservation de l'authenticité + coloration moyeu
@@ -1127,6 +1149,9 @@ export class AuthenticCrazyflie {
                         // Recentrer pour rotation au moyeu
                         realPropGeometry.position.sub(center);
 
+                        // Retourner l'hélice de 180° (les pales sont inversées par défaut)
+                        realPropGeometry.rotation.x += Math.PI;
+
                         // Groupe de rotation SDF-authentique
                         const propGroup = new THREE.Group();
                         propGroup.name = `prop_${i + 1}_${isCW ? 'CW' : 'CCW'}_DAE_REAL`;
@@ -1142,9 +1167,11 @@ export class AuthenticCrazyflie {
                         const sdfPos = sdfMapping[i].pos;
                         const worldX = sdfPos.x;
                         const worldZ = -sdfPos.y;
+                        // Appliquer le même offset Y que le corps DAE pour aligner les hélices
+                        const bodyYOff = this._bodyYOffset || 0;
                         propGroup.position.set(
                             worldX,
-                            sdfPos.z - 0.008,  // Y: hauteur pour poser sur le corps
+                            sdfPos.z - 0.008 + bodyYOff,  // Y: hauteur corps + offset bbox
                             worldZ
                         );
 
@@ -1158,12 +1185,10 @@ export class AuthenticCrazyflie {
                         const angle = Math.atan2(worldZ, worldX);
                         propGroup.rotation.y = angle + Math.PI;
 
-                        // Ajouter une jointure/support moteur avant l'hélice
+                        // Ajouter une jointure/support moteur SOUS l'hélice
                         const motorJoint = this.createMotorJoint();
-
-                        // ROTATION 180° DU SUPPORT MOTEUR comme demandé
-                        motorJoint.rotation.z += Math.PI;
-                        log("🔄 ROTATION 180° APPLIQUÉE AU SUPPORT MOTEUR");
+                        // Retourner le support moteur pour qu'il pointe vers le bas (entre corps et hélice)
+                        motorJoint.rotation.x = Math.PI;
 
                         propGroup.add(motorJoint);
 
@@ -1205,20 +1230,20 @@ export class AuthenticCrazyflie {
 
                         resolve();
 
-                    } catch (error) {
-                        error(`❌ ÉCHEC TRAITEMENT DAE ${propFileName}:`, error);
-                        reject(error);
+                    } catch (err) {
+                        console.error(`❌ ÉCHEC TRAITEMENT DAE ${propFileName}:`, err);
+                        reject(err);
                     }
                 };
-                const onError = async (error) => {
-                    error(`❌ ÉCHEC CHARGEMENT DAE ${propFileName}:`, error);
+                const onError = async (loadErr) => {
+                    console.error(`❌ ÉCHEC CHARGEMENT DAE ${propFileName}:`, loadErr);
                     // Fallback: fetch + parse sanitized XML
                     try {
                         const dae = await this._fetchAndParseDAE(propUrl, basePath);
-                        if (!dae) return reject(error);
+                        if (!dae) return reject(loadErr);
                         onSuccess(dae);
                     } catch (e2) {
-                        reject(error);
+                        reject(loadErr);
                     }
                 };
                 loader.load(propUrl, onSuccess, undefined, onError);
@@ -1379,9 +1404,9 @@ export class AuthenticCrazyflie {
 
     /* ═══════════════════════════════════════════════════════════════════
      * SIMULATION METHODS — ALL NO-OPS IN VIEWER MODE
-     * The drone renders at positions received from the backend via
+     * The drone renders at positions received from the controller via
      * setTargetPosition(). No physics, no autonomous exploration,
-     * no sensor simulation. The backend (ROS2/Gazebo) is the single
+     * no sensor simulation. The controller is the single
      * source of truth for all drone positions and states.
      * ═══════════════════════════════════════════════════════════════════ */
 
@@ -1453,7 +1478,7 @@ export class AuthenticCrazyflie {
                 }
                 const angularSpeed = (rpm / 60) * 2 * Math.PI; // rad/s
                 const deltaAngle = angularSpeed * deltaTime;
-                // Direction: CW = -1, CCW = +1 (aligné Gazebo)
+                // Direction: CW = -1, CCW = +1
                 const dir = pg.isCW ? -1 : 1;
                 if (blade && blade.rotation) {
                     // Tourner sur l'axe horizontal Z par défaut (rotation dans le plan XY)
@@ -1707,8 +1732,8 @@ export class AuthenticCrazyflie {
             log(`✅ Mesh créé pour drone ${this.id} à la position:`, this.position);
             return this.mesh;
 
-        } catch (error) {
-            error(`❌ Erreur création mesh drone ${this.id}:`, error);
+        } catch (err) {
+            console.error(`❌ Erreur création mesh drone ${this.id}:`, err);
 
             // Fallback : créer un cube simple rouge
             const fallbackGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -1722,7 +1747,7 @@ export class AuthenticCrazyflie {
 
     // =============================================
     // VOL & EXPLORATION — NO-OPS (VIEWER MODE)
-    // Le backend ROS2/Gazebo contrôle tout. Le frontend
+    // Le contrôleur gère tout. Le frontend
     // ne fait que rendre la position reçue via setTargetPosition().
     // =============================================
 
@@ -1807,7 +1832,7 @@ export class AuthenticCrazyflie {
 
             // Direction selon le type de moteur (CW/CCW)
             const motorSpec = this.specs.motors[i];
-            // Alignement avec Gazebo: CW = -1, CCW = +1
+            // Alignement moteur: CW = -1, CCW = +1
             const direction = motorSpec.dir === 'cw' ? -1 : 1;
 
             this.propellerAnimation.rotations[i] += speed * direction * deltaTime;
