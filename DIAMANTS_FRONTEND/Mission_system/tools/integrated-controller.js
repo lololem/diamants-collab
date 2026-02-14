@@ -1,9 +1,8 @@
 /**
  * DIAMANTS - Contrôleur Principal Intégré
  * ==========================================
- * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
- * Fallback 3-tier : Backend ROS2 → AutonomousFlightEngine → simple update.
- * Restaurer : git checkout v0-origin -- tools/integrated-controller.js
+ * Simulation-only build (public vitrine).
+ * Fallback: AutonomousFlightEngine → simple update.
  *
  * Système unifié intégrant toutes les fonctionnalités migrées
  */
@@ -41,6 +40,8 @@ import { GLSLGrassField } from '../environment/glsl-grass-field.js';
 import { AutonomousFlightEngine } from '../physics/autonomous-flight-engine.js';
 import { DRONE_PROFILES, DronePhysicsRegistry } from '../physics/drone-physics-registry.js';
 import { loadStigmergyEngine, isStigmergyAvailable } from '../intelligence/stigmergy-loader.js';
+import { FieldVisualizer3D, HarmonicsHUD } from '../core/field-visualizer-3d.js';
+import { FlowParticles } from '../core/flow-particles.js';
 // SAMPLE_MODE import removed - sample files moved to DEMO/ directory
 
 export class IntegratedDiamantsController {
@@ -82,6 +83,11 @@ export class IntegratedDiamantsController {
         this.pidController = null;
         this.grassFieldBasic = null;
         this.sampleMode = false; // SAMPLE_MODE import removed - sample files in DEMO/
+        
+        // NOUVEAU: Visualisation 3D des champs DIAMANTS
+        this.fieldVisualizer = null;
+        this.harmonicsHUD = null;
+        this.flowParticles = null;  // ← Essaim fluide
 
         // Collections
         this.drones = [];
@@ -136,15 +142,8 @@ export class IntegratedDiamantsController {
                 logger.info('Controller', '🔍 Système de scouting collaboratif initialisé');
             }
 
-            // 5. Initialiser contrôleur ROS
-            if (this.config.enableRosController) {
-                this.rosController = new CrazyflieRosController({
-                    isActive: true,
-                    wsUrl: this.config.rosWsUrl || 'ws://localhost:8765',
-                    maxReconnectDelayMs: this.config.rosMaxReconnectDelayMs || 30000
-                });
-                logger.info('Controller', '🌐 Contrôleur ROS initialisé');
-            }
+            // 5. ROS controller disabled — simulation-only build
+            // (see a private repository for full network integration)
 
             // 6. Initialiser améliorations visuelles
             if (this.config.enableVisualEnhancements) {
@@ -223,9 +222,46 @@ export class IntegratedDiamantsController {
                 this.missionManager.start && this.missionManager.start();
             } catch (_) { /* noop */ }
 
-            // 10. ✅ MISSION AUTOMATIQUE ACTIVÉE - Démarrer scouting collaboratif
-            await this.startInitialMission();
-            log('🚀 Mission de scouting collaboratif démarrée automatiquement');
+            // 9b. NOUVEAU: Initialiser visualisation 3D des champs DIAMANTS
+            try {
+                // Visualisation statique des champs (désactivée par défaut)
+                this.fieldVisualizer = new FieldVisualizer3D(this.scene, this.diamantFormulas, {
+                    particleSize: 0.5,
+                    opacity: 0.85,
+                    colorScale: 'viridis',
+                    threshold: 0.005,
+                    maxParticles: 5000,
+                    updateInterval: 50,
+                    offset: { x: -25, y: 0, z: -25 },
+                    mode: 'psi'
+                });
+                this.fieldVisualizer.setVisible(false);  // Désactivé cosmétique
+                
+                // ✨ ESSAIM FLUIDE - Particules qui suivent ∇ψ (désactivé cosmétique)
+                // Pour réactiver: window.diamantsSystem?.integratedController?.flowParticles?.setVisible(true)
+                this.flowParticles = new FlowParticles(this.scene, this.diamantFormulas, {
+                    particleCount: 3000,
+                    particleSize: 0.2,
+                    speed: 3.0,
+                    lifetime: 6.0,
+                    colorStart: 0x00ffcc,   // Cyan brillant
+                    colorEnd: 0xff44ff,     // Magenta
+                    domainSize: { x: 50, y: 12, z: 50 },
+                    offset: { x: -25, y: 0, z: -25 }
+                });
+                this.flowParticles.setVisible(false); // Désactivé cosmétique
+                
+                this.harmonicsHUD = new HarmonicsHUD(this.diamantFormulas);
+                logger.info('Controller', '🎨 Visualisation 3D DIAMANTS + FlowParticles initialisées');
+            } catch (vizError) {
+                console.warn('⚠️ Visualisation 3D non disponible:', vizError.message);
+                console.error(vizError);
+            }
+
+            // 10. Mission NON auto-démarrée — attendre le bouton Launch
+            // (anciennement: await this.startInitialMission())
+            this.missionStarted = false;
+            log('⏸️ Système prêt — appuyez sur Launch pour démarrer la mission');
 
             this.isInitialized = true;
             this.isRunning = true;
@@ -254,7 +290,7 @@ export class IntegratedDiamantsController {
             terrainSize: { x: 200, y: 200 },
             structuredLayout: true,
             visibilityBubbles: true,
-            terrainAmplitude: 0.0,  // Flat terrain to match Gazebo ground plane
+            terrainAmplitude: 0.0,  // Flat terrain
             terrainDetail: 1.0,
             enableForest: false,    // Forest already created by main.js
             enableTerrain: false,   // Terrain already created by main.js
@@ -278,8 +314,25 @@ export class IntegratedDiamantsController {
 
         // ── Create AutonomousFlightEngine ──
         this.autonomousFlightEngine = new AutonomousFlightEngine({
-            explorationBounds: 50,
+            explorationBounds: 80,
         });
+
+        // ── Connect DoctrineManager to the flight engine ──
+        try {
+            const dm = window.DIAMANTS_DOCTRINE || window.doctrineManager;
+            if (dm) {
+                this.autonomousFlightEngine.setDoctrineManager(dm);
+            } else {
+                console.warn('[Controller] DoctrineManager non trouvé — sera connecté plus tard');
+                // Retry once after a short delay (DOM might not be ready yet)
+                setTimeout(() => {
+                    const dm2 = window.DIAMANTS_DOCTRINE || window.doctrineManager;
+                    if (dm2 && this.autonomousFlightEngine) {
+                        this.autonomousFlightEngine.setDoctrineManager(dm2);
+                    }
+                }, 1000);
+            }
+        } catch (e) { /* safe */ }
 
         // ── Load Stigmergy Engine (if available from a private repository) ──
         const stigmergyEngine = await loadStigmergyEngine({
@@ -310,9 +363,10 @@ export class IntegratedDiamantsController {
             // Initial position — drones on the enlarged heliport (radius 5.5m)
             const angle = (i / this.config.droneCount) * 2 * Math.PI;
             const spawnRadius = 5.5; // Matches the drone markers on platform
+            const PLATFORM_SURFACE_Y = 0.15; // Platform top surface (PLATFORM_HEIGHT)
             const startPosition = {
                 x: Math.cos(angle) * spawnRadius,
-                y: 0.02,  // Ground level
+                y: PLATFORM_SURFACE_Y,  // Bottom of drone sits on platform surface
                 z: Math.sin(angle) * spawnRadius
             };
 
@@ -466,34 +520,47 @@ export class IntegratedDiamantsController {
                 this.realisticFlightDynamics.update(deltaTime);
             }
 
-            // 2. Mise à jour systèmes de base
-            this.diamantFormulas.update && this.diamantFormulas.update(deltaTime);
-            this.missionManager.update && this.missionManager.update(deltaTime, this.drones, this.environment);
+            // ── Determine if drones are exploring (engine phase = EXPLORE) ──
+            let anyExploring = false;
+            if (this.autonomousFlightEngine) {
+                for (const [, st] of this.autonomousFlightEngine.drones) {
+                    if (st.phase === 'EXPLORE') { anyExploring = true; break; }
+                }
+            }
 
-            // 3. Mise à jour systèmes avancés
+            // DEBUG: Log engine phases every ~2 seconds
+            if (this._debugFrame === undefined) this._debugFrame = 0;
+            this._debugFrame++;
+            if (this._debugFrame % 120 === 0 && this.autonomousFlightEngine) {
+                const phases = [];
+                for (const [id, st] of this.autonomousFlightEngine.drones) {
+                    phases.push(`${id}:${st.phase}`);
+                }
+                console.log(`[STATE-MACHINE] ${phases.join(', ')}`);
+            }
+
+            // 2. Mise à jour systèmes de base (UNIQUEMENT si exploration active)
+            this.diamantFormulas.update && this.diamantFormulas.update(deltaTime);
+            // missionManager déplace les drones via applyDirectMovement → désactivé sauf EXPLORE
+            if (anyExploring && this.missionManager.update) {
+                this.missionManager.update(deltaTime, this.drones, this.environment);
+            }
+
+            // 3. Mise à jour systèmes avancés (metrics seulement, pas de mouvement)
             if (this.advancedIntelligence) {
-                // Pass agents and environment as required by AdvancedCollectiveIntelligence API
                 this.advancedIntelligence.update(deltaTime, this.drones, this.environment);
             }
 
-            if (this.flightBehaviors) {
-                // Vérifier si au moins un drone n'est pas IDLE avant de mettre à jour FlightBehaviors
+            // flightBehaviors a sa propre physique qui bypasserait l'engine → désactivé sauf EXPLORE
+            if (this.flightBehaviors && anyExploring) {
                 const activeDroneIds = this.drones.filter(drone => drone.state !== 'IDLE').map(drone => drone.id);
-                
-                // DEBUG: Log des états des drones
-                if (this._debugFrame === undefined) this._debugFrame = 0;
-                this._debugFrame++;
-                if (this._debugFrame % 120 === 0) { // Log toutes les 2 secondes environ
-                    const droneStates = this.drones.map(drone => `${drone.id}:${drone.state}`).join(', ');
-                    log(`🔍 États drones: [${droneStates}] → ${activeDroneIds.length} actifs: [${activeDroneIds.join(', ')}]`);
-                }
-                
                 if (activeDroneIds.length > 0) {
                     this.flightBehaviors.update(deltaTime, activeDroneIds);
                 }
             }
 
-            if (this.collaborativeScouting) {
+            // collaborativeScouting déplace les drones directement → désactivé sauf EXPLORE
+            if (this.collaborativeScouting && anyExploring) {
                 this.collaborativeScouting.update(deltaTime);
             }
 
@@ -503,6 +570,18 @@ export class IntegratedDiamantsController {
             // 5. Mise à jour interface
             if (this.ui && this.ui.update) {
                 this.ui.update(deltaTime);
+            }
+
+            // 5b. NOUVEAU: Mise à jour visualisation 3D des champs
+            const elapsed = performance.now();
+            if (this.fieldVisualizer) {
+                this.fieldVisualizer.update(elapsed);
+            }
+            if (this.flowParticles) {
+                this.flowParticles.update(deltaTime);  // ← Essaim fluide
+            }
+            if (this.harmonicsHUD) {
+                this.harmonicsHUD.update(elapsed);
             }
 
             // 6. Mise à jour métriques
@@ -517,8 +596,8 @@ export class IntegratedDiamantsController {
      * Mise à jour comportements des drones — AutonomousFlightEngine prioritaire
      */
     updateDronesBehaviors(deltaTime) {
-        // Ground level — no platform clamping, backend is authoritative
-        const GROUND_LEVEL = 0.0;
+        // Ground level = platform surface height (PLATFORM_HEIGHT = 0.15)
+        const GROUND_LEVEL = 0.15;
         
         this.drones.forEach(drone => {
             // Déterminer si le drone est piloté par le backend (position vient du ROS)
@@ -653,12 +732,35 @@ export class IntegratedDiamantsController {
     async startMissionManual() {
         log('🎯 Démarrage MANUEL de la mission depuis le control panel...');
         
-        if (this.missionStarted) {
-            log('⚠️ Mission déjà démarrée - ignoré');
-            return;
+        // Réactiver le contrôleur si précédemment stoppé
+        this.isRunning = true;
+        
+        // Si les drones sont au sol (IDLE/LANDED), les faire décoller d'abord
+        if (this.autonomousFlightEngine) {
+            let needsTakeoff = false;
+            for (const [id, state] of this.autonomousFlightEngine.drones) {
+                if (state.phase === 'IDLE' || state.phase === 'LANDED') {
+                    needsTakeoff = true;
+                    break;
+                }
+            }
+            
+            if (needsTakeoff) {
+                const altitude = 3.0;
+                this.drones.forEach((drone) => {
+                    this.autonomousFlightEngine.takeoff(drone.id, altitude);
+                });
+                // Après takeoff, passer directement en EXPLORE (pas HOVER)
+                // On attend un court délai puis on lance l'exploration
+                setTimeout(() => {
+                    this.autonomousFlightEngine.startExploration();
+                }, 100);
+            } else {
+                // Drones déjà en l'air (HOVER/TAKEOFF) → lancer l'exploration
+                this.autonomousFlightEngine.startExploration();
+            }
         }
         
-        await this.startInitialMission();
         this.missionStarted = true;
         log('✅ Mission démarrée manuellement');
     }
@@ -667,7 +769,7 @@ export class IntegratedDiamantsController {
         log('🚁 Décollage de tous les drones...');
 
         const takeoffPromises = this.drones.map(async (drone, index) => {
-            // Gazebo drones fly at ~0.5m — no elevated platform
+            // Drones fly at ~0.5m — no elevated platform
             const altitude = 0.5 + (index * 0.1); // Slight stagger
 
             if (this.flightBehaviors) {
@@ -703,15 +805,24 @@ export class IntegratedDiamantsController {
         log('🚨 ARRÊT D\'URGENCE');
 
         this.isRunning = false;
+        this.missionStarted = false; // Permettre un re-Launch
 
-        // NOUVEAU: Correction altitude d'urgence avec physique réaliste
-        this.drones.forEach(drone => {
+        // NOUVEAU: Synchroniser avec AutonomousFlightEngine
+        this.drones.forEach((drone, idx) => {
+            const droneId = drone.id || `crazyflie_${String(idx + 1).padStart(2, '0')}`;
+            
+            // Mettre l'engine en mode LAND
+            if (this.autonomousFlightEngine) {
+                this.autonomousFlightEngine.land(droneId);
+            }
+            
+            // Correction altitude d'urgence avec physique réaliste
             if (this.realisticFlightDynamics) {
-                this.realisticFlightDynamics.emergencyAltitudeCorrection(drone.id);
+                this.realisticFlightDynamics.emergencyAltitudeCorrection(droneId);
             }
             
             if (this.flightBehaviors) {
-                this.flightBehaviors.emergencyLanding(drone.id);
+                this.flightBehaviors.emergencyLanding(droneId);
             } else if (drone.emergencyStop) {
                 drone.emergencyStop();
             }
@@ -889,18 +1000,7 @@ export class IntegratedDiamantsController {
 
                 case 'rosController':
                 case 'rosIntegrator':
-                    if (enabled && !this.rosController) {
-                        this.rosController = new CrazyflieRosController({
-                            isActive: true,
-                            wsUrl: this.config.rosWsUrl || 'ws://localhost:8765',
-                            maxReconnectDelayMs: this.config.rosMaxReconnectDelayMs || 30000
-                        });
-                        if (this.rosController.isActive !== undefined) this.rosController.isActive = true;
-                    } else if (!enabled && this.rosController) {
-                        if (this.rosController.isActive !== undefined) this.rosController.isActive = false;
-                        if (this.rosController.disconnect) this.rosController.disconnect();
-                        this.rosController = null;
-                    }
+                    // Network bridge disabled — simulation-only build
                     break;
 
                 case 'visualEnhancements':

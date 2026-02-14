@@ -47,7 +47,7 @@ export class CollectiveIntelligence {
             stigmergyMarks: [] // Marquage stigmergique (comme les fourmis)
         };
 
-        // Ajout des métriques manquantes de diamants-gazebo-meshes
+        // Ajout des métriques manquantes de diamants-meshes
         this.learningProgress = 0;
         this.innovationIndex = 0;
         this.coherenceIndex = 1.0;
@@ -730,7 +730,7 @@ export class CollectiveIntelligence {
         log('🧠 Intelligence collective détruite proprement');
     }
 
-    // ===== MÉTHODES MANQUANTES DE DIAMANTS-GAZEBO-MESHES =====
+    // ===== MÉTHODES MANQUANTES DE DIAMANTS-MESHES =====
 
     /**
      * Calcul du progrès d'apprentissage collectif

@@ -6,6 +6,11 @@
 // Mode silencieux global
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
+// Fonctions de logging
+const log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
+const warn = (...args) => { if (!window.SILENT_MODE) console.warn(...args); };
+const error = (...args) => console.error(...args);
+
 /**
  * Niveaux de qualité disponibles
  */
@@ -181,14 +186,14 @@ export class ShaderQualityManager {
                 description: config.description,
                 features: config.features
             };
-        } catch (error) {
-            error(`❌ Erreur lors du chargement des shaders ${quality}:`, error);
+        } catch (err) {
+            console.error(`❌ Erreur lors du chargement des shaders ${quality}:`, err);
             // Fallback vers stable
             if (quality !== QUALITY_LEVELS.MEDIUM) {
                 log(`🔄 Fallback vers MEDIUM depuis ${quality}`);
                 return await this.getShaders(QUALITY_LEVELS.MEDIUM);
             }
-            throw error;
+            throw err;
         }
     }
 
@@ -238,8 +243,8 @@ export class ShaderQualityManager {
             this.currentQuality = quality;
             this.currentShaders = shaders;
             
-        } catch (error) {
-            error(`❌ Erreur lors du changement de qualité vers ${quality}:`, error);
+        } catch (err) {
+            console.error(`❌ Erreur lors du changement de qualité vers ${quality}:`, err);
             
             // Fallback vers MEDIUM si pas déjà MEDIUM
             if (quality !== QUALITY_LEVELS.MEDIUM) {
@@ -248,7 +253,7 @@ export class ShaderQualityManager {
                 return;
             }
             
-            throw error;
+            throw err;
         } finally {
             this.isLoading = false;
         }

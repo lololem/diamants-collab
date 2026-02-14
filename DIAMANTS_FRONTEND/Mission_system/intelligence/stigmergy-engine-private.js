@@ -1,0 +1,1 @@
+/path/to/private-repo/src/intelligence/stigmergy-engine.js

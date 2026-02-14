@@ -19,7 +19,8 @@ if (window.SILENT_MODE) {
     
     // Override sélectif qui garde les logs 3D critiques
     console.log = (...args) => {
-        const text = args.join(' ');
+        let text = '';
+        try { text = args.map(String).join(' '); } catch { originalLog(...args); return; }
         // Garder les logs critiques pour le 3D et les erreurs
         if (text.includes('DAE') || text.includes('THREE') || text.includes('ERROR') || 
             text.includes('ERREUR') || text.includes('✅') || text.includes('❌') ||
@@ -30,7 +31,8 @@ if (window.SILENT_MODE) {
     };
     
     console.info = (...args) => {
-        const text = args.join(' ');
+        let text = '';
+        try { text = args.map(String).join(' '); } catch { originalInfo(...args); return; }
         if (text.includes('DAE') || text.includes('THREE') || text.includes('ERROR')) {
             originalInfo(...args);
         }
@@ -38,6 +40,9 @@ if (window.SILENT_MODE) {
 }
 
 // DIAMANTS - Chargement principal
+const log = window.log || console.log.bind(console);
+const warn = window.warn || console.warn.bind(console);
+const error = window.error || console.error.bind(console);
 log('🔥 MAIN.JS STARTING - DIAMANTS Loading...');
 log('📍 main.js file loaded and executing');
 
@@ -106,9 +111,17 @@ async function initializeTHREE() {
 
 import { AuthenticProvencalEnvironment } from './environment/authentic-provencal-environment.js';
 import { AuthenticCrazyflie } from './drones/authentic-crazyflie.js';
-import { RosWebBridge, makeOdometry, yawToQuat } from './net/ros-bridge-simple.js';
+// ROS/WebSocket bridge removed — simulation-only build (public vitrine)
 import { IntegratedDiamantsController } from './tools/integrated-controller.js';
 import { OrchestrationConsole } from './ui/orchestration-console.js';
+import { MetricsUIConnector } from './tools/metrics-ui-connector.js';
+import { BenchmarkRunner, runQuickBenchmark } from './tools/benchmark-runner.js';
+import { BenchmarkChartGenerator } from './tools/benchmark-charts.js';
+import { initDiamantsUI } from './ui/diamants-ui-controller.js';
+import { ExplorationMinimap } from './ui/exploration-minimap.js';
+import { initPanelController } from './ui/panel-controller.js';
+import { initDoctrineManager } from './missions/mission-doctrine.js';
+import { ButtonTestSuite, TEST_DATASETS } from './tests/button-test-suite.js';
 
 class DiamantsMissionSystem {
     constructor() {
@@ -120,14 +133,18 @@ class DiamantsMissionSystem {
         this.environment = null;
         this.drones = [];
         this.droneMarkers = [];
+        this.followDroneIndex = -1; // Index du drone suivi (-1 = aucun)
         this.integratedController = null; // NOUVEAU: Contrôleur intégré
+        this.metricsUI = null; // Connecteur métriques UI
+        this.benchmark = null; // Runner benchmark
+        this.explorationMinimap = null; // Minimap d'exploration
         // Backend-less WebSim can publish/sub ROS topics via rosbridge
-        this.roswebEnabled = true; // toggle to enable ROS-in-the-browser
+        this.roswebEnabled = false; // ROS bridge removed — simulation-only build
         this.ros = null;
         // Visual safety defaults: clearer visuals, full manual control
         this.autoFocus = false; // off by default to avoid camera auto-move
-        this.usePostProcessing = false; // off by default to avoid halo/double tonemapping
-        this.visualSafeMode = true; // disables fog + heavy tone mapping
+        this.usePostProcessing = false; // no bloom/glow post-processing
+        this.visualSafeMode = true; // no fog, no tone mapping halos
         this._focusSmoothing = { center: null, radius: 10 }; // center sera initialisé plus tard
         this.clock = null; // clock sera initialisé plus tard
         
@@ -300,7 +317,7 @@ class DiamantsMissionSystem {
         this.renderer.shadowMap.enabled = false;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-        // Tone mapping: keep off in safe mode to avoid halos; can be toggled later
+        // Tone mapping: off — no halos. Toggle visualSafeMode=false to re-enable.
         if (this.visualSafeMode) {
             this.renderer.toneMapping = THREE.NoToneMapping;
             this.renderer.toneMappingExposure = 1.0;
@@ -409,119 +426,8 @@ class DiamantsMissionSystem {
     }
 
     async setupRosWeb() {
-        try {
-            this.ros = new RosWebBridge({ silent: window.SILENT_MODE });
-            await this.ros.connect().catch(() => {});
-            
-            log(`🔌 ROS2 WebSocket: ${this.ros.connected ? 'Connected' : 'Offline'} — ${this.ros.url}`);
-            
-            // ── ID mapper ────────────────────────────────────────────
-            // Backend IDs (crazyflie_01, 1-indexed) ↔ Frontend IDs (crazyflie_0, 0-indexed)
-            this._findLocalDrone = (backendId) => {
-                if (!this.drones?.length) return null;
-                // 1) Exact match
-                let d = this.drones.find(dr => dr.id === backendId);
-                if (d) return d;
-                const m = backendId.match(/^(.+?)_0*(\d+)$/);
-                if (m) {
-                    const num = parseInt(m[2], 10);
-                    // 2) Backend 1-indexed → frontend 0-indexed (priority!)
-                    d = this.drones.find(dr => dr.id === `${m[1]}_${num - 1}`);
-                    if (d) return d;
-                    // 3) Strip leading zeros only: crazyflie_01 → crazyflie_1
-                    d = this.drones.find(dr => dr.id === `${m[1]}_${m[2]}`);
-                    if (d) return d;
-                }
-                // 4) Positional fallback
-                const idx = parseInt(backendId.replace(/\D/g, ''), 10);
-                if (!isNaN(idx) && idx > 0 && idx <= this.drones.length) return this.drones[idx - 1];
-                return null;
-            };
-
-            // ── Backend-driven position handler ──────────────────────
-            // Listen for the global CustomEvent emitted by RosWebBridge
-            // whenever it receives drone positions from the backend.
-            // This works regardless of whether per-drone subs are set up.
-            this._backendPosCount = 0;
-            this._lastBackendLog = 0;
-            window.addEventListener('diamants:drone-positions', (evt) => {
-                const drones = evt.detail;
-                if (!drones || typeof drones !== 'object') return;
-                let matched = 0;
-                for (const [backendId, info] of Object.entries(drones)) {
-                    // Accept both nested {position:{x,y,z}} and flat {x,y,z}
-                    const pos = info?.position || (info?.x !== undefined ? { x: info.x, y: info.y, z: info.z || 0 } : null);
-                    if (!pos) continue;
-                    const drone = this._findLocalDrone(backendId);
-                    if (!drone) continue;
-                    matched++;
-                    try {
-                        // Set the target for smooth lerp interpolation
-                        drone.targetPosition.set(pos.x, pos.y, pos.z);
-                        if (drone.state === 'IDLE') drone.state = 'FLYING';
-
-                        // Tag with rosData for UI/debugging
-                        if (!drone.rosData) drone.rosData = {};
-                        drone.rosData.lastUpdate = Date.now();
-                        drone.rosData.position = { x: pos.x, y: pos.y, z: pos.z };
-                        drone.rosData.source = 'backend';
-                        // Forward backend battery & status
-                        if (info.battery !== undefined) drone.rosData.battery = info.battery;
-                        if (info.status) drone.rosData.status = info.status;
-                    } catch (_) { /* safe */ }
-                }
-                this._backendPosCount++;
-                const now = Date.now();
-                if (now - this._lastBackendLog > 5000) {
-                    this._lastBackendLog = now;
-                    console.warn(`📡 Backend positions: ${this._backendPosCount} updates, ${matched}/${Object.keys(drones).length} drones matched, ${this.drones?.length || 0} local drones`);
-                }
-            });
-            
-            // ── Backend propeller speeds handler ────────────────────
-            window.addEventListener('diamants:propeller-speeds', (evt) => {
-                const data = evt.detail;
-                if (!data || typeof data !== 'object') return;
-                for (const [droneId, speeds] of Object.entries(data)) {
-                    const drone = this._findLocalDrone(droneId);
-                    if (!drone) continue;
-                    if (!drone.rosData) drone.rosData = {};
-                    drone.rosData.propeller_speeds = speeds; // [rpm1, rpm2, rpm3, rpm4]
-                    drone.rosData.lastUpdate = Date.now();
-                }
-            });
-
-            // ── Deferred per-drone subscriptions ─────────────────────
-            this._rosSubscribedDrones = new Set();
-            this._subscribeDronesToRos = () => {
-                if (!this.ros || !this.drones?.length) return;
-                this.drones.forEach((d) => {
-                    if (this._rosSubscribedDrones.has(d.id)) return;
-                    this._rosSubscribedDrones.add(d.id);
-                    const ns = `/${d.id}`;
-                    log(`📡 ROS2 subscriptions for ${d.id}`);
-                    this.ros.subscribe(`${ns}/cmd/target_pose`, 'geometry_msgs/PoseStamped', (msg) => {
-                        try {
-                            const p = msg.pose.position;
-                            d.targetPosition.set(p.x, p.y, p.z);
-                            d.targetAltitude = p.y;
-                            if (d.state === 'IDLE') d.state = 'TAKEOFF';
-                        } catch (_) {}
-                    });
-                    this.ros.subscribe(`${ns}/cmd/land`, 'std_msgs/Empty', () => {
-                        try { d.state = 'LANDING'; } catch (_) {}
-                    });
-                    this.ros.subscribe(`${ns}/cmd/takeoff`, 'std_msgs/Float32', (msg) => {
-                        try { d.takeoff(msg.data || 2.0); } catch (_) {}
-                    });
-                });
-            };
-            this._subscribeDronesToRos();
-            
-            log('🌐 ROS-Web bridge prêt');
-        } catch (e) {
-            warn('ROS-Web non disponible:', e.message);
-        }
+        // Network bridge removed — simulation-only build (public vitrine)
+        log('ℹ️ Mode simulation locale — pas de bridge réseau');
     }
 
     async setupScene() {
@@ -622,14 +528,20 @@ class DiamantsMissionSystem {
             
             // Attendre que l'environnement soit prêt
             await new Promise(resolve => setTimeout(resolve, 1000));
-            // En mode visuel sûr, désactiver la brume pour éviter les halos
-            if (this.visualSafeMode) {
-                try { this.scene.fog = null; } catch (_) { /* noop */ }
-            }
+            // Pas de brume en safe mode (halos cosmétiques désactivés)
+            this.scene.fog = null;
             // Ensuite, déployer une petite flotte de Crazyflie bien visibles
             this.setupDrones();
             // Exposer un pont de compatibilité global pour l'UI (window.DIAMANTS)
             this.exposeGlobalBridge();
+            
+            // Initialiser la minimap d'exploration
+            try {
+                this.explorationMinimap = new ExplorationMinimap('minimap_canvas');
+                log('🗺️ ExplorationMinimap initialisée');
+            } catch (e) {
+                warn('⚠️ Erreur init ExplorationMinimap:', e);
+            }
             
         } catch (error) {
             console.error('❌ Erreur création environnement:', error);
@@ -669,7 +581,7 @@ class DiamantsMissionSystem {
                 emergenceThreshold: 0.8,
                 
                 // Paramètres de performance
-                droneCount: 8, // Must match backend (8 Crazyflie in Gazebo)
+                droneCount: 8, // Default fleet size
                 maxConcurrentDrones: 8,
                 updateFrequency: 30, // Hz
                 
@@ -729,6 +641,43 @@ class DiamantsMissionSystem {
             } catch (_) { /* ignore */ }
 
             log('✅ Contrôleur intégré initialisé avec succès');
+            
+            // === NOUVEAU: Initialiser le connecteur métriques UI ===
+            this.metricsUI = new MetricsUIConnector(this);
+            this.metricsUI.start(500); // Mise à jour toutes les 500ms
+            log('📊 MetricsUIConnector démarré');
+            
+            // === NOUVEAU: Initialiser le système de benchmark ===
+            this.benchmark = new BenchmarkRunner(this);
+            window.benchmark = this.benchmark;
+            window.runQuickBenchmark = (counts, dur) => runQuickBenchmark(this, counts, dur);
+            window.benchmarkCharts = new BenchmarkChartGenerator();
+            
+            // Export CSV/JSON pour le benchmark
+            window.benchmarkExportCSV = () => {
+                const csv = this.benchmark.exportCSV();
+                console.log('📊 CSV Export:\n', csv);
+                // Download
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'diamants_benchmark.csv'; a.click();
+            };
+            window.benchmarkExportJSON = () => {
+                const json = this.benchmark.exportJSON();
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = 'diamants_benchmark.json'; a.click();
+            };
+            log('🧪 Système benchmark initialisé');
+            
+            // === NOUVEAU: Initialiser le nouveau UI Controller (index-v2.html) ===
+            if (document.getElementById('panel-mission')) {
+                this.uiController = initDiamantsUI(this);
+                log('🎨 DiamantsUIController initialisé');
+            }
+            
             // Expose engine + core objects globally for diagnostics and legacy tooling
             try {
                 window.engineInstance = this.integratedController;
@@ -782,6 +731,46 @@ class DiamantsMissionSystem {
             // Émettre un signal d'init si besoin
             try { window.dispatchEvent(new CustomEvent('diamants:initialized', { detail: { drones: self.drones.length } })); } catch(_) {}
             log('🔗 Pont global window.DIAMANTS exposé (compat UI)');
+            
+            // Initialiser le Panel Controller et Doctrine Manager
+            try {
+                initDoctrineManager();
+                initPanelController();
+                log('✅ Panel Controller et Doctrine Manager initialisés');
+                
+                // Exposer la suite de tests
+                window.ButtonTestSuite = ButtonTestSuite;
+                window.TEST_DATASETS = TEST_DATASETS;
+                
+                // Auto-run tests en mode développement (après 2s pour laisser tout charger)
+                if (window.location.hostname === 'localhost') {
+                    setTimeout(() => {
+                        console.log('\\n🧪 AUTO-TEST DÉMARRÉ (mode dev)...');
+                        const results = window.runButtonTests();
+                        if (results.failed > 0) {
+                            console.warn(`⚠️ ${results.failed} tests échoués - voir détails ci-dessus`);
+                        } else {
+                            console.log('✅ Tous les tests passent !');
+                        }
+                        
+                        // Diagnostic état drones post-init
+                        const sys = window.diamantsSystem;
+                        if (sys?.integratedController) {
+                            const ic = sys.integratedController;
+                            const engine = ic.autonomousFlightEngine;
+                            console.log('\\n🔍 DIAGNOSTIC POST-INIT:');
+                            console.log(`   isRunning: ${ic.isRunning}`);
+                            console.log(`   missionStarted: ${ic.missionStarted}`);
+                            ic.drones.forEach((drone, i) => {
+                                const flightState = engine?.getDroneState(drone.id);
+                                console.log(`   ${drone.id}: state=${drone.state}, enginePhase=${flightState?.phase}, pos.y=${drone.position?.y?.toFixed(2)}`);
+                            });
+                        }
+                    }, 4000);
+                }
+            } catch (e) {
+                warn('⚠️ Erreur init Panel/Doctrine:', e);
+            }
         } catch (_) { /* noop */ }
     }
 
@@ -794,21 +783,9 @@ class DiamantsMissionSystem {
         this.drones = [];
     }
 
-    // Calcule le centre et le rayon englobant de la flotte pour cadrer automatiquement la caméra
-    computeFleetBounds() {
-        if (!this.drones.length) return { center: new THREE.Vector3(0, 0.5, 0), radius: 5 };
-        const center = new THREE.Vector3();
-        let count = 0;
-        this.drones.forEach(d => {
-            if (d && d.position) { center.add(d.position); count++; }
-        });
-        if (count > 0) center.multiplyScalar(1 / count);
-        let radius = 5;
-        this.drones.forEach(d => {
-            if (d && d.position) radius = Math.max(radius, d.position.distanceTo(center));
-        });
-        return { center, radius };
-    }
+    // Calcule le centre et le rayon englobant de la flotte pour cadrer la caméra
+    // (implémentation unique — Box3-based, voir plus bas)
+    // Déplacé pour éviter doublon
 
     showLoadingIndicator() {
         const indicator = document.createElement('div');
@@ -890,14 +867,8 @@ class DiamantsMissionSystem {
                 log(`🎭 Post-processing ${this.usePostProcessing ? 'activé' : 'désactivé'}`);
                 break;
             case 'KeyG':
-                // Toggle fog (brume)
-                if (this.scene.fog) {
-                    this.scene.fog = null;
-                    log('🌫️ Brume désactivée');
-                } else {
-                    this.scene.fog = new THREE.FogExp2(0xE6E6FA, 0.0008);
-                    log('🌫️ Brume activée');
-                }
+                // Fog désactivée (cosmétique)
+                log('🌫️ Brume désactivée (cosmétique)');
                 break;
                 
             case 'KeyL':
@@ -977,6 +948,15 @@ Souris: Navigation 3D
                 if (emergeEl && this.integratedController.metrics) {
                     emergeEl.textContent = (this.integratedController.metrics.emergenceLevel * 100 || 0).toFixed(0);
                 }
+                
+                // Mettre à jour la minimap d'exploration avec les positions des drones
+                if (window.DIAMANTS_MINIMAP) {
+                    this.drones.forEach((drone, idx) => {
+                        if (drone.position) {
+                            window.DIAMANTS_MINIMAP.updateDronePosition(idx, drone.position);
+                        }
+                    });
+                }
             }
         }
         
@@ -988,9 +968,21 @@ Souris: Navigation 3D
 
         // AUTOFOCUS COMPLÈTEMENT DÉSACTIVÉ - PAS DE MOUVEMENT AUTOMATIQUE
         // L'utilisateur contrôle manuellement la caméra avec la souris
-        if (false) { // Force désactivation - même si this.autoFocus devient true accidentellement
-            const { center, radius } = this.computeFleetBounds();
-            // Code d'autofocus désactivé
+        // SAUF si autoFollow est activé manuellement par le bouton Follow
+        if (this.autoFollow && this.drones.length > 0 && this.followDroneIndex >= 0) {
+            const drone = this.drones[this.followDroneIndex];
+            if (drone && drone.position) {
+                const target = drone.mesh ? drone.mesh.position : drone.position;
+                // Suivre le drone individuel (interpolation douce)
+                this.controls.target.lerp(target, 0.08);
+                
+                // Rapprocher la caméra du drone (distance ~5m, légèrement au-dessus)
+                const idealOffset = new THREE.Vector3(3, 2.5, 3);
+                const idealPos = target.clone().add(idealOffset);
+                this.camera.position.lerp(idealPos, 0.05);
+                
+                this.controls.update();
+            }
         }
         
         // Rendu
@@ -1002,9 +994,7 @@ Souris: Navigation 3D
             try { this.renderer.render(this.scene, this.camera); } catch (e) { /* ignore transient context errors */ }
         }
 
-        // NOTE: Frontend does NOT publish odometry. All positions come from the
-        // ROS2 backend (Gazebo → PositionBroadcaster → WebSocket Bridge → here).
-        // The frontend is a pure viewer, never a simulator.
+        // Positions are computed locally by the PID flight engine.
     }
 
     computeFleetBounds() {
@@ -1101,72 +1091,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Mission lanceur — sends real mission commands to the backend via WebSocket
-window.launchMission = function() {
-    log('🚀 LANCEMENT MISSION — envoi commande au backend ROS2');
-    
-    const system = window.diamantsSystem;
-    if (!system || !system.ros) {
-        log('⚠️ WebSocket bridge non disponible, tentative de connexion...');
-    }
-
-    // Send mission start command via WebSocket bridge
-    try {
-        if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
-            system.ros.ws.send(JSON.stringify({
-                type: 'mission_command',
-                data: { action: 'start', mission_type: 'exploration' },
-            }));
-            log('✅ Commande mission:start envoyée au backend');
-        } else {
-            log('⚠️ WebSocket non connecté — la mission est déjà active côté backend');
-        }
-    } catch (e) {
-        log('⚠️ Envoi commande mission échoué:', e.message);
-    }
-
-    // Also notify the integrated controller
-    if (system && system.integratedController) {
-        try { system.integratedController.startMissionManual(); } catch (_) {}
-    }
-};
-
-window.emergencyLand = function() {
-    log('🛑 Arrêt d\'urgence — envoi commande emergency au backend');
-    
-    const system = window.diamantsSystem;
-    try {
-        if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
-            system.ros.ws.send(JSON.stringify({
-                type: 'mission_command',
-                data: { action: 'emergency' },
-            }));
-            log('✅ Commande emergency envoyée');
-        }
-    } catch (e) { log('⚠️ Erreur envoi emergency:', e.message); }
-
-    // Also trigger local emergency
-    if (system && system.integratedController) {
-        try { system.integratedController.emergencyStop(); } catch (_) {}
-    }
-};
-
-window.resetSwarm = function() {
-    log('🔄 Reset essaim — envoi commande return_home au backend');
-    
-    const system = window.diamantsSystem;
-    try {
-        if (system && system.ros && system.ros.ws && system.ros.ws.readyState === WebSocket.OPEN) {
-            system.ros.ws.send(JSON.stringify({
-                type: 'mission_command',
-                data: { action: 'return_home' },
-            }));
-            log('✅ Commande return_home envoyée');
-        }
-    } catch (e) { log('⚠️ Erreur envoi reset:', e.message); }
-};
-
-// changePattern défini dans drone-panel-controller.js
+// ══════════════════════════════════════════════════════════════════════════
+// NOTE: Les fonctions window.launchMission, window.emergencyLand, 
+// window.resetSwarm, window.toggleDebugPanels sont définies dans
+// panel-controller.js via exposeGlobalFunctions() avec DoctrineManager intégré.
+// NE PAS les redéfinir ici car cela écraserait la version complète.
+// ══════════════════════════════════════════════════════════════════════════
 
 window.toggleDebugLogs = function() {
     const logsPanel = document.getElementById('debug-logs');
@@ -1206,10 +1136,7 @@ window.toggleCollisionDebug = function() {
     }
 };
 
-window.toggleDebugPanels = function() {
-    log('🛠️ Toggle debug panels');
-    alert('🛠️ Debug panels toggled');
-};
+// window.toggleDebugPanels définie dans panel-controller.js
 
 // Nettoyage avant fermeture
 window.addEventListener('beforeunload', () => {

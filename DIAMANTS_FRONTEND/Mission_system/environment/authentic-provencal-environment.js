@@ -626,8 +626,8 @@ export class AuthenticProvencalEnvironment {
         const fillLight = new THREE.HemisphereLight(0x87CEEB, 0xD2B48C, 0.6);
         this.scene.add(fillLight);
         
-        // Brume méditerranéenne
-        this.scene.fog = new THREE.FogExp2(0xE6E6FA, 0.0008);
+        // Brume désactivée (cosmétique, crée des halos)
+        // this.scene.fog = new THREE.FogExp2(0xE6E6FA, 0.0008);
         
         log('✅ Éclairage méditerranéen configuré');
     }
@@ -804,7 +804,7 @@ export class AuthenticProvencalEnvironment {
         const PLATFORM_RADIUS = 8.0;    // LARGE heliport — 8m radius for 8 drones
 
         const arenaGroup = new THREE.Group();
-        arenaGroup.name = 'GazeboArena';
+        arenaGroup.name = 'SimArena';
 
         // ── Central platform (heliport) ──
         const platformGeo = new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, 48);

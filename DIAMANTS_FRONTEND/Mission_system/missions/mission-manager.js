@@ -1,12 +1,17 @@
 /**
  * DIAMANTS - Gestionnaire de Missions Multi-Agent
  * ==================================================
- * Système de missions basé sur l'architecture ROS2 de DIAMANTS_FRONTEND
+ * Système de missions basé sur l'architecture DIAMANTS
  * Gestion des comportements collectifs et auto-organisation
  */
 
 // Mode silencieux pour les logs
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
+
+// Fonctions de logging
+const log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
+const warn = (...args) => { if (!window.SILENT_MODE) console.warn(...args); };
+const error = (...args) => console.error(...args);
 
 export class MissionManager {
     constructor(config = {}) {

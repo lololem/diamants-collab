@@ -24,7 +24,14 @@ export default defineConfig({
     hmr: true,
   open: '/index.html',
   // Laisser Vite choisir un autre port si le 5550 est occupé
-  strictPort: false
+  strictPort: false,
+  fs: {
+    // Permettre l'accès aux fichiers en dehors du projet (symlinks vers a private repository)
+    allow: [
+      path.resolve(__dirname, '../../../'),
+      '/path/to/private-repo'
+    ]
+  }
   },
   build: {
     outDir: 'dist',

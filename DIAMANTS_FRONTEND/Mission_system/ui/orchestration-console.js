@@ -548,7 +548,7 @@ export class OrchestrationConsole {
         });
         window.addEventListener('diamants:ws-error', (evt) => {
             this._stats.errors++;
-            this.log('ws', 'Backend offline — running in CAS 2 (autonomous engine). Start DiamantsBridge on :8765 to enable CAS 1.');
+            this.log('ws', 'Backend offline — running in autonomous mode');
             this._updateStats();
         });
 

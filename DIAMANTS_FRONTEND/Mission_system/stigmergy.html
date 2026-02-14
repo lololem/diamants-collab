@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>DIAMANTS Stigmergy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            overflow: hidden; 
+            background: #000; 
+            font-family: 'Courier New', monospace;
+        }
+        canvas { display: block; }
+        
+        #hud {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            color: #0ff;
+            font-size: 13px;
+            z-index: 1000;
+            background: rgba(0, 20, 30, 0.85);
+            padding: 15px 20px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            min-width: 220px;
+        }
+        
+        #hud h1 {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #0f8;
+            text-shadow: 0 0 10px #0f8;
+        }
+        
+        #hud .stat {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+        
+        #hud .label { color: #888; }
+        #hud .value { color: #fff; }
+        
+        #controls {
+            position: fixed;
+            bottom: 15px;
+            left: 15px;
+            color: #0ff;
+            font-size: 12px;
+            z-index: 1000;
+            background: rgba(0, 20, 30, 0.85);
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+        }
+        
+        #controls kbd {
+            background: rgba(255,255,255,0.15);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="hud">
+        <h1>⬡ STIGMERGY</h1>
+        <div class="stat"><span class="label">Agents</span><span class="value" id="agents">-</span></div>
+        <div class="stat"><span class="label">Phéromones</span><span class="value" id="pheromone">-</span></div>
+        <div class="stat"><span class="label">Max</span><span class="value" id="max">-</span></div>
+        <div class="stat"><span class="label">FPS</span><span class="value" id="fps">-</span></div>
+    </div>
+    
+    <div id="controls">
+        <kbd>Click</kbd> Injecter attracteur
+        <kbd>R</kbd> Reset
+        <kbd>Space</kbd> Pause
+    </div>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { StigmergySwarm } from './core/stigmergy-swarm.js';
+        
+        // === SCENE ===
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000810);
+        scene.fog = new THREE.FogExp2(0x000810, 0.015);
+        
+        // === CAMERA ===
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 500);
+        camera.position.set(40, 30, 40);
+        camera.lookAt(0, 0, 0);
+        
+        // === RENDERER ===
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+        
+        // === CONTROLS ===
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxDistance = 150;
+        controls.minDistance = 10;
+        
+        // === GRILLE ===
+        const gridHelper = new THREE.GridHelper(50, 25, 0x003333, 0x001818);
+        gridHelper.position.y = -5;
+        scene.add(gridHelper);
+        
+        // Axes
+        const axesHelper = new THREE.AxesHelper(10);
+        scene.add(axesHelper);
+        
+        // Boîte de délimitation
+        const boxGeometry = new THREE.BoxGeometry(50, 10, 50);
+        const boxMaterial = new THREE.MeshBasicMaterial({
+            color: 0x0088ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.15
+        });
+        const boundingBox = new THREE.Mesh(boxGeometry, boxMaterial);
+        scene.add(boundingBox);
+        
+        // === STIGMERGY SWARM ===
+        let swarm = new StigmergySwarm(scene, {
+            particleCount: 2500,
+            fieldSize: { x: 50, y: 50, z: 10 },
+            resolution: 1.0,
+            depositRate: 0.12,
+            evaporationRate: 0.988,
+            diffusionRate: 0.06,
+            moveSpeed: 0.1,
+            turnSpeed: 0.18,
+            trailLength: 15
+        });
+        
+        // Injecter quelques attracteurs initiaux
+        setTimeout(() => {
+            swarm.injectAttractor(10, 10, 0, 0.8, 8);
+            swarm.injectAttractor(-15, -10, 2, 0.7, 6);
+            swarm.injectAttractor(0, -20, -2, 0.6, 7);
+        }, 500);
+        
+        // === RAYCASTER pour injection ===
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+        
+        renderer.domElement.addEventListener('click', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const target = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, target);
+            
+            if (target) {
+                swarm.injectAttractor(target.x, target.y, target.z, 0.9, 8);
+                console.log(`[INJECT] Attracteur at (${target.x.toFixed(1)}, ${target.y.toFixed(1)}, ${target.z.toFixed(1)})`);
+            }
+        });
+        
+        // === CONTRÔLES CLAVIER ===
+        let paused = false;
+        
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') {
+                paused = !paused;
+                console.log(paused ? '[PAUSE]' : '[RESUME]');
+            }
+            if (e.code === 'KeyR') {
+                scene.remove(swarm.particleSystem);
+                scene.remove(swarm.trailSystem);
+                swarm.dispose();
+                swarm = new StigmergySwarm(scene, {
+                    particleCount: 2500,
+                    fieldSize: { x: 50, y: 50, z: 10 },
+                    resolution: 1.0,
+                    depositRate: 0.12,
+                    evaporationRate: 0.988,
+                    diffusionRate: 0.06,
+                    moveSpeed: 0.1,
+                    turnSpeed: 0.18,
+                    trailLength: 15
+                });
+                console.log('[RESET] Swarm reset');
+            }
+        });
+        
+        // === HUD ===
+        const hudAgents = document.getElementById('agents');
+        const hudPheromone = document.getElementById('pheromone');
+        const hudMax = document.getElementById('max');
+        const hudFps = document.getElementById('fps');
+        
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 60;
+        
+        function updateHUD() {
+            const stats = swarm.getStats();
+            hudAgents.textContent = stats.particleCount;
+            hudPheromone.textContent = stats.totalPheromone;
+            hudMax.textContent = stats.maxPheromone;
+            hudFps.textContent = fps.toFixed(0);
+        }
+        
+        // === ANIMATION ===
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            // FPS
+            frameCount++;
+            const now = performance.now();
+            if (now - lastTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastTime = now;
+                updateHUD();
+            }
+            
+            if (!paused) {
+                swarm.update(0.016);
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // === RESIZE ===
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        // === START ===
+        console.log('[STIGMERGY] Démarré - Intelligence collective stigmergique');
+        animate();
+        updateHUD();
+    </script>
+</body>
+</html>
