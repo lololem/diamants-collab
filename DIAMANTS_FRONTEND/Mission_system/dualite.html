@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⊙</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body { background: #000; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/**
+ * AVANT LA DUALITÉ
+ * 
+ * Il n'y a pas encore de vivant ni de non-vivant
+ * Pas de sujet ni d'objet
+ * Pas de un ni de multiple
+ * 
+ * Juste le potentiel de distinction
+ * 
+ * La dualité émerge comme possibilité
+ * puis se dissout
+ * puis ré-émerge autrement
+ * 
+ * Ce n'est pas un état fixe
+ * C'est le mouvement même de la différenciation
+ */
+
+const W = innerWidth, H = innerHeight;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, W/H, 0.01, 500);
+camera.position.z = 40;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(W, H);
+document.body.appendChild(renderer.domElement);
+
+// ═══════════════════════════════════════════════════════════════
+// L'INDIFFÉRENCIÉ - Le champ avant toute distinction
+// ═══════════════════════════════════════════════════════════════
+
+const FIELD_SIZE = 64;
+const field = new Float32Array(FIELD_SIZE * FIELD_SIZE * FIELD_SIZE);
+
+// Initialiser avec du bruit - pas de structure, pas de séparation
+function initField() {
+    for (let i = 0; i < field.length; i++) {
+        field[i] = Math.random() - 0.5;
+    }
+}
+
+function getField(x, y, z) {
+    const ix = ((Math.floor(x) % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+    const iy = ((Math.floor(y) % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+    const iz = ((Math.floor(z) % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+    return field[ix + iy * FIELD_SIZE + iz * FIELD_SIZE * FIELD_SIZE];
+}
+
+function setField(x, y, z, v) {
+    const ix = ((Math.floor(x) % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+    const iy = ((Math.floor(y) % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+    const iz = ((Math.floor(z) % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+    field[ix + iy * FIELD_SIZE + iz * FIELD_SIZE * FIELD_SIZE] = v;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LA SÉPARATION - Le processus qui crée la dualité
+// ═══════════════════════════════════════════════════════════════
+
+// Paramètre de séparation - oscille entre 0 (indifférencié) et 1 (dual)
+let separationStrength = 0;
+let separationTarget = 0;
+
+function updateSeparation() {
+    // La séparation tend vers une cible qui change aléatoirement
+    if (Math.random() < 0.002) {
+        separationTarget = Math.random();
+    }
+    
+    separationStrength += (separationTarget - separationStrength) * 0.01;
+}
+
+// Évolution du champ - vers la dualité ou vers l'unité
+function evolveField() {
+    const newField = new Float32Array(field.length);
+    
+    for (let z = 0; z < FIELD_SIZE; z++) {
+        for (let y = 0; y < FIELD_SIZE; y++) {
+            for (let x = 0; x < FIELD_SIZE; x++) {
+                const idx = x + y * FIELD_SIZE + z * FIELD_SIZE * FIELD_SIZE;
+                const v = field[idx];
+                
+                // Moyenne des voisins (diffusion vers l'indifférencié)
+                let sum = 0, count = 0;
+                for (let dz = -1; dz <= 1; dz++) {
+                    for (let dy = -1; dy <= 1; dy++) {
+                        for (let dx = -1; dx <= 1; dx++) {
+                            if (dx === 0 && dy === 0 && dz === 0) continue;
+                            const nx = (x + dx + FIELD_SIZE) % FIELD_SIZE;
+                            const ny = (y + dy + FIELD_SIZE) % FIELD_SIZE;
+                            const nz = (z + dz + FIELD_SIZE) % FIELD_SIZE;
+                            sum += field[nx + ny * FIELD_SIZE + nz * FIELD_SIZE * FIELD_SIZE];
+                            count++;
+                        }
+                    }
+                }
+                const avg = sum / count;
+                
+                // Deux forces en tension:
+                // 1. Diffusion (retour à l'indifférencié)
+                const diffusion = (avg - v) * 0.1 * (1 - separationStrength);
+                
+                // 2. Séparation (émergence de la dualité)
+                // Les valeurs positives deviennent plus positives
+                // Les valeurs négatives deviennent plus négatives
+                const separation = Math.sign(v) * Math.abs(v) * 0.05 * separationStrength;
+                
+                // 3. Fluctuation (le hasard qui permet le changement)
+                const fluctuation = (Math.random() - 0.5) * 0.02;
+                
+                newField[idx] = v + diffusion + separation + fluctuation;
+                
+                // Limiter les valeurs
+                newField[idx] = Math.max(-1, Math.min(1, newField[idx]));
+            }
+        }
+    }
+    
+    field.set(newField);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LES MANIFESTATIONS - Ce qui apparaît quand la dualité émerge
+// ═══════════════════════════════════════════════════════════════
+
+const N = 8000;
+const geo = new THREE.BufferGeometry();
+const positions = new Float32Array(N * 3);
+const colors = new Float32Array(N * 3);
+const sizes = new Float32Array(N);
+
+// Position initiale dans le champ
+const fieldPositions = [];
+for (let i = 0; i < N; i++) {
+    fieldPositions.push({
+        x: Math.random() * FIELD_SIZE,
+        y: Math.random() * FIELD_SIZE,
+        z: Math.random() * FIELD_SIZE
+    });
+    
+    positions[i * 3] = (fieldPositions[i].x - FIELD_SIZE/2) * 0.5;
+    positions[i * 3 + 1] = (fieldPositions[i].y - FIELD_SIZE/2) * 0.5;
+    positions[i * 3 + 2] = (fieldPositions[i].z - FIELD_SIZE/2) * 0.5;
+    
+    colors[i * 3] = 0.5;
+    colors[i * 3 + 1] = 0.5;
+    colors[i * 3 + 2] = 0.5;
+    
+    sizes[i] = 0.1;
+}
+
+geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+geo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+const mat = new THREE.ShaderMaterial({
+    uniforms: {
+        separation: { value: 0 }
+    },
+    vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        varying float vAlpha;
+        uniform float separation;
+        
+        void main() {
+            vColor = color;
+            
+            // Plus la séparation est forte, plus les particules sont visibles
+            vAlpha = 0.2 + separation * 0.6 + length(color - 0.5) * 0.5;
+            
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (0.5 + separation * 1.5) * 80.0 / -mvPosition.z;
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `,
+    fragmentShader: `
+        varying vec3 vColor;
+        varying float vAlpha;
+        
+        void main() {
+            vec2 c = gl_PointCoord - 0.5;
+            float d = length(c);
+            
+            // Forme qui change selon l'état
+            float alpha = exp(-d * 5.0) * vAlpha;
+            
+            gl_FragColor = vec4(vColor, alpha);
+        }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+});
+
+const points = new THREE.Points(geo, mat);
+scene.add(points);
+
+// ═══════════════════════════════════════════════════════════════
+// L'ENTRE-DEUX - Les connexions qui apparaissent et disparaissent
+// ═══════════════════════════════════════════════════════════════
+
+const lineGeo = new THREE.BufferGeometry();
+const linePos = new Float32Array(N * 2 * 3); // paires de points
+const lineCol = new Float32Array(N * 2 * 3);
+lineGeo.setAttribute('position', new THREE.BufferAttribute(linePos, 3));
+lineGeo.setAttribute('color', new THREE.BufferAttribute(lineCol, 3));
+
+const lineMat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.1,
+    blending: THREE.AdditiveBlending
+});
+
+const lines = new THREE.LineSegments(lineGeo, lineMat);
+scene.add(lines);
+
+// ═══════════════════════════════════════════════════════════════
+// MISE À JOUR
+// ═══════════════════════════════════════════════════════════════
+
+function update() {
+    updateSeparation();
+    evolveField();
+    
+    const pos = geo.attributes.position.array;
+    const col = geo.attributes.color.array;
+    const siz = geo.attributes.size.array;
+    
+    for (let i = 0; i < N; i++) {
+        const fp = fieldPositions[i];
+        
+        // Valeur du champ à cette position
+        const v = getField(fp.x, fp.y, fp.z);
+        
+        // Déplacement selon le gradient local
+        const gx = getField(fp.x + 1, fp.y, fp.z) - getField(fp.x - 1, fp.y, fp.z);
+        const gy = getField(fp.x, fp.y + 1, fp.z) - getField(fp.x, fp.y - 1, fp.z);
+        const gz = getField(fp.x, fp.y, fp.z + 1) - getField(fp.x, fp.y, fp.z - 1);
+        
+        // Quand séparation forte: les positifs et négatifs se séparent
+        // Quand séparation faible: mouvement aléatoire
+        const sep = separationStrength;
+        
+        fp.x += gx * v * sep * 0.5 + (Math.random() - 0.5) * (1 - sep) * 0.3;
+        fp.y += gy * v * sep * 0.5 + (Math.random() - 0.5) * (1 - sep) * 0.3;
+        fp.z += gz * v * sep * 0.5 + (Math.random() - 0.5) * (1 - sep) * 0.3;
+        
+        // Wrap around
+        fp.x = ((fp.x % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+        fp.y = ((fp.y % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+        fp.z = ((fp.z % FIELD_SIZE) + FIELD_SIZE) % FIELD_SIZE;
+        
+        // Position visuelle
+        pos[i * 3] = (fp.x - FIELD_SIZE/2) * 0.5;
+        pos[i * 3 + 1] = (fp.y - FIELD_SIZE/2) * 0.5;
+        pos[i * 3 + 2] = (fp.z - FIELD_SIZE/2) * 0.5;
+        
+        // Couleur selon la valeur du champ
+        // Quand indifférencié: gris neutre
+        // Quand séparé: positif = chaud, négatif = froid
+        const neutral = 0.5 - sep * 0.3;
+        
+        if (v > 0) {
+            // "Positif" - tend vers le chaud
+            col[i * 3] = neutral + v * sep;
+            col[i * 3 + 1] = neutral + v * sep * 0.3;
+            col[i * 3 + 2] = neutral - v * sep * 0.3;
+        } else {
+            // "Négatif" - tend vers le froid
+            col[i * 3] = neutral + v * sep * 0.3;
+            col[i * 3 + 1] = neutral - v * sep * 0.3;
+            col[i * 3 + 2] = neutral - v * sep;
+        }
+        
+        // Taille selon l'actualisation
+        siz[i] = 0.05 + Math.abs(v) * sep * 0.15;
+    }
+    
+    geo.attributes.position.needsUpdate = true;
+    geo.attributes.color.needsUpdate = true;
+    geo.attributes.size.needsUpdate = true;
+    mat.uniforms.separation.value = separationStrength;
+    
+    // Connexions entre polarités opposées
+    const lpos = lineGeo.attributes.position.array;
+    const lcol = lineGeo.attributes.color.array;
+    
+    let lineIdx = 0;
+    for (let i = 0; i < N && lineIdx < N; i++) {
+        const v1 = getField(fieldPositions[i].x, fieldPositions[i].y, fieldPositions[i].z);
+        
+        // Chercher un opposé proche
+        for (let j = i + 1; j < Math.min(i + 10, N) && lineIdx < N; j++) {
+            const v2 = getField(fieldPositions[j].x, fieldPositions[j].y, fieldPositions[j].z);
+            
+            // Si polarités opposées et proches
+            if (v1 * v2 < -0.3 * separationStrength) {
+                const dx = fieldPositions[i].x - fieldPositions[j].x;
+                const dy = fieldPositions[i].y - fieldPositions[j].y;
+                const dz = fieldPositions[i].z - fieldPositions[j].z;
+                const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                
+                if (dist < 8) {
+                    lpos[lineIdx * 6] = pos[i * 3];
+                    lpos[lineIdx * 6 + 1] = pos[i * 3 + 1];
+                    lpos[lineIdx * 6 + 2] = pos[i * 3 + 2];
+                    lpos[lineIdx * 6 + 3] = pos[j * 3];
+                    lpos[lineIdx * 6 + 4] = pos[j * 3 + 1];
+                    lpos[lineIdx * 6 + 5] = pos[j * 3 + 2];
+                    
+                    // Couleur de la tension
+                    const tension = separationStrength * (1 - dist / 8);
+                    lcol[lineIdx * 6] = 0.5;
+                    lcol[lineIdx * 6 + 1] = 0.3 + tension * 0.5;
+                    lcol[lineIdx * 6 + 2] = 0.7;
+                    lcol[lineIdx * 6 + 3] = 0.5;
+                    lcol[lineIdx * 6 + 4] = 0.3 + tension * 0.5;
+                    lcol[lineIdx * 6 + 5] = 0.7;
+                    
+                    lineIdx++;
+                }
+            }
+        }
+    }
+    
+    // Cacher les lignes non utilisées
+    for (let i = lineIdx; i < N; i++) {
+        lpos[i * 6 + 2] = 10000;
+        lpos[i * 6 + 5] = 10000;
+    }
+    
+    lineGeo.attributes.position.needsUpdate = true;
+    lineGeo.attributes.color.needsUpdate = true;
+    lineMat.opacity = separationStrength * 0.15;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDU
+// ═══════════════════════════════════════════════════════════════
+
+initField();
+
+function render() {
+    requestAnimationFrame(render);
+    
+    update();
+    
+    // Rotation lente
+    const t = Date.now() * 0.00005;
+    camera.position.x = Math.sin(t) * 45;
+    camera.position.y = Math.cos(t * 0.7) * 20;
+    camera.position.z = 35 + Math.sin(t * 0.3) * 10;
+    camera.lookAt(0, 0, 0);
+    
+    renderer.render(scene, camera);
+}
+
+addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+});
+
+console.log(`
+⊙ AVANT LA DUALITÉ
+
+Quand la séparation est faible:
+- Tout est gris, indifférencié
+- Pas de vivant, pas de non-vivant
+- Pas de distinction
+
+Quand la séparation émerge:
+- Les couleurs se séparent (chaud/froid)
+- Des liens apparaissent entre les opposés
+- La dualité devient possible
+
+Mais ce n'est jamais fixe.
+La dualité apparaît et disparaît.
+`);
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>∞</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body { background: #000; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/**
+ * PRIMORDIAL - L'espace des possibles
+ * 
+ * Pas de temps, pas d'espace fixe
+ * Juste des potentialités qui peuvent devenir
+ * Le multiple naît de lui-même
+ * Sans cause, sans séquence
+ * Pure émergence informationnelle
+ */
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.01, 1000);
+camera.position.z = 30;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setClearColor(0x000000, 1);
+document.body.appendChild(renderer.domElement);
+
+// ═══════════════════════════════════════════════════════════════
+// POTENTIALITÉS - États qui peuvent exister ou non
+// ═══════════════════════════════════════════════════════════════
+
+class Potentiality {
+    constructor(parent = null) {
+        // Position dans l'espace des possibles (pas physique)
+        this.state = new Float32Array(6); // 6 dimensions informationnelles
+        
+        if (parent) {
+            // Émergence depuis un parent - variation
+            for (let i = 0; i < 6; i++) {
+                this.state[i] = parent.state[i] + (Math.random() - 0.5) * 0.5;
+            }
+        } else {
+            // Émergence spontanée
+            for (let i = 0; i < 6; i++) {
+                this.state[i] = (Math.random() - 0.5) * 2;
+            }
+        }
+        
+        // Probabilité d'existence (0 = potentiel pur, 1 = actualisé)
+        this.actualization = Math.random() * 0.3;
+        
+        // Connexions avec d'autres potentialités
+        this.connections = [];
+        
+        // Pas d'âge - pas de temps
+        // Mais une "résonance" avec le champ total
+        this.resonance = Math.random();
+    }
+    
+    // Projection dans l'espace visible (réduction dimensionnelle)
+    project() {
+        // Les 6 dimensions se projettent en 3D
+        return {
+            x: this.state[0] * 15 + this.state[3] * 5,
+            y: this.state[1] * 15 + this.state[4] * 5,
+            z: this.state[2] * 10 + this.state[5] * 3
+        };
+    }
+    
+    // Peut-il émerger en plusieurs?
+    canMultiply() {
+        // La multiplication dépend de la résonance et des connexions
+        return this.resonance > 0.7 && this.connections.length < 5;
+    }
+    
+    // Interaction avec une autre potentialité
+    resonate(other) {
+        let harmony = 0;
+        for (let i = 0; i < 6; i++) {
+            harmony += this.state[i] * other.state[i];
+        }
+        return harmony / 6;
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CHAMP PRIMORDIAL - L'espace des possibles
+// ═══════════════════════════════════════════════════════════════
+
+const field = {
+    potentialities: [],
+    maxPotentialities: 2000,
+    
+    // Émergence spontanée - sans cause
+    spontaneousEmergence() {
+        if (this.potentialities.length < 50 || Math.random() < 0.01) {
+            this.potentialities.push(new Potentiality());
+        }
+    },
+    
+    // Multiplication - le un devient multiple
+    multiply() {
+        const candidates = this.potentialities.filter(p => p.canMultiply());
+        
+        for (const p of candidates) {
+            if (Math.random() < 0.03 && this.potentialities.length < this.maxPotentialities) {
+                const child = new Potentiality(p);
+                p.connections.push(child);
+                child.connections.push(p);
+                this.potentialities.push(child);
+            }
+        }
+    },
+    
+    // Résonance entre potentialités
+    resonate() {
+        for (let i = 0; i < this.potentialities.length; i++) {
+            const p1 = this.potentialities[i];
+            
+            // Chercher des résonances proches
+            for (let j = i + 1; j < this.potentialities.length; j++) {
+                const p2 = this.potentialities[j];
+                const harmony = p1.resonate(p2);
+                
+                if (Math.abs(harmony) > 0.8) {
+                    // Forte résonance - influence mutuelle
+                    for (let k = 0; k < 6; k++) {
+                        const avg = (p1.state[k] + p2.state[k]) / 2;
+                        p1.state[k] += (avg - p1.state[k]) * 0.01;
+                        p2.state[k] += (avg - p2.state[k]) * 0.01;
+                    }
+                    
+                    // Créer une connexion
+                    if (!p1.connections.includes(p2) && p1.connections.length < 8) {
+                        p1.connections.push(p2);
+                        p2.connections.push(p1);
+                    }
+                }
+            }
+        }
+    },
+    
+    // Fluctuation quantique - les états changent
+    fluctuate() {
+        for (const p of this.potentialities) {
+            // Fluctuation sans direction temporelle
+            for (let i = 0; i < 6; i++) {
+                p.state[i] += (Math.random() - 0.5) * 0.02;
+            }
+            
+            // L'actualisation fluctue aussi
+            p.actualization += (Math.random() - 0.5) * 0.05;
+            p.actualization = Math.max(0, Math.min(1, p.actualization));
+            
+            // Résonance change
+            p.resonance += (Math.random() - 0.5) * 0.02;
+            p.resonance = Math.max(0, Math.min(1, p.resonance));
+        }
+    },
+    
+    // Dissolution - retour au potentiel pur
+    dissolve() {
+        // Les potentialités très peu actualisées peuvent disparaître
+        this.potentialities = this.potentialities.filter(p => {
+            if (p.actualization < 0.05 && Math.random() < 0.01) {
+                // Nettoyer les connexions
+                for (const other of p.connections) {
+                    other.connections = other.connections.filter(c => c !== p);
+                }
+                return false;
+            }
+            return true;
+        });
+    },
+    
+    update() {
+        this.spontaneousEmergence();
+        this.multiply();
+        this.fluctuate();
+        this.resonate();
+        this.dissolve();
+    }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// VISUALISATION - Projection du champ
+// ═══════════════════════════════════════════════════════════════
+
+// Points pour les potentialités
+const pointsGeo = new THREE.BufferGeometry();
+const positions = new Float32Array(field.maxPotentialities * 3);
+const colors = new Float32Array(field.maxPotentialities * 3);
+const sizes = new Float32Array(field.maxPotentialities);
+
+pointsGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+pointsGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+pointsGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+const pointsMat = new THREE.ShaderMaterial({
+    uniforms: {},
+    vertexShader: `
+        attribute float size;
+        attribute vec3 color;
+        varying vec3 vColor;
+        varying float vAlpha;
+        
+        void main() {
+            vColor = color;
+            vAlpha = size * 3.0;
+            
+            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * 80.0 / -mvPosition.z;
+            gl_Position = projectionMatrix * mvPosition;
+        }
+    `,
+    fragmentShader: `
+        varying vec3 vColor;
+        varying float vAlpha;
+        
+        void main() {
+            vec2 c = gl_PointCoord - 0.5;
+            float d = length(c);
+            
+            // Halo diffus - pas de bord net
+            float alpha = exp(-d * 4.0) * vAlpha;
+            
+            gl_FragColor = vec4(vColor, alpha);
+        }
+    `,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+});
+
+const points = new THREE.Points(pointsGeo, pointsMat);
+scene.add(points);
+
+// Lignes pour les connexions
+const linesGeo = new THREE.BufferGeometry();
+const linePositions = new Float32Array(field.maxPotentialities * 8 * 6); // max 8 connexions par point
+const lineColors = new Float32Array(field.maxPotentialities * 8 * 6);
+
+linesGeo.setAttribute('position', new THREE.BufferAttribute(linePositions, 3));
+linesGeo.setAttribute('color', new THREE.BufferAttribute(lineColors, 3));
+
+const linesMat = new THREE.LineBasicMaterial({
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.15,
+    blending: THREE.AdditiveBlending
+});
+
+const lines = new THREE.LineSegments(linesGeo, linesMat);
+scene.add(lines);
+
+// ═══════════════════════════════════════════════════════════════
+// BOUCLE - Pas d'animation temporelle, juste des états successifs
+// ═══════════════════════════════════════════════════════════════
+
+function render() {
+    requestAnimationFrame(render);
+    
+    // Mettre à jour le champ
+    field.update();
+    
+    // Projeter les potentialités
+    const pos = pointsGeo.attributes.position.array;
+    const col = pointsGeo.attributes.color.array;
+    const siz = pointsGeo.attributes.size.array;
+    
+    for (let i = 0; i < field.maxPotentialities; i++) {
+        if (i < field.potentialities.length) {
+            const p = field.potentialities[i];
+            const proj = p.project();
+            
+            pos[i * 3] = proj.x;
+            pos[i * 3 + 1] = proj.y;
+            pos[i * 3 + 2] = proj.z;
+            
+            // Couleur basée sur l'état informationnel
+            const hue = (p.state[0] + p.state[1] + 2) / 4;
+            const sat = 0.5 + p.resonance * 0.5;
+            const light = 0.3 + p.actualization * 0.5;
+            
+            // HSL vers RGB approximatif
+            const h = hue * 6;
+            const c = (1 - Math.abs(2 * light - 1)) * sat;
+            const x = c * (1 - Math.abs(h % 2 - 1));
+            const m = light - c / 2;
+            
+            let r, g, b;
+            if (h < 1) { r = c; g = x; b = 0; }
+            else if (h < 2) { r = x; g = c; b = 0; }
+            else if (h < 3) { r = 0; g = c; b = x; }
+            else if (h < 4) { r = 0; g = x; b = c; }
+            else if (h < 5) { r = x; g = 0; b = c; }
+            else { r = c; g = 0; b = x; }
+            
+            col[i * 3] = r + m;
+            col[i * 3 + 1] = g + m;
+            col[i * 3 + 2] = b + m;
+            
+            siz[i] = 0.1 + p.actualization * 0.4;
+        } else {
+            pos[i * 3] = 0;
+            pos[i * 3 + 1] = 0;
+            pos[i * 3 + 2] = 10000; // hors vue
+            siz[i] = 0;
+        }
+    }
+    
+    pointsGeo.attributes.position.needsUpdate = true;
+    pointsGeo.attributes.color.needsUpdate = true;
+    pointsGeo.attributes.size.needsUpdate = true;
+    
+    // Connexions
+    const lpos = linesGeo.attributes.position.array;
+    const lcol = linesGeo.attributes.color.array;
+    let lineIdx = 0;
+    
+    for (let i = 0; i < field.potentialities.length && lineIdx < linePositions.length / 6; i++) {
+        const p = field.potentialities[i];
+        const proj1 = p.project();
+        
+        for (const other of p.connections) {
+            const j = field.potentialities.indexOf(other);
+            if (j > i && lineIdx < linePositions.length / 6) {
+                const proj2 = other.project();
+                
+                lpos[lineIdx * 6] = proj1.x;
+                lpos[lineIdx * 6 + 1] = proj1.y;
+                lpos[lineIdx * 6 + 2] = proj1.z;
+                lpos[lineIdx * 6 + 3] = proj2.x;
+                lpos[lineIdx * 6 + 4] = proj2.y;
+                lpos[lineIdx * 6 + 5] = proj2.z;
+                
+                const harmony = Math.abs(p.resonate(other));
+                lcol[lineIdx * 6] = harmony;
+                lcol[lineIdx * 6 + 1] = 0.5;
+                lcol[lineIdx * 6 + 2] = 1 - harmony;
+                lcol[lineIdx * 6 + 3] = harmony;
+                lcol[lineIdx * 6 + 4] = 0.5;
+                lcol[lineIdx * 6 + 5] = 1 - harmony;
+                
+                lineIdx++;
+            }
+        }
+    }
+    
+    // Cacher les lignes non utilisées
+    for (let i = lineIdx; i < linePositions.length / 6; i++) {
+        lpos[i * 6 + 2] = 10000;
+        lpos[i * 6 + 5] = 10000;
+    }
+    
+    linesGeo.attributes.position.needsUpdate = true;
+    linesGeo.attributes.color.needsUpdate = true;
+    
+    // Rotation lente de la vue - pas du temps, juste une autre perspective
+    const phase = Date.now() * 0.0001;
+    camera.position.x = Math.sin(phase) * 35;
+    camera.position.y = Math.cos(phase * 0.7) * 15;
+    camera.position.z = 30 + Math.sin(phase * 0.5) * 10;
+    camera.lookAt(0, 0, 0);
+    
+    renderer.render(scene, camera);
+}
+
+addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+});
+
+// Initialiser avec quelques potentialités
+for (let i = 0; i < 100; i++) {
+    field.potentialities.push(new Potentiality());
+}
+
+console.log('∞ Champ primordial - émergence des possibles');
+render();
+</script>
+</body>
+</html>

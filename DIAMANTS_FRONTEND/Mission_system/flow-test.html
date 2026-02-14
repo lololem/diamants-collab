@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>DIAMANTS Flow Test</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; }
+        canvas { display: block; }
+        #info {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #0f8;
+            font-family: monospace;
+            font-size: 14px;
+            z-index: 1000;
+            background: rgba(0,0,0,0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">DIAMANTS Flow Test - Loading...</div>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // Make THREE global
+        window.THREE = THREE;
+        
+        // ========== SCENE SETUP ==========
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0a0a1a);
+        
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(30, 20, 30);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        document.body.appendChild(renderer.domElement);
+        
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.set(0, 5, 0);
+        controls.update();
+        
+        // Grid helper
+        const grid = new THREE.GridHelper(50, 50, 0x444444, 0x222222);
+        scene.add(grid);
+        
+        // ========== MOCK DIAMANT FORMULAS ==========
+        const mockFormulas = {
+            config: {
+                resolution: 2.0,
+                domainSize: { x: 50, y: 50, z: 10 }
+            },
+            psi_field: [],
+            gradient_field: { x: [], y: [], z: [] }
+        };
+        
+        // Create field with patterns
+        const nx = 25, ny = 25, nz = 5;
+        const cx = nx/2, cy = ny/2, cz = nz/2;
+        
+        for (let i = 0; i < nx; i++) {
+            mockFormulas.psi_field[i] = [];
+            mockFormulas.gradient_field.x[i] = [];
+            mockFormulas.gradient_field.y[i] = [];
+            mockFormulas.gradient_field.z[i] = [];
+            
+            for (let j = 0; j < ny; j++) {
+                mockFormulas.psi_field[i][j] = [];
+                mockFormulas.gradient_field.x[i][j] = [];
+                mockFormulas.gradient_field.y[i][j] = [];
+                mockFormulas.gradient_field.z[i][j] = [];
+                
+                for (let k = 0; k < nz; k++) {
+                    // Create spiral pattern
+                    const dx = (i - cx) / (nx/2);
+                    const dy = (j - cy) / (ny/2);
+                    const r = Math.sqrt(dx*dx + dy*dy);
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Psi field - multiple attractors
+                    const psi = 3 * Math.exp(-r*r*2) + 
+                               2 * Math.sin(angle * 3 + r * 5) * Math.exp(-r);
+                    mockFormulas.psi_field[i][j][k] = psi;
+                    
+                    // Gradient - spiral + radial
+                    const tangent = { x: -dy, y: dx };
+                    const radial = { x: dx, y: dy };
+                    mockFormulas.gradient_field.x[i][j][k] = tangent.x * 0.5 - radial.x * 0.3;
+                    mockFormulas.gradient_field.y[i][j][k] = tangent.y * 0.5 - radial.y * 0.3;
+                    mockFormulas.gradient_field.z[i][j][k] = 0.1 * Math.sin(r * 3);
+                }
+            }
+        }
+        
+        // ========== FLOW PARTICLES ==========
+        class FlowParticles {
+            constructor(scene, formulas, options = {}) {
+                this.scene = scene;
+                this.formulas = formulas;
+                this.options = {
+                    particleCount: options.particleCount || 3000,
+                    particleSize: options.particleSize || 0.15,
+                    speed: options.speed || 3.0,
+                    lifetime: options.lifetime || 6.0,
+                    colorStart: options.colorStart || 0x00ffcc,
+                    colorEnd: options.colorEnd || 0xff44ff,
+                    domainSize: options.domainSize || { x: 50, y: 12, z: 50 },
+                    offset: options.offset || { x: -25, y: 0, z: -25 }
+                };
+                
+                this.particles = [];
+                this._time = 0;
+                this.init();
+            }
+            
+            init() {
+                const count = this.options.particleCount;
+                
+                this.geometry = new THREE.BufferGeometry();
+                const positions = new Float32Array(count * 3);
+                const colors = new Float32Array(count * 3);
+                
+                for (let i = 0; i < count; i++) {
+                    this.particles.push({
+                        position: new THREE.Vector3(),
+                        velocity: new THREE.Vector3(),
+                        age: Math.random() * this.options.lifetime,
+                        lifetime: this.options.lifetime * (0.5 + Math.random() * 0.5)
+                    });
+                    this._respawnParticle(this.particles[i]);
+                    
+                    const p = this.particles[i].position;
+                    positions[i * 3] = p.x;
+                    positions[i * 3 + 1] = p.y;
+                    positions[i * 3 + 2] = p.z;
+                    colors[i * 3] = 0;
+                    colors[i * 3 + 1] = 1;
+                    colors[i * 3 + 2] = 0.8;
+                }
+                
+                this.geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+                this.geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+                
+                this.material = new THREE.ShaderMaterial({
+                    uniforms: {
+                        uPixelRatio: { value: Math.min(window.devicePixelRatio, 2) },
+                        uSize: { value: this.options.particleSize * 100 }
+                    },
+                    vertexShader: `
+                        attribute vec3 color;
+                        varying vec3 vColor;
+                        varying float vAlpha;
+                        uniform float uPixelRatio;
+                        uniform float uSize;
+                        
+                        void main() {
+                            vColor = color;
+                            vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                            gl_PointSize = uSize * uPixelRatio * (1.0 / -mvPosition.z);
+                            gl_PointSize = clamp(gl_PointSize, 2.0, 30.0);
+                            gl_Position = projectionMatrix * mvPosition;
+                            vAlpha = smoothstep(80.0, 10.0, -mvPosition.z);
+                        }
+                    `,
+                    fragmentShader: `
+                        varying vec3 vColor;
+                        varying float vAlpha;
+                        
+                        void main() {
+                            vec2 c = gl_PointCoord - 0.5;
+                            float d = length(c);
+                            float alpha = 1.0 - smoothstep(0.3, 0.5, d);
+                            gl_FragColor = vec4(vColor * 1.2, alpha * vAlpha * 0.9);
+                        }
+                    `,
+                    transparent: true,
+                    depthWrite: false,
+                    blending: THREE.AdditiveBlending
+                });
+                
+                this.points = new THREE.Points(this.geometry, this.material);
+                this.points.frustumCulled = false;
+                this.scene.add(this.points);
+                
+                console.log('✅ FlowParticles:', count, 'particles');
+            }
+            
+            _respawnParticle(p) {
+                const { domainSize, offset } = this.options;
+                p.position.set(
+                    Math.random() * domainSize.x + offset.x,
+                    Math.random() * domainSize.y + offset.y,
+                    Math.random() * domainSize.z + offset.z
+                );
+                p.velocity.set(0, 0, 0);
+                p.age = 0;
+            }
+            
+            _sampleGradient(x, y, z) {
+                const { offset } = this.options;
+                const res = this.formulas.config.resolution;
+                const ix = Math.floor((x - offset.x) / res);
+                const iy = Math.floor((z - offset.z) / res);
+                const iz = Math.floor((y - offset.y) / res);
+                
+                const grad = this.formulas.gradient_field;
+                if (!grad.x[ix]?.[iy]?.[iz]) return { x: 0, y: 0, z: 0 };
+                
+                return {
+                    x: grad.x[ix][iy][iz] || 0,
+                    y: grad.z[ix]?.[iy]?.[iz] || 0,
+                    z: grad.y[ix][iy][iz] || 0
+                };
+            }
+            
+            _sampleField(x, y, z) {
+                const { offset } = this.options;
+                const res = this.formulas.config.resolution;
+                const ix = Math.floor((x - offset.x) / res);
+                const iy = Math.floor((z - offset.z) / res);
+                const iz = Math.floor((y - offset.y) / res);
+                return this.formulas.psi_field[ix]?.[iy]?.[iz] || 0;
+            }
+            
+            update(dt) {
+                this._time += dt;
+                
+                const positions = this.geometry.attributes.position.array;
+                const colors = this.geometry.attributes.color.array;
+                const { speed, domainSize, offset } = this.options;
+                
+                const startColor = new THREE.Color(this.options.colorStart);
+                const endColor = new THREE.Color(this.options.colorEnd);
+                
+                for (let i = 0; i < this.particles.length; i++) {
+                    const p = this.particles[i];
+                    p.age += dt;
+                    
+                    // Respawn
+                    if (p.age > p.lifetime ||
+                        p.position.x < offset.x - 5 || p.position.x > offset.x + domainSize.x + 5 ||
+                        p.position.z < offset.z - 5 || p.position.z > offset.z + domainSize.z + 5) {
+                        this._respawnParticle(p);
+                    }
+                    
+                    // Sample gradient
+                    const g = this._sampleGradient(p.position.x, p.position.y, p.position.z);
+                    const field = Math.abs(this._sampleField(p.position.x, p.position.y, p.position.z));
+                    
+                    // Update velocity
+                    const inertia = 0.92;
+                    p.velocity.x = p.velocity.x * inertia - g.x * speed * 0.4;
+                    p.velocity.y = p.velocity.y * inertia - g.y * speed * 0.2 + 0.03;
+                    p.velocity.z = p.velocity.z * inertia - g.z * speed * 0.4;
+                    
+                    // Turbulence
+                    p.velocity.x += (Math.random() - 0.5) * 0.15;
+                    p.velocity.z += (Math.random() - 0.5) * 0.15;
+                    
+                    // Update position
+                    p.position.x += p.velocity.x * dt;
+                    p.position.y += p.velocity.y * dt;
+                    p.position.z += p.velocity.z * dt;
+                    
+                    // Keep above ground
+                    if (p.position.y < 0.2) p.position.y = 0.2;
+                    
+                    // Update buffer
+                    positions[i * 3] = p.position.x;
+                    positions[i * 3 + 1] = p.position.y;
+                    positions[i * 3 + 2] = p.position.z;
+                    
+                    // Color
+                    const t = Math.min(1, field / 3);
+                    const fade = p.age < p.lifetime * 0.8 ? 1 : (1 - p.age / p.lifetime) / 0.2;
+                    const color = startColor.clone().lerp(endColor, t);
+                    
+                    colors[i * 3] = color.r * fade;
+                    colors[i * 3 + 1] = color.g * fade;
+                    colors[i * 3 + 2] = color.b * fade;
+                }
+                
+                this.geometry.attributes.position.needsUpdate = true;
+                this.geometry.attributes.color.needsUpdate = true;
+            }
+        }
+        
+        // ========== CREATE FLOW ==========
+        const flow = new FlowParticles(scene, mockFormulas, {
+            particleCount: 3000,
+            particleSize: 0.2,
+            speed: 3.0,
+            lifetime: 6.0,
+            colorStart: 0x00ffcc,
+            colorEnd: 0xff44ff,
+            domainSize: { x: 50, y: 12, z: 50 },
+            offset: { x: -25, y: 0, z: -25 }
+        });
+        
+        // ========== INFO DISPLAY ==========
+        const info = document.getElementById('info');
+        let frameCount = 0;
+        
+        // ========== ANIMATE ==========
+        const clock = new THREE.Clock();
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const dt = clock.getDelta();
+            flow.update(dt);
+            
+            controls.update();
+            renderer.render(scene, camera);
+            
+            frameCount++;
+            if (frameCount % 30 === 0) {
+                info.innerHTML = `
+                    <strong>◆ DIAMANTS Flow Test ◆</strong><br>
+                    Particles: ${flow.particles.length}<br>
+                    FPS: ${(1/dt).toFixed(0)}<br>
+                    Time: ${flow._time.toFixed(1)}s
+                `;
+            }
+        }
+        
+        animate();
+        
+        // Resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+        
+        console.log('✅ DIAMANTS Flow Test ready');
+    </script>
+</body>
+</html>

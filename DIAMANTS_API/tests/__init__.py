@@ -1,1 +1,0 @@
-# DIAMANTS API Tests Package

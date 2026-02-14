@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>◉</title>
+    <style>
+        * { margin: 0; padding: 0; }
+        body { background: #000; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// TOUT EN UN SEUL FICHIER - PAS DE MODULES, PAS D'IMPORTS
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+camera.position.z = 50;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+document.body.appendChild(renderer.domElement);
+
+// PARTICULES
+const N = 5000;
+const geo = new THREE.BufferGeometry();
+const pos = new Float32Array(N * 3);
+const col = new Float32Array(N * 3);
+const vel = [];
+
+for (let i = 0; i < N; i++) {
+    pos[i*3] = (Math.random() - 0.5) * 60;
+    pos[i*3+1] = (Math.random() - 0.5) * 60;
+    pos[i*3+2] = (Math.random() - 0.5) * 20;
+    
+    col[i*3] = 0.2 + Math.random() * 0.3;
+    col[i*3+1] = 0.5 + Math.random() * 0.5;
+    col[i*3+2] = 0.8 + Math.random() * 0.2;
+    
+    vel.push({
+        x: (Math.random() - 0.5) * 0.1,
+        y: (Math.random() - 0.5) * 0.1,
+        z: (Math.random() - 0.5) * 0.05
+    });
+}
+
+geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+const mat = new THREE.PointsMaterial({
+    size: 0.3,
+    vertexColors: true,
+    transparent: true,
+    opacity: 0.8,
+    blending: THREE.AdditiveBlending
+});
+
+const points = new THREE.Points(geo, mat);
+scene.add(points);
+
+// ATTRACTEURS
+const attractors = [
+    { x: 15, y: 10, z: 0, strength: 0.002 },
+    { x: -15, y: -10, z: 5, strength: 0.002 },
+    { x: 0, y: -15, z: -3, strength: 0.0015 }
+];
+
+// ANIMATION
+function animate() {
+    requestAnimationFrame(animate);
+    
+    const positions = geo.attributes.position.array;
+    const t = Date.now() * 0.001;
+    
+    for (let i = 0; i < N; i++) {
+        const ix = i * 3;
+        let x = positions[ix];
+        let y = positions[ix + 1];
+        let z = positions[ix + 2];
+        
+        // Attraction vers les attracteurs
+        for (const a of attractors) {
+            const dx = a.x - x;
+            const dy = a.y - y;
+            const dz = a.z - z;
+            const d = Math.sqrt(dx*dx + dy*dy + dz*dz) + 0.1;
+            
+            vel[i].x += dx / d * a.strength;
+            vel[i].y += dy / d * a.strength;
+            vel[i].z += dz / d * a.strength;
+        }
+        
+        // Rotation globale lente
+        vel[i].x += y * 0.0001;
+        vel[i].y -= x * 0.0001;
+        
+        // Friction
+        vel[i].x *= 0.99;
+        vel[i].y *= 0.99;
+        vel[i].z *= 0.99;
+        
+        // Appliquer
+        positions[ix] += vel[i].x;
+        positions[ix + 1] += vel[i].y;
+        positions[ix + 2] += vel[i].z;
+        
+        // Rebond
+        if (Math.abs(positions[ix]) > 35) vel[i].x *= -0.8;
+        if (Math.abs(positions[ix + 1]) > 35) vel[i].y *= -0.8;
+        if (Math.abs(positions[ix + 2]) > 12) vel[i].z *= -0.8;
+    }
+    
+    // Bouger les attracteurs
+    attractors[0].x = 15 * Math.cos(t * 0.3);
+    attractors[0].y = 10 * Math.sin(t * 0.3);
+    attractors[1].x = -15 * Math.cos(t * 0.25);
+    attractors[1].y = -10 * Math.sin(t * 0.4);
+    
+    geo.attributes.position.needsUpdate = true;
+    
+    camera.position.x = Math.sin(t * 0.1) * 10;
+    camera.position.y = Math.cos(t * 0.08) * 5;
+    camera.lookAt(0, 0, 0);
+    
+    renderer.render(scene, camera);
+}
+
+addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+});
+
+animate();
+console.log('✓ 5000 particules en mouvement');
+</script>
+</body>
+</html>

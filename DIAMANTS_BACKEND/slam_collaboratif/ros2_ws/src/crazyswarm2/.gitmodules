@@ -1,3 +1,0 @@
-[submodule "crazyflie/deps/crazyflie_tools"]
-	path = crazyflie/deps/crazyflie_tools
-	url = https://github.com/whoenig/crazyflie_tools.git

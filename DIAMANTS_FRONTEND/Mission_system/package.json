@@ -43,6 +43,7 @@
     "get-port": "^7.1.0",
     "live-server": "^1.2.2",
     "nodemon": "^3.1.10",
+    "puppeteer": "^24.37.2",
     "source-map-explorer": "^2.5.3",
     "vite": "^4.5.3",
     "vitest": "^1.6.0",

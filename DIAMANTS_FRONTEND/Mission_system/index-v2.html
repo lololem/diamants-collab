@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DIAMANTS — Hypervision Collaborative</title>
+    <link rel="icon" href="data:,">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- UI Styles -->
+    <link rel="stylesheet" href="./styles/diamants-ui.css">
+    
+    <!-- Import map for Three.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    
+    <!-- Global logging setup -->
+    <script>
+        window.SILENT_MODE = true;
+        window.log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
+        window.warn = (...args) => { if (!window.SILENT_MODE) console.warn(...args); };
+        window.error = (...args) => { console.error(...args); };
+    </script>
+</head>
+
+<body>
+    <div class="diamants-app" id="diamants-app">
+        
+        <!-- ═══════════════════════════════════════════════════════════
+             HEADER — Global Status Bar
+             ═══════════════════════════════════════════════════════════ -->
+        <header class="diamants-header">
+            <div class="header-brand">
+                <span class="logo">🚁 DIAMANTS</span>
+                <span class="version">v3.0</span>
+            </div>
+            
+            <div class="header-status">
+                <div class="status-item active">
+                    <span class="status-indicator" id="status-indicator"></span>
+                    <span class="label">System</span>
+                    <span class="value" id="header-status">Active</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Drones</span>
+                    <span class="value" id="header-drone-count">0/8</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Intel</span>
+                    <span class="value" id="header-intelligence">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="label">Coverage</span>
+                    <span class="value" id="header-coverage">0%</span>
+                </div>
+            </div>
+            
+            <div class="header-actions">
+                <button class="btn btn-danger btn-icon" id="btn-emergency" title="Emergency Stop">
+                    ⏹
+                </button>
+            </div>
+        </header>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             SIDEBAR — Navigation & Panels
+             ═══════════════════════════════════════════════════════════ -->
+        <aside class="diamants-sidebar" id="sidebar">
+            <!-- Navigation Tabs -->
+            <nav class="sidebar-nav">
+                <div class="nav-item active" data-panel="mission">
+                    <span class="icon">🎯</span>
+                    <span class="label">Mission</span>
+                </div>
+                <div class="nav-item" data-panel="drones">
+                    <span class="icon">🚁</span>
+                    <span class="label">Drones</span>
+                </div>
+                <div class="nav-item" data-panel="analytics">
+                    <span class="icon">📊</span>
+                    <span class="label">Analytics</span>
+                </div>
+                <div class="nav-item" data-panel="benchmark">
+                    <span class="icon">🧪</span>
+                    <span class="label">Benchmark</span>
+                </div>
+                <div class="nav-item" data-panel="config">
+                    <span class="icon">⚙️</span>
+                    <span class="label">Config</span>
+                </div>
+            </nav>
+
+            <!-- Panel Content -->
+            <div class="sidebar-content">
+                
+                <!-- ═══════════════════════════════════════════════════
+                     PANEL: Mission Control
+                     ═══════════════════════════════════════════════════ -->
+                <div class="panel active" id="panel-mission">
+                    
+                    <!-- Quick Actions -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Contrôle Mission</div>
+                        <div class="btn-grid">
+                            <button class="btn btn-success" id="btn-launch">
+                                ▶ Launch
+                            </button>
+                            <button class="btn btn-danger" id="btn-emergency-panel">
+                                ⏹ Stop
+                            </button>
+                            <button class="btn btn-ghost" id="btn-reset">
+                                ↺ Reset
+                            </button>
+                            <button class="btn btn-ghost" id="btn-pattern">
+                                ◈ Pattern
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mission Type -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Type de Mission</div>
+                        <div class="form-group">
+                            <select class="form-select" id="mission-type">
+                                <option value="exploration">🔍 Exploration</option>
+                                <option value="mapping">🗺️ SLAM Mapping</option>
+                                <option value="surveillance">👁️ Surveillance</option>
+                                <option value="search_rescue">🆘 Search & Rescue</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Pattern</label>
+                            <select class="form-select" id="mission-pattern">
+                                <option value="grid">Grid Search</option>
+                                <option value="boustrophedon">Boustrophedon</option>
+                                <option value="spiral">Spiral</option>
+                                <option value="swarm">Swarm Dispersion</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Flight Control -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Contrôle Vol</div>
+                        <div class="btn-grid">
+                            <button class="btn btn-ghost" id="btn-takeoff">
+                                🛫 Takeoff
+                            </button>
+                            <button class="btn btn-ghost" id="btn-land">
+                                🛬 Land
+                            </button>
+                        </div>
+                        <div class="form-group" style="margin-top: 12px;">
+                            <label class="form-label">Altitude cible</label>
+                            <input type="range" class="form-range" id="altitude-slider" 
+                                   min="0.5" max="5" step="0.1" value="2.0">
+                            <div class="range-value" id="altitude-value">2.0m</div>
+                        </div>
+                    </div>
+
+                    <!-- Camera -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Caméra</div>
+                        <div class="btn-grid">
+                            <button class="btn btn-ghost btn-icon" id="btn-camera-reset" title="Reset">↺</button>
+                            <button class="btn btn-ghost btn-icon" id="btn-camera-top" title="Top View">⬆</button>
+                            <button class="btn btn-ghost btn-icon" id="btn-camera-follow" title="Follow">👁</button>
+                            <button class="btn btn-ghost btn-icon" id="btn-camera-fit" title="Fit All">⊞</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════
+                     PANEL: Drones
+                     ═══════════════════════════════════════════════════ -->
+                <div class="panel" id="panel-drones">
+                    <div class="panel-section">
+                        <div class="panel-section-title">État de la Flotte</div>
+                        <div class="drone-list" id="drone-list">
+                            <div class="text-muted" style="padding: 12px; text-align: center;">
+                                En attente de connexion...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="panel-section-title">Actions Groupées</div>
+                        <div class="btn-grid">
+                            <button class="btn btn-ghost" id="btn-select-all">Select All</button>
+                            <button class="btn btn-ghost" id="btn-deselect">Deselect</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════
+                     PANEL: Analytics
+                     ═══════════════════════════════════════════════════ -->
+                <div class="panel" id="panel-analytics">
+                    <!-- Intelligence Metrics -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Intelligence Collective</div>
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <div class="metric-value" id="metric-intelligence">0</div>
+                                <div class="metric-label">I(t) Total</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="metric-emergence">0</div>
+                                <div class="metric-label">Emergence</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="metric-cohesion">0</div>
+                                <div class="metric-label">Cohésion</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="metric-coordination">0</div>
+                                <div class="metric-label">Coordination</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mission Progress -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Progression Mission</div>
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Coverage</span>
+                                <span class="font-mono text-primary" id="metric-coverage">0%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="coverage-progress" style="width: 0%"></div>
+                            </div>
+                        </div>
+                        <div class="metrics-grid" style="margin-top: 8px;">
+                            <div class="metric">
+                                <div class="metric-value" id="metric-targets">0</div>
+                                <div class="metric-label">Targets</div>
+                            </div>
+                            <div class="metric">
+                                <div class="metric-value" id="metric-speed">0.0</div>
+                                <div class="metric-label">zones/min</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Safety -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Sécurité</div>
+                        <div class="form-group">
+                            <label class="form-label">Distance de sécurité</label>
+                            <input type="range" class="form-range" id="safety-slider" 
+                                   min="1" max="10" step="0.5" value="3">
+                            <div class="range-value" id="safety-value">3.0m</div>
+                        </div>
+                        <div class="card" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3);">
+                            <div style="font-size: 11px; color: var(--text-secondary);">
+                                Alertes collision: <span class="text-success" id="collision-count">0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════
+                     PANEL: Benchmark
+                     ═══════════════════════════════════════════════════ -->
+                <div class="panel" id="panel-benchmark">
+                    <div class="panel-section">
+                        <div class="panel-section-title">Expériences Scaling</div>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">
+                            Mesure l'impact du nombre de drones sur les métriques de coopération.
+                        </p>
+                        <div class="btn-grid">
+                            <button class="btn btn-primary" id="btn-benchmark-quick">
+                                ▶ Quick (30s)
+                            </button>
+                            <button class="btn btn-ghost" id="btn-benchmark-full">
+                                📊 Full (60s)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="panel-section-title">Configuration</div>
+                        <div class="form-group">
+                            <label class="form-label">Nombre de drones à tester</label>
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                                    <input type="checkbox" checked value="1"> 1
+                                </label>
+                                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                                    <input type="checkbox" checked value="2"> 2
+                                </label>
+                                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                                    <input type="checkbox" checked value="4"> 4
+                                </label>
+                                <label style="font-size: 11px; display: flex; align-items: center; gap: 4px;">
+                                    <input type="checkbox" checked value="8"> 8
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="panel-section-title">Résultats</div>
+                        <div id="benchmark-results" style="min-height: 100px;">
+                            <div class="text-muted" style="text-align: center; padding: 20px;">
+                                Aucun benchmark exécuté
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="panel-section-title">Export</div>
+                        <div class="btn-grid">
+                            <button class="btn btn-ghost" id="btn-export-csv">
+                                📄 CSV
+                            </button>
+                            <button class="btn btn-ghost" id="btn-export-json">
+                                📋 JSON
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ═══════════════════════════════════════════════════
+                     PANEL: Configuration
+                     ═══════════════════════════════════════════════════ -->
+                <div class="panel" id="panel-config">
+                    <div class="panel-section">
+                        <div class="panel-section-title">Connexion Backend</div>
+                        <div class="card">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 11px;">WebSocket Bridge</span>
+                                <span class="text-success font-mono" id="ws-status">●</span>
+                            </div>
+                            <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">
+                                Bridge endpoint
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="panel-section-title">Affichage</div>
+                        <div class="form-group">
+                            <label style="font-size: 11px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="toggle-minimap"> Minimap
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="toggle-grid"> Grille
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 11px; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <input type="checkbox" id="toggle-trails"> Trajectoires
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="panel-section">
+                        <div class="panel-section-title">Debug</div>
+                        <div class="btn-grid">
+                            <button class="btn btn-ghost" id="btn-show-logs">
+                                📋 Logs
+                            </button>
+                            <button class="btn btn-ghost" id="btn-show-console">
+                                🔧 Console
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             VIEWPORT — 3D Canvas
+             ═══════════════════════════════════════════════════════════ -->
+        <main class="diamants-viewport" id="viewport">
+            <div id="canvas_container" class="viewport-canvas"></div>
+            
+            <!-- Viewport Overlay (minimap, etc.) -->
+            <div class="viewport-overlay">
+                <div class="viewport-minimap" id="minimap-container" style="display: none;">
+                    <canvas id="minimap_canvas" width="200" height="150"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             FOOTER — Status Bar
+             ═══════════════════════════════════════════════════════════ -->
+        <footer class="diamants-footer">
+            <div class="footer-left">
+                <span>FPS: <span class="font-mono" id="footer-fps">60</span></span>
+                <span>Backend: <span class="text-success" id="footer-backend">Connected</span></span>
+            </div>
+            <div class="footer-right">
+                <span class="text-muted">DIAMANTS Hypervision System</span>
+            </div>
+        </footer>
+
+    </div>
+
+    <!-- Bootstrap Three.js and load main module -->
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        
+        // Expose THREE globally
+        window.THREE = THREE;
+        window.OrbitControls = OrbitControls;
+        window.THREE_READY = true;
+        window.dispatchEvent(new CustomEvent('threeReady', { detail: { THREE } }));
+    </script>
+    
+    <!-- Main Application -->
+    <script type="module" src="./main.js"></script>
+    
+    <!-- UI Controller -->
+    <script type="module">
+        import { initDiamantsUI } from './ui/diamants-ui-controller.js';
+        
+        // Wait for system to be ready
+        window.addEventListener('diamants:initialized', () => {
+            if (window.diamantsSystem) {
+                initDiamantsUI(window.diamantsSystem);
+            }
+        });
+        
+        // Fallback init
+        setTimeout(() => {
+            if (!window.diamantsUI && window.diamantsSystem) {
+                initDiamantsUI(window.diamantsSystem);
+            }
+        }, 3000);
+    </script>
+</body>
+</html>

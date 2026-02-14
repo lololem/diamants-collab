@@ -1,6 +1,0 @@
-.vscode/
-/build/
-*.so
-dist/
-*.egg-info
-.eggs
