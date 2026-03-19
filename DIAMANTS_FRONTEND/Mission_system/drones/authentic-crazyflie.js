@@ -25,8 +25,7 @@ import createRay from 'ray-aabb';
 // L'import ESM de 'three' échoue dans le navigateur sans bundler.
 // Utiliser une référence MUTABLE afin d'éviter de capturer 'undefined' au chargement du module.
 let THREE = (typeof window !== 'undefined' && window.THREE) ? window.THREE : undefined;
-// Désactiver l'import DiamantFormulas pour éviter les erreurs de dépendance
-// import { DiamantFormulas } from '../core/diamants-formulas.js';
+// DiamantFormulas module relocated to private repository
 
 export class AuthenticCrazyflie {
     constructor(id, x = 0, y = 3, z = 0, type = 'SCOUT', scene = null) {

@@ -14,7 +14,6 @@ async function diagnosticComplet() {
     };
 
     const modulesATest = [
-        './core/diamants-formulas.js',
         './drones/authentic-crazyflie.js',
         './missions/mission-manager.js',
         './environment/provencal-environment.js',
@@ -51,17 +50,6 @@ async function diagnosticComplet() {
     console.log('🧪 Test des méthodes critiques...');
 
     try {
-        // Test DiamantFormulas
-        const { DiamantFormulas } = await import('./core/diamants-formulas.js');
-        const formulas = new DiamantFormulas();
-
-        if (typeof formulas.calculateHarmonique !== 'function') {
-            resultats.erreurs.push('calculateHarmonique manquante dans DiamantFormulas');
-        }
-        if (typeof formulas.calculateSwarmField !== 'function') {
-            resultats.erreurs.push('calculateSwarmField manquante dans DiamantFormulas');
-        }
-
         // Test MissionManager
         const { MissionManager } = await import('./missions/mission-manager.js');
         const mission = new MissionManager();

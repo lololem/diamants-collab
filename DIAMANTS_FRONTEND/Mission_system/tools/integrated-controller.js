@@ -18,7 +18,8 @@ if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
 // Note: tools/ is a sibling of core/, drones/, missions/, etc. Use ../ imports.
 import { logger } from '../core/logger.js';
-import { DiamantFormulas } from '../core/diamants-formulas.js';
+// Stub neutre (formulas module relocated to private repository)
+const _stubFormulas = { update: () => {}, psi_field: null, phi_field: null, sigma_field: null, gradient_field: null, harmonics: [], diamants_value: 0, emergence_factor: 0, coherence_level: 0, config: {} };
 import { AuthenticCrazyflie } from '../drones/authentic-crazyflie.js';
 import { MissionManager } from '../missions/mission-manager.js';
 import { AuthenticProvencalEnvironment } from '../environment/authentic-provencal-environment.js';
@@ -59,7 +60,7 @@ export class IntegratedDiamantsController {
         };
         
         // Systèmes principaux
-        this.diamantFormulas = new DiamantFormulas(this.config);
+        this.diamantFormulas = _stubFormulas;
         this.missionManager = new MissionManager(this.config);
         this.environment = null;
         this.ui = null;
@@ -237,7 +238,7 @@ export class IntegratedDiamantsController {
                 });
                 this.fieldVisualizer.setVisible(false);  // Désactivé cosmétique
                 
-                // ✨ ESSAIM FLUIDE - Particules qui suivent ∇ψ (désactivé cosmétique)
+                // ✨ ESSAIM FLUIDE - Particules pour visualisation (désactivé cosmétique)
                 // Pour réactiver: window.diamantsSystem?.integratedController?.flowParticles?.setVisible(true)
                 this.flowParticles = new FlowParticles(this.scene, this.diamantFormulas, {
                     particleCount: 3000,

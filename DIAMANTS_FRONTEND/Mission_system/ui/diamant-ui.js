@@ -1354,14 +1354,14 @@ export class DiamantUI {
     }
 
     /**
-     * Mise à jour de la formule DIAMANTS
+     * Mise à jour du bandeau d'information
      */
-    updateFormula(formula = "I(t) = ∬Ω |∇(φ+σ)| dΩ") {
+    updateFormula(formula = "DIAMANTS - Simulation Active") {
         const formulaDisplay = document.getElementById('formula-display');
         if (formulaDisplay) {
             formulaDisplay.innerHTML = `
                 <div class="formula-display">
-                    <strong>${formula}</strong> - Intelligence Émergente DIAMANTS
+                    <strong>${formula}</strong>
                 </div>
             `;
         }
