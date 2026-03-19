@@ -20,3 +20,4 @@ Thumbs.db
 # Wiki (managed separately)
 diamants-collab.wiki/
 *.code-workspace
+.playwright-mcp/

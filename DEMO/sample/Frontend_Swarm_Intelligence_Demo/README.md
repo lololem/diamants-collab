@@ -29,12 +29,6 @@ This directory contains an advanced demonstration of **Swarm Intelligence** usin
 
 ## 📊 Collective Intelligence Metrics
 
-### Classic DIAMANTS Metrics
-- **I(t)**: Instantaneous intelligence based on gradient ∇(φ+σ)
-- **φ (Phi)**: Attractive potential for swarm cohesion
-- **σ (Sigma)**: Repulsive potential for redundancy avoidance
-- **|∇|**: Magnitude of directional gradient
-
 ### Swarm Intelligence Metrics
 - **Emergence**: Level of detected self-organized behaviors
 - **Cohesion**: Collective coordination index of the swarm
@@ -136,7 +130,6 @@ autonomyPower: 4.5         // Individual autonomy level
 - **Custom shaders**: Collective intelligence visual effects
 
 ### Artificial Intelligence
-- **DIAMANTS algorithms**: I(t) = ∬|∇(φ+σ)|dΩ
 - **Advanced boids**: Adaptive cohesion, separation, alignment
 - **Emergent neural networks**: Distributed learning
 - **Swarm optimization**: Collective convergence toward optima
