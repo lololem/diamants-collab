@@ -24,4 +24,3 @@ Videos can be played directly or used as reference for understanding DIAMANTS ca
 ## Related
 
 - [README](../../README.md) — Project overview
-- [Collective-Intelligence.md](../../Collective-Intelligence.md) — Theory and formulas

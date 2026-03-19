@@ -1,7 +1,7 @@
 /**
  * DIAMANTS 3D Field Visualizer
  * ============================
- * Visualisation volumétrique des champs ψ, ∇ψ et harmoniques
+ * Visualisation volumétrique des champs
  * Utilise InstancedMesh pour performance optimale
  */
 

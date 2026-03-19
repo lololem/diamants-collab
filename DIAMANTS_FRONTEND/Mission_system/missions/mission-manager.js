@@ -714,7 +714,7 @@ export class MissionManager {
     }
 
     calculateMissionField(mission, drones) {
-        // Simplifié - implémentation complète nécessiterait DiamantFormulas
+        // Simplifié - calcul basique de champ de mission
         const field = {
             phi: new Map(), // Champ d'attraction vers objectifs
             sigma: new Map() // Champ de répulsion/exploration

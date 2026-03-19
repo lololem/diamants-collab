@@ -1,7 +1,7 @@
 /**
  * DIAMANTS Flow Particles
  * =======================
- * Particules fluides qui suivent le gradient ∇ψ
+ * Particules fluides pour visualisation de champs
  * Visualisation dynamique de la stigmergie en action
  */
 

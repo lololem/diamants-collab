@@ -49,10 +49,9 @@ diamants-collab/
     environment/                       # 3D Provençal landscape
     drones/                            # Drone visuals (Crazyflie model)
     visual/                            # Three.js rendering enhancements
-    core/                              # Application state, events, formulas
+    core/                              # Application state, events
     ui/                                # Control panels, minimap, debug
   DEMO/                                # Video demos and sample data
-  Collective-Intelligence.md           # Theory behind swarm formulas
 ```
 
 ## Add your drone
@@ -146,7 +145,6 @@ Additional demos and video files in `DEMO/`.
 
 ## Documentation
 
-- [Collective-Intelligence.md](Collective-Intelligence.md) — Theory behind swarm formulas
 - [Contributing.md](Contributing.md) — How to add drones, algorithms, and contribute
 
 ## Contributing
