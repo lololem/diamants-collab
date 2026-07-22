@@ -2,7 +2,7 @@
  * DIAMANTS - Environnement Provençal Authentique avec EZ-Tree
  * =============================================================
  * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
- * Restaurer : git checkout v0-origin -- environment/authentic-provencal-environment.js
+ * Restaurer : git checkout v0-origin -- environment/terrain-environment.js
  *
  * Utilise la vraie API EZ-Tree avec presets JSON et textures haute qualité
  * Heliport rayon 8m, exclusion herbe 10m, exclusion arbres 12m, pas de murs d'arène.
@@ -15,7 +15,7 @@ if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 // Import depuis les sources EZ-Tree
 import { Tree } from '../third-party/ez-tree/src/lib/tree.js';
 import { TreePreset, loadPreset } from '../third-party/ez-tree/src/lib/presets/index.js';
-import { ProvencalSkyboxShaders, ProvencalSkyboxDefaults } from './provencal-skybox.js';
+import { SkyboxShaders, SkyboxDefaults } from './skybox.js';
 import { GLSLGrassFieldDynamic } from './glsl-grass-field-dynamic.js';
 import QualityControlPanel from './quality-control-panel.js';
 import { QUALITY_LEVELS } from '../shaders/shader-quality-manager.js';
@@ -25,23 +25,23 @@ import { UndergrowthSystem } from './undergrowth.js';
 import { TreeTextureEnhancer } from './tree-texture-enhancer.js';
 import { CollisionDetection } from '../physics/collision-detection.js';
 
-export class AuthenticProvencalEnvironment {
+export class TerrainEnvironment {
     constructor(scene, config = {}) {
         this.scene = scene;
         this.config = {
-            terrainSize: config.terrainSize || { x: 200, y: 200 },
+            terrainSize: config.terrainSize || { x: 500, y: 500 },
             forestDensity: config.forestDensity ?? 0.9, // Réduction densité forêt
-            maxTrees: config.maxTrees || 200, // Moins d'arbres pour performance
-            minTreeSpacing: config.minTreeSpacing || 30.0, // Plus d'espacement
+            maxTrees: config.maxTrees || 200,
+            minTreeSpacing: config.minTreeSpacing || 30.0,
             enableSkybox: config.enableSkybox !== false,
             enableTerrain: config.enableTerrain !== false,
             enableForest: config.enableForest !== false,
             enableGrass: config.enableGrass !== false,
             enableFallenLeaves: config.enableFallenLeaves !== false,
-            enableForestWood: config.enableForestWood !== false, // NOUVEAU : Système de bois
-            grassCount: config.grassCount || 150000, // OPTIMISÉ : 150k pour équilibre performance/densité
-            leavesCount: config.leavesCount || 3500, // AUGMENTÉ de 2k à 3.5k pour plus de feuilles
-            woodCount: config.woodCount || 2600, // NOUVEAU : 2.6k éléments de bois (branches, troncs, brindilles)
+            enableForestWood: config.enableForestWood !== false,
+            grassCount: config.grassCount || 150000,
+            leavesCount: config.leavesCount || 3500,
+            woodCount: config.woodCount || 2600,
             ...config
         };
 
@@ -57,8 +57,31 @@ export class AuthenticProvencalEnvironment {
         this.treeEnhancer = null; // NOUVEAU : Améliorateur de textures
         this.collisionDetection = new CollisionDetection(); // NOUVEAU : Système de collision
 
-        log('🌲 Initialisation Environnement Provençal Authentique avec EZ-Tree');
-        this.initializeEnvironment();
+        // ── Fleet-scaled platform dimensions (computed once) ──
+        const _droneCount = window.FLEET_CONFIG?.numDrones || config.droneCount || 8;
+        this.droneCount = _droneCount;
+
+        // Count X500 drones for mixed-fleet platform sizing
+        const fleetDrones = window.FLEET_CONFIG?.drones || [];
+        const x500Types = ['x500', 'heavy', 'leader', 'cognitive'];
+        const x500Count = fleetDrones.filter(d => x500Types.includes(d.type)).length;
+
+        if (x500Count > 0) {
+            // Mixed fleet: X500 outer ring needs spacing proportional to visual size
+            const x500Scale = 10; // Must match x500-v2.json visual.scale
+            const x500Spacing = x500Scale * 0.6;
+            const x500RingRadius = Math.max(15, (x500Count * x500Spacing) / (2 * Math.PI));
+            this.platformRadius = x500RingRadius + 5;
+        } else {
+            this.platformRadius = _droneCount <= 8 ? 8.0 : 8.0 * Math.sqrt(_droneCount / 8);
+        }
+        this.flatZoneRadius = 70.0; // Flat within full exploration zone — hills only at map edges
+        this.grassExclusionRadius = this.platformRadius + 2.0;
+        this.treeExclusionRadius = this.platformRadius + 6.0;
+
+        log(`🌲 Initialisation Environnement Provençal (${_droneCount} drones, plateforme ${this.platformRadius.toFixed(1)}m)`);
+        // Expose a promise so other systems can await full initialization
+        this.ready = this.initializeEnvironment();
     }
 
     async initializeEnvironment() {
@@ -70,11 +93,11 @@ export class AuthenticProvencalEnvironment {
         await this.createCentralPlatform();
         
         if (this.config.enableSkybox) {
-            await this.createProvencalSkybox();
+            await this.createSkybox();
         }
         
         if (this.config.enableForest) {
-            await this.createAuthenticProvencalForest();
+            await this.createForest();
         }
 
         if (this.config.enableGrass) {
@@ -102,291 +125,105 @@ export class AuthenticProvencalEnvironment {
             await this.enhanceTreeTextures();
         }
 
-        this.setupLighting();
+        // Skip lighting setup in lightweight mode (lights already created by main.js)
+        if (!this.config.lightweight) {
+            this.setupLighting();
+        }
         log('✅ Environnement Provençal Authentique initialisé');
     }
 
     async createAuthenticTerrain() {
-        log('🏔️ Création terrain méditerranéen...');
-        
-        const { x, y } = this.config.terrainSize;
-        const geometry = new THREE.PlaneGeometry(x, y, 256, 256);
-        
-        // Relief provençal réaliste avec collines et vallées
-        // FLAT inside heliport zone, hills only outside
-        const ARENA_FLAT_RADIUS = 12.0;  // Flat zone = heliport (8m) + margin
-        const vertices = geometry.attributes.position.array;
-        for (let i = 0; i < vertices.length; i += 3) {
-            const xPos = vertices[i];
-            const yPos = vertices[i + 1];
-            
-            // Distance from center (arena center)
-            const distFromCenter = Math.sqrt(xPos * xPos + yPos * yPos);
-            
-            // Hills only OUTSIDE the arena — smooth transition
-            const hillFade = Math.max(0.0, Math.min(1.0, (distFromCenter - ARENA_FLAT_RADIUS) / 3.0));
-            
-            // Relief multi-fréquences pour collines provençales
-            const elevation = hillFade * (
-                Math.sin(xPos * 0.04) * Math.cos(yPos * 0.03) * 4.0 +
-                Math.sin(xPos * 0.08) * Math.cos(yPos * 0.06) * 2.0 +
-                Math.sin(xPos * 0.15) * Math.cos(yPos * 0.12) * 1.0 +
-                (Math.random() - 0.5) * 0.3 // Rugosité naturelle
-            );
-            
-            vertices[i + 2] = elevation;
-        }
-        
-        geometry.attributes.position.needsUpdate = true;
-        geometry.computeVertexNormals();
-        
-        // Matériau terrain méditerranéen amélioré avec nuances
-        const material = new THREE.ShaderMaterial({
-            vertexShader: `
-                varying vec3 vPosition;
-                varying vec3 vNormal;
-                varying vec2 vUv;
-                varying float vElevation;
-                
-                void main() {
-                    vPosition = position;
-                    vNormal = normal;
-                    vUv = uv;
-                    vElevation = position.y;
-                    
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform float uTime;
-                varying vec3 vPosition;
-                varying vec3 vNormal;
-                varying vec2 vUv;
-                varying float vElevation;
-                
-                // Sol de forêt ÉQUILIBRÉ - Mélange vert-brun naturel
-                vec3 terreBrune = vec3(0.35, 0.25, 0.15);       // Terre brune modérée
-                vec3 argileFoncee = vec3(0.28, 0.2, 0.12);      // Argile brun-vert
-                vec3 terreHumide = vec3(0.25, 0.2, 0.1);        // Terre humide sombre
-                vec3 mousseVerte = vec3(0.15, 0.35, 0.2);       // Mousse VERTE claire
-                vec3 humusNoir = vec3(0.12, 0.15, 0.1);         // Humus vert-noir
-                vec3 sableBeige = vec3(0.5, 0.45, 0.3);         // Sable beige visible
-                
-                // VERTS dominants pour équilibre
-                vec3 vertOlive = vec3(0.3, 0.4, 0.2);           // Vert olive CLAIR
-                vec3 brunVert = vec3(0.25, 0.35, 0.18);         // Brun-vert équilibré
-                vec3 terreRouge = vec3(0.3, 0.2, 0.12);         // Terre rouge modérée
-                vec3 ocreJaune = vec3(0.4, 0.35, 0.2);          // Ocre jaune visible
-                vec3 vertMousse = vec3(0.2, 0.4, 0.25);         // Vert mousse CLAIR
-                vec3 brunClair = vec3(0.4, 0.3, 0.18);          // Brun clair visible
-                vec3 terreGrise = vec3(0.25, 0.28, 0.2);        // Terre gris-vert
-                vec3 vertSombre = vec3(0.18, 0.3, 0.15);        // Vert sombre mais visible
-                vec3 rouilleBrun = vec3(0.3, 0.22, 0.15);       // Rouille modérée
-                vec3 sableVert = vec3(0.35, 0.45, 0.28);        // Sable VERT clair
-                
-                // Nouveaux VERTS CLAIRS ajoutés
-                vec3 vertTendre = vec3(0.25, 0.45, 0.3);        // Vert tendre CLAIR
-                vec3 vertPrairie = vec3(0.3, 0.5, 0.25);        // Vert prairie
-                vec3 vertEmeraude = vec3(0.2, 0.4, 0.3);        // Vert émeraude
-                
-                // Couleurs manquantes équilibrées
-                vec3 terreClaire = vec3(0.45, 0.35, 0.22);      // Terre claire
-                vec3 terreFeuilles = vec3(0.22, 0.25, 0.15);    // Terre avec feuilles
-                vec3 terreSeche = vec3(0.4, 0.3, 0.18);         // Terre sèche
-                vec3 terreMousse = vec3(0.2, 0.35, 0.2);        // Terre moussue VERTE
-                vec3 terreCailloux = vec3(0.3, 0.28, 0.22);     // Terre avec cailloux
-                vec3 terreSombre = vec3(0.15, 0.18, 0.12);      // Terre sombre vert-brun
-                vec3 terreArgile = vec3(0.28, 0.25, 0.15);      // Terre argile
-                vec3 terreOmbre = vec3(0.12, 0.2, 0.15);        // Terre dans l'ombre VERTE
-                
-                // Noise simple
-                float noise(vec2 p) {
-                    return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453);
-                }
-                
-                void main() {
-                    vec2 pos = vPosition.xz * 0.01;
-                    
-                    // Variations de terrain selon l'élévation et position
-                    float elevationFactor = (vElevation + 10.0) / 20.0;
-                    float noiseValue = noise(pos * 10.0) * 0.3 + noise(pos * 30.0) * 0.1;
-                    float microNoise = noise(pos * 50.0) * 0.05;
-                    float shadowNoise = noise(pos * 15.0);
-                    float moistureNoise = noise(pos * 8.0);
-                    
-                    // Base VERTE dominante avec nuances
-                    vec3 baseColor = mix(vertMousse, terreBrune, elevationFactor * 0.6 + 0.2);
-                    
-                    // FORCER les zones vertes - 60% de la surface
-                    float vertMarronFactor = moistureNoise * 0.8 + shadowNoise * 0.2;
-                    
-                    // Zones TRÈS vertes (40% du terrain)
-                    if (moistureNoise > 0.5) {
-                        if (vElevation < 1.0) {
-                            baseColor = mix(baseColor, vertTendre, 0.7);
-                            baseColor = mix(baseColor, vertPrairie, moistureNoise * 0.5);
-                        } else {
-                            baseColor = mix(baseColor, vertEmeraude, 0.6);
-                        }
-                    }
-                    
-                    // Zones vert-brun (30% du terrain)
-                    if (moistureNoise > 0.3 && moistureNoise <= 0.7) {
-                        baseColor = mix(baseColor, mix(brunVert, vertOlive, 0.7), 0.5);
-                        baseColor = mix(baseColor, sableVert, noiseValue * 0.3);
-                    }
-                    
-                    // Zones moussues VERTES (priorité au vert)
-                    if (vElevation < 0.0 || moistureNoise > 0.7) {
-                        vec3 mousseRiche = mix(terreMousse, vertTendre, 0.8);
-                        baseColor = mix(baseColor, mousseRiche, 0.6);
-                        baseColor = mix(baseColor, vertEmeraude, moistureNoise * 0.4);
-                    }
-                    
-                    // Zones ombragées : vert sombre mais VISIBLE
-                    if (shadowNoise > 0.6) {
-                        vec3 ombreVerte = mix(terreOmbre, vertSombre, 0.7);
-                        baseColor = mix(baseColor, ombreVerte, 0.4);
-                    }
-                    
-                    // Zones brunes LIMITÉES (seulement 20% du terrain)
-                    if (noiseValue > 0.75 && elevationFactor > 0.7 && moistureNoise < 0.4) {
-                        vec3 rougeNuancee = mix(terreRouge, rouilleBrun, shadowNoise);
-                        baseColor = mix(baseColor, rougeNuancee, 0.3); // Réduit l'impact
-                    }
-                    
-                    // Feuilles : mélange vert-brun équilibré
-                    if (shadowNoise > 0.4 && moistureNoise > 0.4) {
-                        vec3 feuillesVertes = mix(terreFeuilles, vertMousse, 0.8);
-                        baseColor = mix(baseColor, feuillesVertes, 0.3);
-                    }
-                    
-                    // Pentes : ocre-vert au lieu de juste brun
-                    float slope = 1.0 - abs(dot(vNormal, vec3(0.0, 1.0, 0.0)));
-                    if (slope > 0.3 && elevationFactor > 0.5) {
-                        vec3 penteVerte = mix(ocreJaune, sableVert, 0.6);
-                        baseColor = mix(baseColor, penteVerte, slope * 0.4);
-                    }
-                    
-                    // Cailloux : gris-vert au lieu de gris-brun
-                    if (noiseValue > 0.7 && elevationFactor > 0.4) {
-                        vec3 caillouxVerts = mix(terreCailloux, sableVert, 0.6);
-                        baseColor = mix(baseColor, caillouxVerts, 0.25);
-                    }
-                    
-                    // Variation FORCÉE vers le vert
-                    vec3 variationVerte = mix(vertSombre, vertTendre, vertMarronFactor);
-                    baseColor = mix(baseColor, variationVerte, noiseValue * 0.2);
-                    
-                    // MICRO-VARIATIONS VERTES prioritaires
-                    float microVertMarron = noise(pos * 80.0);
-                    float microDetail = noise(pos * 150.0);
-                    float microVert = noise(pos * 200.0);
-                    
-                    // 70% des micro-variations en VERT
-                    if (microVertMarron > 0.7) {
-                        baseColor = mix(baseColor, vertTendre, 0.25);
-                    } else if (microVertMarron > 0.5) {
-                        baseColor = mix(baseColor, vertPrairie, 0.2);
-                    } else if (microVertMarron > 0.3) {
-                        baseColor = mix(baseColor, vertEmeraude, 0.18);
-                    } else if (microVertMarron < 0.2) {
-                        baseColor = mix(baseColor, rouilleBrun, 0.15); // Peu de brun
-                    }
-                    
-                    // Détails fins VERTS
-                    if (microDetail > 0.75) {
-                        baseColor = mix(baseColor, vertMousse, 0.15);
-                    } else if (microDetail > 0.6) {
-                        baseColor = mix(baseColor, sableVert, 0.12);
-                    } else if (microDetail < 0.25) {
-                        baseColor = mix(baseColor, humusNoir, 0.08);
-                    }
-                    
-                    // Variations ultra-fines VERTES
-                    if (microVert > 0.8) {
-                        baseColor = mix(baseColor, vertOlive, 0.1);
-                    } else if (microVert < 0.2) {
-                        baseColor = mix(baseColor, terreMousse, 0.1);
-                    }
-                    
-                    // Micro-variations réduits pour garder les couleurs
-                    baseColor += microNoise * 0.15;
-                    
-                    // Éclairage doux pour préserver les nuances vertes
-                    float lightFactor = dot(vNormal, normalize(vec3(1.0, 1.2, 0.6)));
-                    lightFactor = max(0.6, lightFactor * 0.9); // Plus clair pour voir les verts
-                    baseColor *= lightFactor;
-                    
-                    // Pattern forestier vert dominante
-                    float forestPattern = sin(pos.x * 2.5) * sin(pos.y * 2.0) * 0.03;
-                    baseColor *= 0.95 + forestPattern; // Base plus claire
-                    
-                    gl_FragColor = vec4(baseColor, 1.0);
-                }
-            `,
-            uniforms: {
-                uTime: { value: 0.0 }
-            }
+        log('🏔️ Création terrain méditerranéen (sol unique, suit la caméra)...');
+
+        // ── UN SEUL sol qui SUIT la caméra ──
+        // Grille moyenne résolution ; le RELIEF est calculé en WORLD SPACE dans le
+        // vertex shader (displacement GPU, 0 CPU au déplacement) avec EXACTEMENT la
+        // même formule que getHeightAt(). Plus de mesh fixe 256² + sol plat séparé :
+        // plus de couture, le relief est présent partout sous l'observation, et le
+        // boot ne recalcule plus 66k sommets (colline + vertex-colors) côté CPU.
+        this._terrainSize = 800;   // couverture monde (m)
+        this._terrainSeg = 160;    // 5 m / quad
+        this._terrainStep = this._terrainSize / this._terrainSeg;
+        this._groundTile = 6;      // m/tuile (config ~36 FPS ; plus fin => filtrage coûteux en rasant)
+
+        const geometry = new THREE.PlaneGeometry(this._terrainSize, this._terrainSize, this._terrainSeg, this._terrainSeg);
+
+        // Texture d'herbe photo tuilée (~6 m/tuile) — sol VERT réaliste PARTOUT.
+        // Fallback couleur verte si assets/terrain/grass.jpg manque (jamais de pâle).
+        const _texLoader = new THREE.TextureLoader();
+        const material = new THREE.MeshStandardMaterial({
+            color: 0x6b8c5a,   // fallback vert si la texture est absente
+            roughness: 1.0,
+            metalness: 0.0,
         });
-        
+        _texLoader.load(
+            'assets/terrain/grass.jpg',
+            (tex) => {
+                tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                tex.colorSpace = THREE.SRGBColorSpace;
+                tex.anisotropy = 4;
+                tex.repeat.set(this._terrainSize / this._groundTile, this._terrainSize / this._groundTile);
+                material.map = tex;
+                material.color.set(0x88a458); // vert herbe franc => le sol lointain lit comme un champ (fini l'olive délavé)
+                material.needsUpdate = true;
+            },
+            undefined,
+            () => { /* texture absente → le fallback vert reste en place */ }
+        );
+
+        // Terrain PLAT texturé (pas de displacement GPU custom = zéro risque shader).
+        // Aire de vol déjà plate (flatZoneRadius 70m) ; le relief lointain est cosmétique.
         this.terrain = new THREE.Mesh(geometry, material);
         this.terrain.rotation.x = -Math.PI / 2;
         this.terrain.receiveShadow = true;
-        this.terrain.name = 'ProvencalTerrain';
-        
+        this.terrain.name = 'Terrain';
         this.scene.add(this.terrain);
         this.materials.push(material);
-        
-        // Helper pour positionner sur le terrain (flat inside arena, hills outside)
-        this.getHeightAt = (x, z) => {
-            const distFromCenter = Math.sqrt(x * x + z * z);
-            // Flat inside 12m radius (heliport 8m + margin), hills beyond
-            const hillFade = Math.max(0.0, Math.min(1.0, (distFromCenter - 12.0) / 6.0));
-            return hillFade * (
-                Math.sin(x * 0.04) * Math.cos(z * 0.03) * 4.0 +
-                Math.sin(x * 0.08) * Math.cos(z * 0.06) * 2.0 +
-                Math.sin(x * 0.15) * Math.cos(z * 0.12) * 1.0
-            );
-        };
+
+        // Terrain PLAT => hauteur 0 partout. Herbe et arbres se posent au niveau du sol
+        // (fini la crête d'herbe flottant sur des collines fantômes).
+        this.getHeightAt = (_x, _z) => 0;
         
         // Fonction spécialisée pour l'herbe — exclut la zone du héliport central
         this.getGrassHeightAt = (x, z) => {
-            // No grass on the enlarged heliport platform (circular exclusion)
-            const HELIPORT_EXCLUSION_RADIUS = 10.0; // metres from center — matches 8m platform + margin
+            // No grass on the heliport platform
             const distFromCenter = Math.sqrt(x * x + z * z);
-            if (distFromCenter < HELIPORT_EXCLUSION_RADIUS) {
+            if (distFromCenter < this.grassExclusionRadius) {
                 return -999; // Signal to grass system: skip this position
             }
             return this.getHeightAt(x, z);
         };
-        
-        log('✅ Terrain méditerranéen créé');
+
+        // Position initiale du sol sous l'origine ; la boucle de rendu le recentre
+        // ensuite sur la caméra à chaque frame (updateTerrainFollow).
+        this.updateTerrainFollow(new THREE.Vector3());
+
+        log(`✅ Terrain unique suit-caméra (${this._terrainSize}m, ${this._terrainSeg}² quads, relief GPU world-space)`);
     }
 
-    async createProvencalSkybox() {
+    async createSkybox() {
         log('🌅 Création skybox méditerranéen...');
         
-        const skyboxGeometry = new THREE.SphereGeometry(1000, 32, 32);
+        const skyboxGeometry = new THREE.SphereGeometry(500, 64, 64);
         const skyboxMaterial = new THREE.ShaderMaterial({
-            vertexShader: ProvencalSkyboxShaders.vertex,
-            fragmentShader: ProvencalSkyboxShaders.fragment,
+            vertexShader: SkyboxShaders.vertex,
+            fragmentShader: SkyboxShaders.fragment,
             uniforms: {
-                uSunAzimuth: { value: ProvencalSkyboxDefaults.sunAzimuth },
-                uSunElevation: { value: ProvencalSkyboxDefaults.sunElevation },
-                uSunColor: { value: new THREE.Vector3(...ProvencalSkyboxDefaults.sunColor) },
-                uSkyColorLow: { value: new THREE.Vector3(...ProvencalSkyboxDefaults.skyColorLow) },
-                uSkyColorHigh: { value: new THREE.Vector3(...ProvencalSkyboxDefaults.skyColorHigh) },
-                uSunSize: { value: ProvencalSkyboxDefaults.sunSize },
+                uSunAzimuth: { value: SkyboxDefaults.sunAzimuth },
+                uSunElevation: { value: SkyboxDefaults.sunElevation },
+                uSunColor: { value: new THREE.Vector3(...SkyboxDefaults.sunColor) },
+                uSkyColorLow: { value: new THREE.Vector3(...SkyboxDefaults.skyColorLow) },
+                uSkyColorHigh: { value: new THREE.Vector3(...SkyboxDefaults.skyColorHigh) },
+                uSunSize: { value: SkyboxDefaults.sunSize },
                 uTime: { value: 0 },
-                uHazeIntensity: { value: ProvencalSkyboxDefaults.hazeIntensity },
-                uHazeColor: { value: new THREE.Vector3(...ProvencalSkyboxDefaults.hazeColor) }
+                uHazeIntensity: { value: SkyboxDefaults.hazeIntensity },
+                uHazeColor: { value: new THREE.Vector3(...SkyboxDefaults.hazeColor) }
             },
             side: THREE.BackSide
         });
         
         this.skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
-        this.skybox.name = 'ProvencalSkybox';
+        this.skybox.name = 'Skybox';
         this.scene.add(this.skybox);
         this.materials.push(skyboxMaterial);
         
@@ -400,14 +237,14 @@ export class AuthenticProvencalEnvironment {
         log('✅ Skybox méditerranéen créé');
     }
 
-    async createAuthenticProvencalForest() {
+    async createForest() {
         log('🌳 Génération forêt provençale authentique avec EZ-Tree...');
         
         const { x, y } = this.config.terrainSize;
         const margin = 10; // Keep trees 10m inside terrain edges
         
         // Configuration espèces provençales avec presets EZ-Tree adaptés
-        const provencalSpecies = [
+        const forestSpecies = [
             {
                 name: 'Chêne Vert',
                 preset: 'Oak Medium',
@@ -456,71 +293,45 @@ export class AuthenticProvencalEnvironment {
             }
         ];
 
-        const forestGroup = new THREE.Group();
-        forestGroup.name = 'ProvencalForest';
-        
-        let treeCount = 0;
-        const maxTrees = this.config.maxTrees;
-        const spacing = this.config.minTreeSpacing;
-
-        // Génération avec placement intelligent
-        const placedPositions = [];
-        
-        // Tree exclusion zone — no trees near heliport (circular)
-        const arenaExclusion = this.config.arenaExclusionRadius || 12; // metres from center — clear zone for drone ops
-        const treeMargin = 10; // metres from terrain edge
-        
-        for (let attempt = 0; attempt < maxTrees * 5 && treeCount < maxTrees; attempt++) {
-            const px = (Math.random() - 0.5) * (x - treeMargin * 2);
-            const pz = (Math.random() - 0.5) * (y - treeMargin * 2);
-            
-            // Exclure la zone du héliport (circulaire)
-            const distFromCenter = Math.sqrt(px * px + pz * pz);
-            if (distFromCenter < arenaExclusion) continue;
-            
-            // Vérifier espacement minimum
-            const tooClose = placedPositions.some(pos => {
-                const dx = px - pos.x;
-                const dz = pz - pos.z;
-                return Math.sqrt(dx * dx + dz * dz) < spacing;
-            });
-            
-            if (tooClose) continue;
-            
-            // Sélectionner espèce selon poids
-            const species = this.selectSpeciesByWeight(provencalSpecies);
-            const tree = await this.createAuthenticTree(species, px, pz);
-            
-            if (tree) {
-                forestGroup.add(tree);
-                placedPositions.push({ x: px, z: pz });
-                treeCount++;
-                
-                // Register tree bounding box for collision avoidance
-                if (this.collisionDetection) {
-                    const trunkRadius = 1.5; // Collision radius around trunk (metres)
-                    const treeHeight = 8.0;  // Approximate tree height
-                    const treeBox = new THREE.Box3();
-                    treeBox.setFromCenterAndSize(
-                        new THREE.Vector3(px, treeHeight / 2, pz),
-                        new THREE.Vector3(trunkRadius * 2, treeHeight, trunkRadius * 2)
-                    );
-                    // Store bounding boxes as userData on the tree
-                    tree.userData.collisionBox = treeBox;
-                    tree.userData.collisionRadius = trunkRadius;
-                    tree.userData.collisionCenter = { x: px, z: pz };
-                }
-                
-                // Log progression
-                if (treeCount % 20 === 0) {
-                    log(`🌲 ${treeCount}/${maxTrees} arbres générés...`);
-                }
+        // ── POOL DE TEMPLATES ── un arbre par espèce, généré UNE fois (source de géométrie).
+        this._treeTemplates = [];
+        for (const species of forestSpecies) {
+            const tmpl = await this.createAuthenticTree(species, 0, 0);
+            if (tmpl) {
+                this.trees.pop(); // template hors-scène, pas un arbre placé
+                this._treeTemplates.push(tmpl);
             }
         }
-        
-        this.scene.add(forestGroup);
-        log(`✅ Forêt provençale authentique générée: ${treeCount} arbres`);
+
+        // ── FORÊT STATIQUE (clones placés UNE fois) ── rendu CORRECT (le shader de
+        // feuilles EZ-tree ne supporte pas l'InstancedMesh), placée une seule fois donc
+        // AUCUN coût par frame. Rayon large => arbres visibles au loin.
+        const _forestRadius = this.config.treeForestRadius || 300;
+        const _treeCount = this.config.treeCount || 130;
+        const _forest = new THREE.Group();
+        _forest.name = 'Forest';
+        let _s = 0x9e3779b1 >>> 0;
+        const _rnd = () => { _s = (Math.imul(_s, 1103515245) + 12345) >>> 0; return _s / 4294967296; };
+        if (this._treeTemplates.length) {
+            for (let i = 0, tries = 0; i < _treeCount && tries < _treeCount * 8; tries++) {
+                const ang = _rnd() * Math.PI * 2;
+                const r = this.treeExclusionRadius + Math.pow(_rnd(), 0.6) * (_forestRadius - this.treeExclusionRadius);
+                const tmpl = this._treeTemplates[Math.floor(_rnd() * this._treeTemplates.length)];
+                const tree = tmpl.clone(true); // clone (géométrie/matériaux partagés) => rendu correct
+                tree.traverse(o => { o.castShadow = false; }); // pas d'ombre (perf)
+                tree.position.set(Math.cos(ang) * r, 0, Math.sin(ang) * r);
+                tree.rotation.y = _rnd() * Math.PI * 2;
+                tree.scale.setScalar(0.8 + _rnd() * 0.6);
+                _forest.add(tree);
+                i++;
+            }
+        }
+        this.scene.add(_forest);
+        log(`✅ Forêt statique: ${_forest.children.length} arbres (rayon ${_forestRadius}m)`);
     }
+
+    // Forêt statique => aucun travail par frame (no-op conservé pour la boucle de rendu).
+    updateTreeChunks(_cameraPos) { /* forêt statique : rien à streamer */ }
 
     selectSpeciesByWeight(species) {
         const random = Math.random();
@@ -541,14 +352,24 @@ export class AuthenticProvencalEnvironment {
             // Créer l'arbre avec le preset EZ-Tree
             const tree = new Tree();
             tree.loadPreset(species.preset);
-            
-            // Appliquer modifications spécifiques à l'espèce
+            // loadPreset already calls generate() internally.
+
+            // ── RÉDUCTION DE COMPLEXITÉ GÉOMÉTRIQUE (le vrai levier FPS) ──
+            // Par défaut EZ-tree fait levels:3 + children{7,7,5} => ~300 branches et
+            // 10-20k sommets PAR ARBRE. Avec 130 arbres, la lisière plein cadre = des
+            // millions de sommets => 5 FPS. En passant à levels:2 on supprime le niveau
+            // de brindilles (quasi invisible) : ~5x moins de géométrie, même silhouette.
+            // Géométrie d'arbre laissée à sa qualité NATIVE : le profilage montre que
+            // l'environnement coûte <1 ms/frame — l'alléger n'apportait aucun FPS et
+            // dégradait le rendu. (⚠️ ne jamais toucher `levels` : les FEUILLES poussent
+            // sur le dernier niveau de branches, le réduire donne des arbres nus.)
+
+
+            // Appliquer modifications spécifiques à l'espèce APRÈS generate()
+            // tree.leavesMesh.material is the actual leaf material (not tree.leafMaterial)
             if (species.modifications) {
                 this.applySpeciesModifications(tree, species.modifications);
             }
-            
-            // Générer la géométrie
-            tree.generate();
             
             // Positionner sur le terrain
             const y = this.getHeightAt ? this.getHeightAt(x, z) : 0;
@@ -557,7 +378,6 @@ export class AuthenticProvencalEnvironment {
             // Rotation aléatoire
             tree.rotation.y = Math.random() * Math.PI * 2;
             
-            // Ombres
             tree.castShadow = true;
             tree.receiveShadow = true;
             
@@ -574,13 +394,13 @@ export class AuthenticProvencalEnvironment {
     }
 
     applySpeciesModifications(tree, modifications) {
-        // Appliquer les modifications spécifiques à l'espèce
-        if (modifications.leafColor && tree.leafMaterial) {
-            tree.leafMaterial.color.setHex(modifications.leafColor);
+        // Apply to the actual leaf mesh material (tree.leavesMesh.material, NOT tree.leafMaterial)
+        if (modifications.leafColor && tree.leavesMesh && tree.leavesMesh.material) {
+            tree.leavesMesh.material.color.setHex(modifications.leafColor);
         }
         
-        if (modifications.barkColor && tree.barkMaterial) {
-            tree.barkMaterial.color.setHex(modifications.barkColor);
+        if (modifications.barkColor && tree.branchesMesh && tree.branchesMesh.material) {
+            tree.branchesMesh.material.color.setHex(modifications.barkColor);
         }
         
         // Ajustements morphologiques
@@ -600,18 +420,17 @@ export class AuthenticProvencalEnvironment {
     setupLighting() {
         log('☀️ Configuration éclairage méditerranéen...');
         
-        // Lumière ambiante dorée
-        const ambientLight = new THREE.AmbientLight(0xFFF8DC, 0.4);
+        // Lumière ambiante dorée (complète l'hemisphere de main.js — assure l'éclairage des sous-bois)
+        const ambientLight = new THREE.AmbientLight(0xFFF8DC, 0.65);
         this.scene.add(ambientLight);
         
-        // Soleil méditerranéen
-        const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.2);
+        // Soleil méditerranéen (intensité réaliste, pas de surexposition car DAE lights supprimées)
+        const sunLight = new THREE.DirectionalLight(0xFFE4B5, 1.0);
         sunLight.position.set(100, 80, 50);
         sunLight.castShadow = true;
         
-        // Ombres haute qualité
-        sunLight.shadow.mapSize.width = 4096;
-        sunLight.shadow.mapSize.height = 4096;
+        sunLight.shadow.mapSize.width = this.config.shadowMapSize || 4096;
+        sunLight.shadow.mapSize.height = this.config.shadowMapSize || 4096;
         sunLight.shadow.camera.near = 0.5;
         sunLight.shadow.camera.far = 500;
         sunLight.shadow.camera.left = -150;
@@ -622,8 +441,8 @@ export class AuthenticProvencalEnvironment {
         
         this.scene.add(sunLight);
         
-        // Lumière d'appoint chaude
-        const fillLight = new THREE.HemisphereLight(0x87CEEB, 0xD2B48C, 0.6);
+        // Lumière d'appoint chaude (complète l'hemisphere de main.js)
+        const fillLight = new THREE.HemisphereLight(0x87CEEB, 0xD2B48C, 0.7);
         this.scene.add(fillLight);
         
         // Brume désactivée (cosmétique, crée des halos)
@@ -638,10 +457,10 @@ export class AuthenticProvencalEnvironment {
         try {
             // Configuration de performance optimisée avec zone réduite
             this.grassField = new GLSLGrassFieldDynamic({
-                fieldSize: 120,                    // RÉDUIT de 220 à 120 pour performance
-                grassCount: 25000,                 // RÉDUIT de 50k à 25k instances max
-                chunkSize: 20,                     // RÉDUIT de 25 à 20 unités
-                renderDistance: 60,                // RÉDUIT de 100 à 60 unités - zone visible uniquement
+                fieldSize: 160,                    // Cover full exploration zone
+                grassCount: 25000,                 // 25k instances max
+                chunkSize: 20,                     // 20 unités
+                renderDistance: 90,                // Cover exploration zone + margin
                 // grassPerChunk géré par shader-quality-manager (réduit automatiquement)
                 grassScale: 0.6,                   // Taille optimisée
                 tipColor: '#4a7c3a',               // Vert naturel pour les pointes
@@ -798,13 +617,16 @@ export class AuthenticProvencalEnvironment {
 
     async createCentralPlatform() {
         // ── Central heliport platform (NO arena walls — open space) ──
-        log('🏗️ Création plateforme héliport centrale (espace ouvert, pas de murs)...');
+        const droneCount = this.droneCount;
+        log(`🏗️ Création plateforme héliport (${droneCount} drones, espace ouvert)...`);
 
         const PLATFORM_HEIGHT = 0.15;   // Low platform flush with ground
-        const PLATFORM_RADIUS = 8.0;    // LARGE heliport — 8m radius for 8 drones
+        const PLATFORM_RADIUS = this.platformRadius;
+        // Drone marker radius = 70% of platform radius
+        const DRONE_MARKER_RADIUS = PLATFORM_RADIUS * 0.6875;
 
         const arenaGroup = new THREE.Group();
-        arenaGroup.name = 'SimArena';
+        arenaGroup.name = 'GazeboArena';
 
         // ── Central platform (heliport) ──
         const platformGeo = new THREE.CylinderGeometry(PLATFORM_RADIUS, PLATFORM_RADIUS, PLATFORM_HEIGHT, 48);
@@ -819,8 +641,10 @@ export class AuthenticProvencalEnvironment {
         platform.name = 'CentralPlatform';
         arenaGroup.add(platform);
 
-        // Heliport marking — outer ring
-        const markingGeo = new THREE.RingGeometry(6.5, 7.0, 48);
+        // Heliport marking — outer ring (scales with platform)
+        const outerRingInner = PLATFORM_RADIUS * 0.8125;
+        const outerRingOuter = PLATFORM_RADIUS * 0.875;
+        const markingGeo = new THREE.RingGeometry(outerRingInner, outerRingOuter, 48);
         const markingMat = new THREE.MeshBasicMaterial({
             color: 0xffcc00,
             side: THREE.DoubleSide,
@@ -832,33 +656,18 @@ export class AuthenticProvencalEnvironment {
         arenaGroup.add(marking);
 
         // Inner "H" marking
-        const hMarkGeo = new THREE.RingGeometry(2.5, 3.0, 32);
+        const hMarkGeo = new THREE.RingGeometry(PLATFORM_RADIUS * 0.3, PLATFORM_RADIUS * 0.375, 32);
         const hMark = new THREE.Mesh(hMarkGeo, markingMat.clone());
         hMark.rotation.x = -Math.PI / 2;
         hMark.position.set(0, PLATFORM_HEIGHT + 0.01, 0);
         arenaGroup.add(hMark);
 
-        // Drone position markers (8 spots on the platform, radius 5.5m)
-        const DRONE_MARKER_RADIUS = 5.5;
-        for (let i = 0; i < 8; i++) {
-            const angle = (i / 8) * Math.PI * 2;
-            const mx = Math.cos(angle) * DRONE_MARKER_RADIUS;
-            const mz = Math.sin(angle) * DRONE_MARKER_RADIUS;
-            const spotGeo = new THREE.RingGeometry(0.3, 0.5, 16);
-            const spotMat = new THREE.MeshBasicMaterial({ color: 0xff4444, side: THREE.DoubleSide });
-            const spot = new THREE.Mesh(spotGeo, spotMat);
-            spot.rotation.x = -Math.PI / 2;
-            spot.position.set(mx, PLATFORM_HEIGHT + 0.015, mz);
-            spot.name = `DroneSpot_${i}`;
-            arenaGroup.add(spot);
-        }
-
         // NO WALLS — drones fly in open space, forest is the boundary
 
-        // Ground grid around the heliport for spatial reference
-        const gridHelper = new THREE.GridHelper(20, 20, 0x334455, 0x223344);
-        gridHelper.position.y = 0.01;
-        arenaGroup.add(gridHelper);
+        // Grille de sol de debug RETIRÉE — faisait "fake" (quadrillage technique).
+        // Le sol naturel + les anneaux du héliport suffisent au repère visuel.
+
+        log(`✅ Plateforme: rayon=${PLATFORM_RADIUS.toFixed(1)}m, ${droneCount} spots`);
 
         this.scene.add(arenaGroup);
 
@@ -867,7 +676,50 @@ export class AuthenticProvencalEnvironment {
         // Initialize collision detection
         this.collisionDetection.initialize(this.scene);
 
-        log('✅ Plateforme héliport créée (espace ouvert, pas de murs)');
+        log(`✅ Plateforme héliport créée (${droneCount} drones, rayon ${PLATFORM_RADIUS.toFixed(1)}m)`);
+    }
+
+    /**
+     * Distribute n drones across concentric rings on a platform
+     * Returns array of {x, z} positions
+     */
+    _computeRingPositions(n, platformRadius) {
+        const positions = [];
+        if (n <= 8) {
+            const r = platformRadius * 0.7;
+            for (let i = 0; i < n; i++) {
+                const angle = (i / n) * 2 * Math.PI;
+                positions.push({ x: Math.cos(angle) * r, z: Math.sin(angle) * r });
+            }
+            return positions;
+        }
+        const numRings = n <= 16 ? 2 : n <= 32 ? 3 : Math.min(5, Math.ceil(n / 10));
+        const minR = platformRadius * 0.22;
+        const maxR = platformRadius * 0.75;
+        const rings = [];
+        let totalCirc = 0;
+        for (let r = 0; r < numRings; r++) {
+            const radius = numRings === 1 ? maxR : minR + (maxR - minR) * r / (numRings - 1);
+            const circ = 2 * Math.PI * radius;
+            rings.push({ radius, circ });
+            totalCirc += circ;
+        }
+        let assigned = 0;
+        for (let r = 0; r < numRings; r++) {
+            const count = r === numRings - 1
+                ? n - assigned
+                : Math.max(3, Math.round(n * rings[r].circ / totalCirc));
+            const angleOffset = r * 0.3;
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * 2 * Math.PI + angleOffset;
+                positions.push({
+                    x: Math.cos(angle) * rings[r].radius,
+                    z: Math.sin(angle) * rings[r].radius
+                });
+            }
+            assigned += count;
+        }
+        return positions;
     }
 
     createPlatformPillars(platformGroup, radius, height) {
@@ -970,16 +822,30 @@ export class AuthenticProvencalEnvironment {
         }
     }
 
+    // Sol unique : suit la caméra en XZ (snappé à la grille pour éviter le "swimming"
+    // des sommets sur le relief), texture verrouillée au monde via offset. Le relief
+    // est calculé côté GPU en world-space → le plan glisse, les collines restent fixes.
+    updateTerrainFollow(cameraPos) {
+        if (!this.terrain || !cameraPos) return;
+        const step = this._terrainStep || 5;
+        const sx = Math.round(cameraPos.x / step) * step;
+        const sz = Math.round(cameraPos.z / step) * step;
+        this.terrain.position.x = sx;
+        this.terrain.position.z = sz;
+        const tex = this.terrain.material.map;
+        if (tex) {
+            const t = this._groundTile;
+            tex.offset.x = sx / t;
+            tex.offset.y = -sz / t;
+        }
+    }
+
     update(time, camera = null) {
         // Mettre à jour les éléments animés
         if (this.updateSkybox) {
             this.updateSkybox(time);
         }
-        
-        // Mise à jour du shader terrain
-        if (this.terrain && this.terrain.material && this.terrain.material.uniforms) {
-            this.terrain.material.uniforms.uTime.value = time;
-        }
+        if (camera) this.updateTerrainFollow(camera.position);
 
         // Mise à jour de l'herbe dynamique avec position du joueur
         if (this.grassField && camera) {

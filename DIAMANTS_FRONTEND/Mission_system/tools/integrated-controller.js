@@ -22,7 +22,7 @@ import { logger } from '../core/logger.js';
 const _stubFormulas = { update: () => {}, psi_field: null, phi_field: null, sigma_field: null, gradient_field: null, harmonics: [], diamants_value: 0, emergence_factor: 0, coherence_level: 0, config: {} };
 import { AuthenticCrazyflie } from '../drones/authentic-crazyflie.js';
 import { MissionManager } from '../missions/mission-manager.js';
-import { AuthenticProvencalEnvironment } from '../environment/authentic-provencal-environment.js';
+import { TerrainEnvironment } from '../environment/terrain-environment.js';
 import { DiamantUI } from '../ui/diamant-ui.js';
 
 // Nouveaux modules migrés
@@ -283,10 +283,10 @@ export class IntegratedDiamantsController {
      * Initialisation environnement
      */
     async initializeEnvironment() {
-        // NOTE: main.js already creates the primary AuthenticProvencalEnvironment with
+        // NOTE: main.js already creates the primary TerrainEnvironment with
         // forest, terrain, etc. This second instance is lightweight — NO forest, NO terrain
         // to avoid doubling trees/objects in the scene.
-        this.environment = new AuthenticProvencalEnvironment(this.scene, {
+        this.environment = new TerrainEnvironment(this.scene, {
             lightweight: true,
             terrainSize: { x: 200, y: 200 },
             structuredLayout: true,
