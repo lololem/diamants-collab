@@ -109,7 +109,7 @@ async function initializeTHREE() {
     }
 }
 
-import { AuthenticProvencalEnvironment } from './environment/authentic-provencal-environment.js';
+import { TerrainEnvironment } from './environment/terrain-environment.js';
 import { AuthenticCrazyflie } from './drones/authentic-crazyflie.js';
 // ROS/WebSocket bridge removed — simulation-only build (public vitrine)
 import { IntegratedDiamantsController } from './tools/integrated-controller.js';
@@ -506,7 +506,7 @@ class DiamantsMissionSystem {
         this.showLoadingIndicator();
         
         try {
-            this.environment = new AuthenticProvencalEnvironment(this.scene, {
+            this.environment = new TerrainEnvironment(this.scene, {
                 terrainSize: { x: 200, y: 200 },
                 forestDensity: 0.4,
                 maxTrees: 60,
