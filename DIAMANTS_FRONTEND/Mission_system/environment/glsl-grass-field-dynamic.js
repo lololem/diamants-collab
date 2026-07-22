@@ -19,12 +19,17 @@ export class GLSLGrassFieldDynamic {
         // Configuration pour couverture maximale
         this.config = {
             grassPerChunk: 6000,
-            // Chunks plus larges => on couvre ~88 m avec le MÊME nombre de chunks (13)
-            // que la config mesurée à 57 FPS. 29 chunks (portée 120 m) faisait retomber
-            // à 7 FPS : le coût de l'herbe est superlinéaire avec la surface écran.
-            // 88 m suffit : la frontière tombe dans le fog (qui démarre à 55 m).
+            // ⚠️ VALEURS PAR DÉFAUT, EN PRATIQUE ÉCRASÉES.
+            // terrain-environment.js construit le champ avec chunkSize 20 et
+            // renderDistance 90, et la config de l'appelant l'emporte à la fusion.
+            // Les valeurs ci-dessous ne s'appliquent donc que si le champ est
+            // instancié sans configuration — ce qu'aucun appelant ne fait
+            // aujourd'hui. Les 20/90 effectifs donnent chunkRadius 5, soit une
+            // soixantaine de chunks chargés, et non les 13 que suggéraient ces
+            // constantes. À corriger en alignant les deux fichiers, pas en
+            // retouchant ce commentaire.
             chunkSize: 44,
-            renderDistance: 88,   // chunkRadius 2 => 13 chunks
+            renderDistance: 88,
             // Chunks générés par frame. Était implicitement à 1, alors que le
             // déchargement, lui, vide tous les chunks hors portée d'un seul coup :
             // l'asymétrie laissait des carrés sans herbe derrière la caméra.
