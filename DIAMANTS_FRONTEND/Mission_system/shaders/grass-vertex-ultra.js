@@ -4,6 +4,15 @@ uniform float uTime;
 uniform float uSpeed;
 uniform float uHalfWidth;
 
+// Position monde de la caméra, déjà rafraîchie chaque frame par
+// glsl-grass-field-dynamic.js. Strictement égale à inverse(viewMatrix)[3].xyz
+// puisque viewMatrix = inverse(camera.matrixWorld).
+uniform vec3 uCameraPos;
+
+// Bornes du fondu de bordure (renderDistance * 0.62 et * 0.98).
+uniform float uFadeStart;
+uniform float uFadeEnd;
+
 varying float vElevation;
 varying float vSideGradient;
 varying vec3 vNormal;
@@ -97,9 +106,11 @@ vec3 deform(vec3 pos) {
     localPosition.y -= 0.12 * strongOffset.z;
 
     // Billboard towards camera
-    vec3 camPos = inverse(viewMatrix)[3].xyz;
+    // uCameraPos remplace inverse(viewMatrix)[3].xyz : même valeur exactement,
+    // mais deform() est appelé 3x par vertex — c'était 3 inversions de matrice
+    // 4x4 par vertex.
     vec3 bladeWorldPos = instanceMatrix[3].xyz;
-    vec2 toCamera2D = normalize(camPos.xz - bladeWorldPos.xz);
+    vec2 toCamera2D = normalize(uCameraPos.xz - bladeWorldPos.xz);
     float angleToCamera = atan(toCamera2D.y, toCamera2D.x);
     mat3 billboardRot = rotationY(angleToCamera);
     localPosition = billboardRot * localPosition;
@@ -112,6 +123,15 @@ void main() {
     vec3 offsetX = deform(position + vec3(0.01, 0.0, 0.0));
     vec3 offsetY = deform(position + vec3(0.0, 0.01, 0.0));
 
+    // Normale calculée AVANT le fondu : celui-ci est une homothétie, elle ne
+    // doit pas altérer l'éclairage des brins de bordure.
+    vec3 normalWS = normalize(cross(offsetX - p, offsetY - p));
+
+    // Fondu géométrique de bordure : le brin rapetisse progressivement jusqu'à
+    // zéro au lieu que son chunk entier disparaisse d'un bloc.
+    float distToCam = length(uCameraPos.xz - instanceMatrix[3].xz);
+    p *= 1.0 - smoothstep(uFadeStart, uFadeEnd, distToCam);
+
     vec4 worldPosition4 = instanceMatrix * vec4(p, 1.0);
     vec3 worldPosition = worldPosition4.xyz;
     vec4 viewPosition = viewMatrix * worldPosition4;
@@ -122,7 +142,6 @@ void main() {
     vPosition = worldPosition; // world-space for fog/noise
     vSideGradient = 1.0 - ((position.x + uHalfWidth) / (2.0 * uHalfWidth));
 
-    vec3 normalWS = normalize(cross(offsetX - p, offsetY - p));
     vNormal = normalWS;
     vec3 invNormal = vNormal; invNormal.x *= -1.0;
     vFakeNormal = mix(vNormal, invNormal, vSideGradient);

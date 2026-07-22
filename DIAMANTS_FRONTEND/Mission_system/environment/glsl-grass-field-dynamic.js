@@ -16,23 +16,30 @@ if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
 export class GLSLGrassFieldDynamic {
     constructor(config = {}) {
-        // Configuration OPTIMISÉE pour couverture maximale
+        // Configuration pour couverture maximale
         this.config = {
-            grassPerChunk: 6000,         // Densité équilibrée
-            chunkSize: 18,               // Chunks équilibrés
-            renderDistance: 100,         // Distance AUGMENTÉE pour voir l'herbe au fond
-            maxChunks: 20,              // Plus de chunks pour couvrir plus loin
+            grassPerChunk: 6000,
+            // Chunks plus larges => on couvre ~88 m avec le MÊME nombre de chunks (13)
+            // que la config mesurée à 57 FPS. 29 chunks (portée 120 m) faisait retomber
+            // à 7 FPS : le coût de l'herbe est superlinéaire avec la surface écran.
+            // 88 m suffit : la frontière tombe dans le fog (qui démarre à 55 m).
+            chunkSize: 44,
+            renderDistance: 88,   // chunkRadius 2 => 13 chunks
+            // Chunks générés par frame. Était implicitement à 1, alors que le
+            // déchargement, lui, vide tous les chunks hors portée d'un seul coup :
+            // l'asymétrie laissait des carrés sans herbe derrière la caméra.
+            chunksPerFrame: 3,
             // LOD distances pour couverture maximale
-            lodDistance: 35,            // LOD plus loin
-            lodFarDistance: 70,         // Distance max très étendue
+            lodDistance: 35,
+            lodFarDistance: 70,
             // Couleurs mixtes vert-marron pour plus de réalisme
-            tipColor: '#c8be9c',        // Beige clair naturel (repo original)
-            baseColor: '#404709',       // Vert très foncé (repo original)
-            fogColor: '#e6ebef',        // Gris bleu très pâle (repo original)
+            tipColor: '#9cbf6a',        // Pointe VERT clair (fini le beige pâle)
+            baseColor: '#3e5720',       // Base vert profond
+            fogColor: '#aebb92',        // Vert doux au loin (fini le gris-blanc délavé)
             // Nouvelles couleurs vert-marron
             brownTipColor: '#8b7355',   // Brun clair pour pointes sèches
             brownBaseColor: '#3d2f1f',  // Brun foncé pour bases
-            mixRatio: 0.3              // 30% d'herbes brunes mélangées
+            mixRatio: 0.12             // 12% d'herbes brunes (le reste bien vert)
         };
         
         // Dimensions exactes du repo référence
@@ -46,7 +53,7 @@ export class GLSLGrassFieldDynamic {
         // Système de chunks avec LOD
         this.activeChunks = new Map();
         this.lastPlayerPos = new THREE.Vector3();
-        this.updateThreshold = 6; // Mise à jour ENCORE moins fréquente pour économiser CPU
+        this.updateThreshold = 14; // Seuil plus large => moins de load/unload de chunks => moins de popping visible
         
         // Système LOD comme dans le repo référence
         this.highDetailGeo = null;
@@ -134,9 +141,19 @@ export class GLSLGrassFieldDynamic {
         log(`🎨 Création matériau herbe - Qualité: ${shaderQualityManager.currentQuality}`);
         log(`   Features: ${JSON.stringify(shaderConfig.features)}`);
         
-        // Ajuster la configuration selon la qualité
+        // Ajuster la configuration selon la qualité — PLAFONNÉ pour tenir le FPS
+        // (la qualité auto peut monter à 14000/chunk = essaim de brins qui tue le FPS).
         if (shaderConfig.features.grassPerChunk) {
-            this.config.grassPerChunk = shaderConfig.features.grassPerChunk;
+            // Densité pilotée par la qualité, mais avec un PLANCHER : en qualité LOW
+            // (2000) sur des chunks de 44 m on tombe à ~1 brin/m² => herbe invisible.
+            // Le nombre de brins doit suivre la SURFACE du chunk, sinon agrandir les
+            // chunks (pour couvrir plus loin) dilue mécaniquement l'herbe.
+            const area = this.config.chunkSize * this.config.chunkSize;
+            const minForDensity = Math.round(area * 2.6); // ~2.6 brins/m² minimum
+            this.config.grassPerChunk = Math.min(
+                Math.max(shaderConfig.features.grassPerChunk, minForDensity),
+                9000
+            );
         }
         
         // Create material with only valid THREE.js properties
@@ -151,6 +168,10 @@ export class GLSLGrassFieldDynamic {
                 uBaseColor: { value: new THREE.Color(this.config.baseColor) },
                 uFogColor: { value: new THREE.Color(this.config.fogColor) },
                 uHalfWidth: { value: this.halfWidth },
+                // Fondu de bord : les brins rapetissent sur le dernier tiers de la
+                // portée => plus de frontière carrée herbe/sol nu.
+                uFadeStart: { value: this.config.renderDistance * 0.62 },
+                uFadeEnd: { value: this.config.renderDistance * 0.98 },
                 uBladeHeight: { value: this.height },
                 // New: camera-aware brown visibility
                 uCameraPos: { value: new THREE.Vector3(0,0,0) },
@@ -158,7 +179,7 @@ export class GLSLGrassFieldDynamic {
                 uBrownFar: { value: 55 }   // disappears beyond 55m
             },
             side: THREE.DoubleSide,
-            transparent: true,
+            transparent: false, // brins OPAQUES (alpha=1) => depth-write + early-z, fini l'overdraw
         };
 
         this.material = new THREE.ShaderMaterial(materialConfig);
@@ -180,7 +201,7 @@ export class GLSLGrassFieldDynamic {
         
         // SYSTÈME OPTIMISÉ : Un seul mesh par chunk avec LOD dynamique
         if (!this.grassGeometry) {
-            this.grassGeometry = this.createGrassGeometry(7); // 7 segments comme le repo référence
+            this.grassGeometry = this.createGrassGeometry(4); // 4 segments (au lieu de 7) => moins de sommets, FPS++
         }
         
         const mesh = new THREE.InstancedMesh(this.grassGeometry, this.material, this.config.grassPerChunk);
@@ -193,7 +214,29 @@ export class GLSLGrassFieldDynamic {
         
         // Configuration optimisée
         mesh.instanceMatrix.needsUpdate = true;
-        mesh.frustumCulled = true; // Réactivé pour performance
+
+        // ⚠️ CORRECTIF TROUS D'HERBE : les positions des brins vivent dans les matrices
+        // d'instances, mais le mesh reste à l'origine du monde. Sans recalcul, Three.js
+        // déduit la sphère englobante de la géométrie d'UN brin à l'origine (0,0,0) et
+        // élimine le chunk entier dès que la caméra ne cadre plus l'origine — d'où des
+        // pans d'herbe qui disparaissent. computeBoundingSphere() prend les vraies
+        // bornes issues des instances : le culling redevient correct.
+        mesh.computeBoundingSphere();
+
+        // Culling RÉACTIVÉ. Il avait été coupé quand la sphère englobante était
+        // fausse (elle ne couvrait qu'un brin à l'origine) : le culling supprimait
+        // alors des pans d'herbe entiers. Avec le computeBoundingSphere() ci-dessus
+        // la sphère est juste, et le gain n'est plus négligeable — un chunk pèse
+        // 6000 brins passés dans un vertex shader lourd, et à peu près la moitié
+        // des chunks est hors champ à tout instant.
+        //
+        // MARGE : le vertex shader déplace les brins (vent, courbure, billboard)
+        // au-delà des bornes géométriques dont la sphère est déduite. On l'élargit
+        // pour que les brins de bordure ne clignotent pas en limite de champ.
+        if (mesh.boundingSphere) {
+            mesh.boundingSphere.radius += 2.0;
+        }
+        mesh.frustumCulled = true;
         mesh.castShadow = false;   // Désactivé pour performance
         mesh.receiveShadow = true;
         
@@ -208,6 +251,7 @@ export class GLSLGrassFieldDynamic {
     // MÉTHODE OPTIMISÉE : Population d'instances comme le repo référence
     populateGrassInstances(mesh, startX, startZ, grassCount) {
         const dummy = new THREE.Object3D();
+        let validCount = 0;
         
         for (let i = 0; i < grassCount; i++) {
             // Distribution uniforme optimisée
@@ -217,7 +261,7 @@ export class GLSLGrassFieldDynamic {
             // Hauteur du terrain
             const y = this.getTerrainHeight ? this.getTerrainHeight(x, z) : 0;
             
-            // Exclure l'herbe si hauteur spéciale (-999)
+            // Exclure l'herbe si hauteur spéciale (-999) — zone héliport
             if (y === -999) continue;
             
             dummy.position.set(x, y, z);
@@ -234,13 +278,16 @@ export class GLSLGrassFieldDynamic {
             dummy.scale.set(scale, scale, scale);
             
             dummy.updateMatrix();
-            mesh.setMatrixAt(i, dummy.matrix);
+            mesh.setMatrixAt(validCount, dummy.matrix);
+            validCount++;
         }
         
+        // Only render valid instances — hide the rest
+        mesh.count = validCount;
         mesh.instanceMatrix.needsUpdate = true;
     }
 
-    // Interface compatible avec AuthenticProvencalEnvironment
+    // Interface compatible avec TerrainEnvironment
     async createGrassSystem(scene, getTerrainHeightFunc, camera) {
         this.scene = scene;
         this.getTerrainHeight = getTerrainHeightFunc;
@@ -346,69 +393,76 @@ export class GLSLGrassFieldDynamic {
         log('🌬️ Animation de vent démarrée - vitesse:', this.material.uniforms.uSpeed.value);
     }
     
-    // Met à jour les chunks selon la position du joueur
+    // Met à jour les chunks selon la position de la caméra.
+    // STREAMING : construit AU PLUS 1 chunk (le plus proche) par frame — comme
+    // updateTreeChunks — pour ne JAMAIS bloquer le rendu. generateChunk() alloue
+    // un InstancedMesh de plusieurs milliers de brins ; tout ajouter d'un coup
+    // gelait la frame lors des déplacements. Le déchargement reste immédiat (cheap).
     updateChunks(playerPosition) {
-        const currentPos = playerPosition.clone();
-        
-        // Vérifier si le joueur s'est assez déplacé (sauf pour la première fois)
-        if (this.activeChunks.size > 0 && this.lastPlayerPos.distanceTo(currentPos) < this.updateThreshold) {
-            return;
-        }
-        
-        this.lastPlayerPos.copy(currentPos);
-        
-        // Calculer les chunks nécessaires
-        const centerChunkX = Math.floor(currentPos.x / this.config.chunkSize);
-        const centerChunkZ = Math.floor(currentPos.z / this.config.chunkSize);
-        const chunkRadius = Math.ceil(this.config.renderDistance / this.config.chunkSize);
-        
-        const neededChunks = new Set();
-        
-        // Déterminer quels chunks sont nécessaires (optimisé)
-        for (let x = centerChunkX - chunkRadius; x <= centerChunkX + chunkRadius; x++) {
-            for (let z = centerChunkZ - chunkRadius; z <= centerChunkZ + chunkRadius; z++) {
-                const distance = Math.sqrt((x - centerChunkX) ** 2 + (z - centerChunkZ) ** 2);
-                if (distance <= chunkRadius) {
-                    neededChunks.add(`${x},${z}`);
+        const cs = this.config.chunkSize;
+        const rd = this.config.renderDistance;
+        const chunkRadius = Math.ceil(rd / cs);
+        // Centre du chunk placé en x*cs (cf. populateGrassInstances) → round, pas floor
+        const cx0 = Math.round(playerPosition.x / cs);
+        const cz0 = Math.round(playerPosition.z / cs);
+
+        const missing = [];
+        for (let x = cx0 - chunkRadius; x <= cx0 + chunkRadius; x++) {
+            for (let z = cz0 - chunkRadius; z <= cz0 + chunkRadius; z++) {
+                const dx = x * cs - playerPosition.x;
+                const dz = z * cs - playerPosition.z;
+                const d2 = dx * dx + dz * dz;
+                if (d2 <= rd * rd) {
+                    const key = `${x},${z}`;
+                    if (!this.activeChunks.has(key)) missing.push({ x, z, d2, key });
                 }
             }
         }
-        
-        // Supprimer les chunks trop éloignés
+
+        // ── Décharger les chunks hors portée ──
+        // ⚠️ FUITE MÉMOIRE GPU CORRIGÉE : un InstancedMesh détient un buffer
+        // `instanceMatrix` (grassPerChunk × 64 octets ≈ 512 Ko/chunk) que le garbage
+        // collector JS ne libère PAS — Three.js impose un dispose() explicite. Sans lui,
+        // chaque chunk déchargé fuyait son buffer : en se déplaçant, la VRAM se
+        // remplissait jusqu'à écrouler le FPS.
+        // dispose() sur l'InstancedMesh ne touche NI la géométrie NI le matériau
+        // (partagés entre tous les chunks) — uniquement ses buffers d'instances.
+        //
+        // HYSTÉRÉSIS : on garde un chunk jusqu'à 1.3 × la portée de chargement.
+        // Sans cette marge, une caméra qui oscille autour d'une frontière de chunk
+        // déchargeait puis rechargeait le même chunk en boucle.
+        const keepRange = rd * 1.3;
+        const keepRange2 = keepRange * keepRange;
         for (const [key, chunk] of this.activeChunks) {
-            if (!neededChunks.has(key)) {
+            const dx = chunk.chunkX * cs - playerPosition.x;
+            const dz = chunk.chunkZ * cs - playerPosition.z;
+            if (dx * dx + dz * dz > keepRange2) {
                 this.scene.remove(chunk.mesh);
-                // Nettoyer les mesh dans le groupe (double couche)
-                if (chunk.mesh.children) {
-                    chunk.mesh.children.forEach(childMesh => {
-                        if (childMesh.geometry) childMesh.geometry.dispose();
-                    });
-                }
-                this.recycleChunk(chunk);
+                if (typeof chunk.mesh.dispose === 'function') chunk.mesh.dispose();
                 this.activeChunks.delete(key);
             }
         }
-        
-        // Ajouter les nouveaux chunks
-        let newChunksAdded = 0;
-        for (const key of neededChunks) {
-            if (!this.activeChunks.has(key)) {
-                const [x, z] = key.split(',').map(Number);
-                const chunk = this.generateChunk(x, z);
-                
+
+        // ── Charger les chunks manquants, les plus proches d'abord ──
+        // ⚠️ CORRECTIF "CARRÉS SANS HERBE" : le déchargement ci-dessus est immédiat
+        // et porte sur TOUS les chunks hors portée, alors que le chargement était
+        // plafonné à UN chunk par frame. À 15 fps, recouvrir 13 chunks demandait
+        // presque une seconde — d'où les carrés vides qui traînaient derrière la
+        // caméra dès qu'on se déplaçait. Les deux côtés doivent avoir un débit
+        // comparable.
+        if (missing.length) {
+            missing.sort((a, b) => a.d2 - b.d2);
+            const budget = Math.min(this.config.chunksPerFrame, missing.length);
+            for (let i = 0; i < budget; i++) {
+                const m = missing[i];
+                const chunk = this.generateChunk(m.x, m.z);
                 if (chunk && chunk.mesh) {
-                    this.activeChunks.set(key, chunk);
+                    this.activeChunks.set(m.key, chunk);
                     this.scene.add(chunk.mesh);
-                    newChunksAdded++;
                 }
             }
         }
-        
-        // Log optimisé (seulement si changements)
-        if (newChunksAdded > 0 || this.activeChunks.size !== neededChunks.size) {
-            const totalGrass = this.activeChunks.size * (this.config.grassPerChunk + Math.floor(this.config.grassPerChunk * 0.7) + Math.floor(this.config.grassPerChunk * 0.5));
-            log(`🌱 PELOUSE OPTIMISÉE: ${this.activeChunks.size} chunks (${newChunksAdded} nouveaux), ~${totalGrass} brins - Performance équilibrée`);
-        }
+        this.lastPlayerPos.copy(playerPosition);
     }
 
     // Système de recyclage des chunks pour optimiser la mémoire
@@ -420,17 +474,18 @@ export class GLSLGrassFieldDynamic {
 
     populateGrassLayer(mesh, startX, startZ, dummy, grassCount, scale = 1.0) {
         for (let i = 0; i < grassCount; i++) {
-            // Distribution plus serrée pour vraie pelouse dense
-            const x = startX + Math.random() * this.config.chunkSize;
-            const z = startZ + Math.random() * this.config.chunkSize;
+            // Distribution centrée comme populateGrassInstances (±chunkSize/2)
+            const x = startX + (Math.random() - 0.5) * this.config.chunkSize;
+            const z = startZ + (Math.random() - 0.5) * this.config.chunkSize;
             
             // Ajouter quelques brins en grille pour assurer la couverture
             if (i < grassCount * 0.3) {
                 const gridDensity = Math.sqrt(grassCount * 0.3);
                 const gridX = i % gridDensity;
                 const gridZ = Math.floor(i / gridDensity);
-                const offsetX = (gridX / gridDensity) * this.config.chunkSize + (Math.random() - 0.5) * 0.5;
-                const offsetZ = (gridZ / gridDensity) * this.config.chunkSize + (Math.random() - 0.5) * 0.5;
+                // Centré sur startX/startZ (±chunkSize/2) pour cohérence avec la couche principale
+                const offsetX = ((gridX / gridDensity) - 0.5) * this.config.chunkSize + (Math.random() - 0.5) * 0.5;
+                const offsetZ = ((gridZ / gridDensity) - 0.5) * this.config.chunkSize + (Math.random() - 0.5) * 0.5;
                 const gridY = this.getTerrainHeight ? this.getTerrainHeight(startX + offsetX, startZ + offsetZ) : 0;
                 
                 // Exclure l'herbe si hauteur spéciale (-999)
@@ -486,20 +541,22 @@ export class GLSLGrassFieldDynamic {
     }
 
     dispose() {
-        // Nettoyer tous les chunks actifs
-        for (const [key, chunk] of this.activeChunks) {
+        // ⚠️ La géométrie de brin est PARTAGÉE par tous les chunks : la disposer par
+        // chunk (ancien code) la détruisait pour tous les autres. On libère ici les
+        // buffers d'instances de chaque chunk, puis la géométrie partagée UNE seule fois.
+        for (const [, chunk] of this.activeChunks) {
             this.scene.remove(chunk.mesh);
-            chunk.mesh.geometry.dispose();
+            if (typeof chunk.mesh.dispose === 'function') chunk.mesh.dispose();
         }
         this.activeChunks.clear();
-        
-        // Nettoyer le pool
+
         for (const chunk of this.chunkPool) {
-            if (chunk.mesh.geometry) {
-                chunk.mesh.geometry.dispose();
-            }
+            if (chunk?.mesh && typeof chunk.mesh.dispose === 'function') chunk.mesh.dispose();
         }
         this.chunkPool.length = 0;
+
+        // Géométrie partagée : une seule libération
+        if (this.grassGeometry) { this.grassGeometry.dispose(); this.grassGeometry = null; }
         
         if (this.material) {
             this.material.dispose();
@@ -581,12 +638,13 @@ export class GLSLGrassFieldDynamic {
      * Nettoie tous les chunks
      */
     clearAllChunks() {
+        // ⚠️ Ne PAS disposer chunk.mesh.geometry : elle est partagée par tous les chunks
+        // (et par ceux recréés ensuite). On libère uniquement les buffers d'instances,
+        // sinon changement de qualité = géométrie détruite + fuite des instanceMatrix.
         this.activeChunks.forEach((chunk) => {
             if (chunk.mesh) {
                 this.scene.remove(chunk.mesh);
-                if (chunk.mesh.geometry) {
-                    chunk.mesh.geometry.dispose();
-                }
+                if (typeof chunk.mesh.dispose === 'function') chunk.mesh.dispose();
             }
         });
         this.activeChunks.clear();

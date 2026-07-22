@@ -20,7 +20,7 @@ export class FallenLeavesSystem {
             ...config
         };
 
-        this.leafInstances = [];
+        this.leafMeshes = [];
         this.leafTypes = [];
         this.createColorfulLeafTypes();
         this.generateFallenLeaves();
@@ -144,85 +144,120 @@ export class FallenLeavesSystem {
     generateFallenLeaves() {
         log('🍂 Génération des feuilles tombées...');
 
+        // PASSE 1 — tirage des emplacements, sans créer aucun objet Three.js.
+        // Chaque feuille était auparavant un THREE.Mesh ajouté individuellement à la
+        // scène : 2000 à 3500 objets, donc autant de draw calls par frame pour deux
+        // triangles chacun. C'était le poste de coût CPU dominant du rendu.
+        const placements = [];
         for (let i = 0; i < this.config.count; i++) {
-            // Position aléatoire dans la zone
-            const x = (Math.random() - 0.5) * this.config.fieldSize;
-            const z = (Math.random() - 0.5) * this.config.fieldSize;
-            const terrainHeight = this.getTerrainHeight ? this.getTerrainHeight(x, z) : 0;
+            let x = (Math.random() - 0.5) * this.config.fieldSize;
+            let z = (Math.random() - 0.5) * this.config.fieldSize;
 
-            // Sélection du type de feuille selon probabilité
-            const leafType = this.selectLeafType();
-            
-            // Création de la feuille
-            const leaf = new THREE.Mesh(leafType.geometry, leafType.material);
-            
-            // Positionnement sur le terrain
-            leaf.position.set(x, terrainHeight + 0.01, z); // Légèrement au-dessus du sol
-            
-            // Rotation aléatoire naturelle
-            leaf.rotation.x = -Math.PI / 2 + (Math.random() - 0.5) * 0.3; // Principalement plate
-            leaf.rotation.y = Math.random() * Math.PI * 2; // Rotation libre
-            leaf.rotation.z = (Math.random() - 0.5) * 0.4; // Légère inclinaison
-            
-            // Échelle variable
-            const scale = this.config.leafScale * (0.5 + Math.random() * 0.5);
-            leaf.scale.set(scale, scale, scale);
-            
             // Cluster naturel - certaines feuilles près d'autres
-            if (Math.random() < 0.3 && this.leafInstances.length > 0) {
-                const nearbyLeaf = this.leafInstances[Math.floor(Math.random() * this.leafInstances.length)];
+            if (Math.random() < 0.3 && placements.length > 0) {
+                const nearby = placements[Math.floor(Math.random() * placements.length)];
                 const offset = (Math.random() - 0.5) * 2;
-                leaf.position.x = nearbyLeaf.position.x + offset;
-                leaf.position.z = nearbyLeaf.position.z + offset;
-                leaf.position.y = this.getTerrainHeight ? this.getTerrainHeight(leaf.position.x, leaf.position.z) + 0.01 : 0.01;
+                x = nearby.x + offset;
+                z = nearby.z + offset;
             }
 
-            this.scene.add(leaf);
-            this.leafInstances.push(leaf);
+            placements.push({
+                typeIndex: this.selectLeafTypeIndex(),
+                x,
+                y: (this.getTerrainHeight ? this.getTerrainHeight(x, z) : 0) + 0.01, // Légèrement au-dessus du sol
+                z,
+                rotX: -Math.PI / 2 + (Math.random() - 0.5) * 0.3, // Principalement plate
+                rotY: Math.random() * Math.PI * 2,                // Rotation libre
+                rotZ: (Math.random() - 0.5) * 0.4,                // Légère inclinaison
+                scale: this.config.leafScale * (0.5 + Math.random() * 0.5) // Échelle variable
+            });
         }
 
-        log(`✅ ${this.config.count} feuilles tombées générées`);
+        // PASSE 2 — un InstancedMesh par couple (géométrie, matériau) unique.
+        // 9 types de feuilles => 9 draw calls au lieu de this.config.count.
+        const counts = new Array(this.leafTypes.length).fill(0);
+        for (const p of placements) counts[p.typeIndex]++;
+
+        const meshes = this.leafTypes.map((type, t) => {
+            if (counts[t] === 0) return null;
+            const mesh = new THREE.InstancedMesh(type.geometry, type.material, counts[t]);
+            mesh.name = `FallenLeaves_${type.name}`;
+            return mesh;
+        });
+
+        const cursors = new Array(this.leafTypes.length).fill(0);
+        const matrix = new THREE.Matrix4();
+        const position = new THREE.Vector3();
+        const euler = new THREE.Euler();
+        const quaternion = new THREE.Quaternion();
+        const scale = new THREE.Vector3();
+
+        for (const p of placements) {
+            const mesh = meshes[p.typeIndex];
+            if (!mesh) continue;
+            position.set(p.x, p.y, p.z);
+            euler.set(p.rotX, p.rotY, p.rotZ);
+            quaternion.setFromEuler(euler);
+            scale.setScalar(p.scale);
+            matrix.compose(position, quaternion, scale);
+            mesh.setMatrixAt(cursors[p.typeIndex]++, matrix);
+        }
+
+        this.leafMeshes = meshes.filter(Boolean);
+        for (const mesh of this.leafMeshes) {
+            mesh.instanceMatrix.needsUpdate = true;
+            // Sans ce recalcul la sphère englobante ne couvre qu'UNE feuille à
+            // l'origine : le frustum culling ferait disparaître tout le tapis.
+            mesh.computeBoundingSphere();
+            this.scene.add(mesh);
+        }
+
+        log(`✅ ${this.config.count} feuilles tombées générées (${this.leafMeshes.length} draw calls)`);
     }
 
-    selectLeafType() {
+    selectLeafTypeIndex() {
         const random = Math.random();
         let accumulated = 0;
-        
-        for (const leafType of this.leafTypes) {
-            accumulated += leafType.weight;
+
+        for (let i = 0; i < this.leafTypes.length; i++) {
+            accumulated += this.leafTypes[i].weight;
             if (random <= accumulated) {
-                return leafType;
+                return i;
             }
         }
-        
-        return this.leafTypes[0]; // Fallback
+
+        return 0; // Fallback
     }
 
-    // Animation légère des feuilles (optionnelle)
-    animate(time) {
-        if (!this.leafInstances.length) return;
-
-        // Animation subtile de quelques feuilles
-        for (let i = 0; i < this.leafInstances.length; i += 50) { // Seulement une feuille sur 50
-            const leaf = this.leafInstances[i];
-            if (leaf) {
-                leaf.rotation.z += Math.sin(time * 0.0005 + i) * 0.001;
-            }
-        }
+    // Animation légère des feuilles — volontairement inerte.
+    // La version mesh-par-feuille faisait tourner une feuille sur 50 de ~0.001
+    // rad/frame, sur des feuilles posées à plat au sol : effet invisible. En
+    // instancié il faudrait réécrire et ré-uploader les matrices d'instance à
+    // chaque frame, ce qui réintroduirait le coût CPU que l'instanciation
+    // supprime. Méthode conservée : main.js et terrain-environment.js l'appellent.
+    animate(_time) {
+        // no-op
     }
 
     dispose() {
-        // Nettoyage des ressources
-        this.leafInstances.forEach(leaf => {
-            this.scene.remove(leaf);
-            leaf.geometry.dispose();
-            leaf.material.dispose();
+        this.leafMeshes.forEach(mesh => {
+            this.scene.remove(mesh);
+            mesh.dispose(); // libère les buffers d'instance
         });
-        this.leafInstances = [];
-        
+        this.leafMeshes = [];
+
+        // Géométries et matériaux sont partagés entre plusieurs types (oak, maple
+        // et plane servent chacun deux variantes) : dédoublonner avant de libérer.
+        const geometries = new Set();
+        const materials = new Set();
         this.leafTypes.forEach(type => {
-            type.geometry.dispose();
-            type.material.dispose();
+            geometries.add(type.geometry);
+            materials.add(type.material);
+        });
+        geometries.forEach(geometry => geometry.dispose());
+        materials.forEach(material => {
+            if (material.normalMap) material.normalMap.dispose();
+            material.dispose();
         });
         this.leafTypes = [];
     }

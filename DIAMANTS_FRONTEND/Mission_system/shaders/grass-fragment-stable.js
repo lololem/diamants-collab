@@ -42,7 +42,7 @@ void main() {
     vec3 goldenBrownTip = vec3(0.340, 0.280, 0.180);     // Brun doré secondaire
     vec3 goldenBrownBase = vec3(0.220, 0.180, 0.120);    // Base dorée
     
-    vec3 fogColor = vec3(0.902, 0.921, 0.937);
+    vec3 fogColor = vec3(0.42, 0.50, 0.36); // vert doux (fini le blanc qui délavait tout)
     
     // ===== DISTRIBUTION SIMPLIFIÉE POUR PERFORMANCE ZONE VISIBLE =====
     float random = fract(sin(dot(vPosition.xz, vec2(12.9898, 78.233))) * 43758.5453);
@@ -78,8 +78,10 @@ void main() {
     }
     
     // MÉLANGE TRÈS RÉDUIT - Priorité aux verts pour performance !
-    float macro = valueNoise(vPosition.xz * 0.04);
     if (random > 0.85) {  // SEULEMENT 15% de mélange
+        // valueNoise déplacé DANS la branche : il n'est utile qu'ici (15 % des
+        // brins) et était calculé pour 100 % des pixels. Rendu identique.
+        float macro = valueNoise(vPosition.xz * 0.04);
         float mixWeight = 0.2 * smoothstep(0.4, 0.6, macro); // Poids réduit
         if (random < 0.92) {
             // Favoriser les mélanges verts
@@ -98,42 +100,47 @@ void main() {
     vec3 grassColor = mix(finalBaseColor, finalTipColor, pow(elevationNorm, 0.7));
     
     // ===== SOL PLUS NUANCÉ (bruns/ocres/galets) =====
-    float soilRandom = fract(sin(dot(vPosition.xz * 2.1, vec2(45.164, 23.431))) * 43758.5453);
-    float soilMacro  = valueNoise(vPosition.xz * 0.12);
-    float soilMicro  = valueNoise(vPosition.xz * 2.5);
-
-    // Palette sol assombrie pour harmoniser avec l'herbe
-    vec3 brownSoil   = vec3(0.295, 0.205, 0.137);  // brun riche plus foncé
-    vec3 claySoil    = vec3(0.382, 0.282, 0.180);  // ocre/argile assombrie
-    vec3 darkSoil    = vec3(0.176, 0.137, 0.098);  // plus sombre
-    vec3 reddishSoil = vec3(0.382, 0.222, 0.140);  // rougeâtre plus foncé
-    vec3 greySoil    = vec3(0.290, 0.270, 0.260);  // limon/gris assombri
-
-    // Mélange sol harmonieux avec l'herbe éclaircie
-    vec3 soilAB = mix(brownSoil, claySoil, smoothstep(0.2, 0.8, soilMacro));
-    vec3 soilCD = mix(darkSoil,  reddishSoil, smoothstep(0.3, 0.7, 1.0 - soilMacro));
-    vec3 soilColor = mix(soilAB, soilCD, 0.35 + 0.35 * soilMacro);
-    // Variation vers gris modérée
-    soilColor = mix(soilColor, greySoil, 0.15 * smoothstep(0.6, 1.0, soilMacro));
-
-    // Micro éclats façon "galets clairsemés" plus prononcés
-    float pebble = step(0.982, hash12(vPosition.xz * 15.0));
-    soilColor = mix(soilColor, soilColor * 1.35 + vec3(0.08), pebble * 0.7);
-
-    // Application du sol au pied du brin avec transition plus marquée
+    // OPTIMISATION (rendu strictement identique) : tout ce bloc n'est utilisé
+    // qu'au PIED du brin (elevationNorm < 0.25). Il était calculé pour CHAQUE
+    // pixel puis jeté dans ~75 % des cas — soit 2 valueNoise (8 hachages) + 1
+    // hash12 gaspillés par pixel, sur une herbe qui couvre presque tout l'écran.
+    // (soilRandom était en plus calculé sans jamais être lu : supprimé.)
     if (elevationNorm < 0.25) {
+        float soilMacro  = valueNoise(vPosition.xz * 0.12);
+        float soilMicro  = valueNoise(vPosition.xz * 2.5);
+
+        // Palette sol assombrie pour harmoniser avec l'herbe
+        vec3 brownSoil   = vec3(0.295, 0.205, 0.137);  // brun riche plus foncé
+        vec3 claySoil    = vec3(0.382, 0.282, 0.180);  // ocre/argile assombrie
+        vec3 darkSoil    = vec3(0.176, 0.137, 0.098);  // plus sombre
+        vec3 reddishSoil = vec3(0.382, 0.222, 0.140);  // rougeâtre plus foncé
+        vec3 greySoil    = vec3(0.290, 0.270, 0.260);  // limon/gris assombri
+
+        // Mélange sol harmonieux avec l'herbe éclaircie
+        vec3 soilAB = mix(brownSoil, claySoil, smoothstep(0.2, 0.8, soilMacro));
+        vec3 soilCD = mix(darkSoil,  reddishSoil, smoothstep(0.3, 0.7, 1.0 - soilMacro));
+        vec3 soilColor = mix(soilAB, soilCD, 0.35 + 0.35 * soilMacro);
+        // Variation vers gris modérée
+        soilColor = mix(soilColor, greySoil, 0.15 * smoothstep(0.6, 1.0, soilMacro));
+
+        // Micro éclats façon "galets clairsemés" plus prononcés
+        float pebble = step(0.982, hash12(vPosition.xz * 15.0));
+        soilColor = mix(soilColor, soilColor * 1.35 + vec3(0.08), pebble * 0.7);
+
+        // Application du sol au pied du brin avec transition plus marquée
         float soilBlend = smoothstep(0.01, 0.25, elevationNorm);
         // Renforcer davantage le brun au tout début de la tige
         vec3 footTint = mix(soilColor, soilColor * vec3(1.08, 1.04, 0.96), soilMicro * 0.3);
         grassColor = mix(footTint, grassColor, soilBlend);
     }
 
-    // Teinte sécheresse plus prononcée pour réalisme
-    float dry = smoothstep(0.50, 0.80, valueNoise(vPosition.xz * 0.08 + 10.0));
-    vec3 dryTint = vec3(1.08, 1.02, 0.85);  // Plus contrasté
-    finalTipColor = mix(finalTipColor, finalTipColor * dryTint, 0.35 * dry);
-    finalBaseColor = mix(finalBaseColor, finalBaseColor * dryTint, 0.35 * dry);
-    
+    // CODE MORT SUPPRIMÉ : la « teinte sécheresse » modifiait finalTipColor /
+    // finalBaseColor APRÈS que grassColor en ait été dérivé (plus haut), et ces
+    // variables ne sont plus relues ensuite. L'effet n'était donc JAMAIS visible,
+    // mais coûtait un valueNoise (4 hachages) + 2 mix à chaque pixel.
+    // (Pour réactiver l'effet un jour : l'appliquer sur grassColor, pas sur
+    //  finalTip/BaseColor, et le placer avant le calcul de grassColor.)
+
     // ===== ÉCLAIRAGE RÉALISTE (comme le repo) =====
     vec3 lightDirection = normalize(vec3(0.5, 1.0, 0.3));
     float diffuse = max(0.0, dot(vFakeNormal, lightDirection));
@@ -155,8 +162,10 @@ void main() {
     vec3 finalColor = grassColor * lighting;
     
     // ===== BROUILLARD/FOG SIMPLE =====
-    float fogDistance = length(vPosition);
-    float fogFactor = exp(-fogDistance * 0.003);
+    // Distance RELATIVE À LA CAMÉRA (pas à l'origine du monde) — sinon l'herbe
+    // devient blanche dès qu'on s'éloigne de (0,0,0).
+    float fogDistance = length(vPosition.xz - uCameraPos.xz);
+    float fogFactor = exp(-fogDistance * 0.006);
     finalColor = mix(fogColor, finalColor, fogFactor);
     
     // ===== SATURATION ET CONTRASTE RENFORCÉS =====
