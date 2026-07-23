@@ -7,21 +7,21 @@
  * https://polyformproject.org/licenses/noncommercial/1.0.0/
  */
 /**
- * DIAMANTS - Point d'entrée principal avec Vite et EZ-Tree authentique
+ * DIAMANTS - Main entry point, wiring Vite and EZ-Tree
  * =======================================================================
  *
  */
 
-// Mode silencieux pour les logs - TRUE = moins de logs, FALSE = tous les logs
+// Silent logging mode - TRUE = fewer logs, FALSE = all logs
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
-window.SILENT_MODE = true; // RÉACTIVÉ pour stopper le déluge
+window.SILENT_MODE = true; // enabled to keep the console readable
 
-// OVERRIDE SÉLECTIF - Désactiver seulement les logs non-critiques
+// Selective override - mute only non-critical logs
 if (window.SILENT_MODE) {
     const originalLog = console.log;
     const originalInfo = console.info;
-    
-    // Override sélectif qui garde les logs 3D critiques
+
+    // Selective override that keeps critical 3D logs
     console.log = (...args) => {
         // Fast path: check first arg type before expensive serialization
         const first = args[0];
