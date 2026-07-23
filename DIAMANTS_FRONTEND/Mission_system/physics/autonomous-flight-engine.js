@@ -9,10 +9,7 @@
 /**
  * DIAMANTS - Autonomous Flight Engine (Frontend)
  * =================================================
- * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
  * Ce fichier est le CŒUR du système qui fait "scooter" les drones.
- * Toute modification DOIT être testée contre cette baseline.
- * Restaurer : git checkout v0-origin -- physics/autonomous-flight-engine.js
  *
  * Fast, fluid, dynamic exploration with proper PID control.
  * Handles mixed drone types (Crazyflie + larger drones),

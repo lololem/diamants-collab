@@ -9,8 +9,6 @@
 /**
  * DIAMANTS - Environnement Provençal Authentique avec EZ-Tree
  * =============================================================
- * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
- * Restaurer : git checkout v0-origin -- environment/terrain-environment.js
  *
  * Utilise la vraie API EZ-Tree avec presets JSON et textures haute qualité
  * Heliport rayon 8m, exclusion herbe 10m, exclusion arbres 12m, pas de murs d'arène.

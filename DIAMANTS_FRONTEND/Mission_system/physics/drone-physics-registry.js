@@ -9,8 +9,6 @@
 /**
  * DIAMANTS - Drone Physics Registry
  * ====================================
- * ⚠️  Post v0-origin — première évolution du moteur physique
- * Baseline : v0-origin (commit 47cec8ee)
  *
  * Charge dynamiquement les profils de drones depuis physics/profiles/*.json.
  * Chaque droniste dépose un fichier JSON pour intégrer son drone.
