@@ -127,12 +127,12 @@ of your licenses.
 
 ---
 
-## Composants tiers / Third-party components
+## Third-party components
 
-Ce dépôt embarque des logiciels tiers qui restent sous leur propre licence.
-Les termes ci-dessus ne s'y appliquent **pas** :
+This repository bundles third-party software that remains under its own licence.
+The terms above do **not** apply to it:
 
 - `DIAMANTS_FRONTEND/Mission_system/third-party/ez-tree/` — EZ-Tree
-- dépendances installées via `npm` — voir la licence de chaque paquet
+- dependencies installed via `npm` — see each package's own licence
 
-Se reporter au fichier LICENSE de chaque composant pour ses conditions.
+Refer to each component's own LICENSE file for its terms.
