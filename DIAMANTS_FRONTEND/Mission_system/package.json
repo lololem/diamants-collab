@@ -28,8 +28,8 @@
     "procedural",
     "trees"
   ],
-  "author": "DIAMANTS Team",
-  "license": "MIT",
+  "author": "Loïc Lemasle",
+  "license": "LicenseRef-PolyForm-Noncommercial-1.0.0",
   "dependencies": {
     "@dgreenheck/ez-tree": "^1.0.0",
     "ray-aabb": "^3.0.2",

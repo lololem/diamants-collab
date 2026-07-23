@@ -148,3 +148,18 @@ npm run build    # Verify build passes
 ## Contact
 
 Questions: open an issue or email loic.lemasle@gmail.com.
+
+---
+
+## Licence des contributions
+
+Ce projet est distribué sous **PolyForm Noncommercial License 1.0.0** : usage
+libre pour la recherche, l'enseignement et les projets non commerciaux, mais
+**toute exploitation commerciale est interdite**. Voir [LICENSE](LICENSE).
+
+En proposant une contribution (pull request, correctif, profil de drone,
+algorithme), vous acceptez qu'elle soit distribuée sous cette même licence.
+
+Si vous ajoutez du code tiers, indiquez-en clairement la provenance et la
+licence : les composants tiers gardent la leur et sont listés dans la section
+« Composants tiers » du fichier LICENSE.
