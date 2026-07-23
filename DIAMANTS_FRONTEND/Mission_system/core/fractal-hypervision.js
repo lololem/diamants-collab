@@ -1,3 +1,11 @@
+/*
+ * DIAMANTS — Simulation d'essaim de drones collaboratifs
+ * Copyright (c) 2026 Loïc Lemasle
+ *
+ * Distribué sous PolyForm Noncommercial License 1.0.0.
+ * Usage commercial interdit. Voir le fichier LICENSE à la racine.
+ * https://polyformproject.org/licenses/noncommercial/1.0.0/
+ */
 /**
  * Fractal Hypervision — orchestrateur L0→L5
  * Descente ordres / remontée état ; couche basse L4-L5 = ROS2/Gazebo.

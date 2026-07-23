@@ -28,7 +28,7 @@
     "procedural",
     "trees"
   ],
-  "author": "DIAMANTS Team",
+  "author": "Loïc Lemasle",
   "license": "LicenseRef-PolyForm-Noncommercial-1.0.0",
   "dependencies": {
     "@dgreenheck/ez-tree": "^1.0.0",
