@@ -9,7 +9,6 @@
 /**
  * DIAMANTS — Stigmergy Interface (Abstract)
  * =============================================
- * ⚠️  Post v0-origin — interface publique (diamants-collab)
  *
  * Contrat abstrait pour un moteur stigmergique intégré à
  * l'AutonomousFlightEngine via le slot SwarmIntelligenceInterface.

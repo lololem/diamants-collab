@@ -9,8 +9,6 @@
 /**
  * Real WebSocket bridge to DiamantsBridge (port 8765).
  *
- * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
- * Restaurer : git checkout v0-origin -- net/ros-bridge-simple.js
  *
  * Replaces the previous simulation stub.
  * - Connects to the unified DiamantsBridge via raw WebSocket JSON.

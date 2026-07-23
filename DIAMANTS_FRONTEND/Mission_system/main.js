@@ -9,11 +9,7 @@
 /**
  * DIAMANTS - Point d'entrée principal avec Vite et EZ-Tree authentique
  * =======================================================================
- * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
- * Version de référence : drones scootent, exploration fluide, 100% frontend.
- * Restaurer : git checkout v0-origin -- main.js
  *
- * Cache bust: 2025-09-13-14:55
  */
 
 // Mode silencieux pour les logs - TRUE = moins de logs, FALSE = tous les logs

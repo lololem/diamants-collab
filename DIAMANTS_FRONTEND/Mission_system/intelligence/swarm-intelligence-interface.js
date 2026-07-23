@@ -9,7 +9,6 @@
 /**
  * DIAMANTS - Swarm Intelligence Interface (Abstract)
  * =====================================================
- * ⚠️  Post v0-origin — interface publique (diamants-collab)
  *
  * Contrat abstrait que toute implémentation d'intelligence d'essaim
  * doit respecter pour s'intégrer à l'AutonomousFlightEngine.
