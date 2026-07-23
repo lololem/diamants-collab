@@ -41,6 +41,7 @@
     "chrome-remote-interface": "^0.33.3",
     "concurrently": "^9.2.1",
     "get-port": "^7.1.0",
+    "jsdom": "^29.1.1",
     "live-server": "^1.2.2",
     "nodemon": "^3.1.10",
     "puppeteer": "^24.37.2",
