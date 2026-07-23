@@ -10,6 +10,7 @@ export class DiamantsUIController {
         this.system = diamantsSystem;
         this.currentPanel = 'mission';
         this.sidebarCollapsed = false;
+        this.autonomyLevel = 100; // 0 = centralisé, 100 = distribué
         
         // Cache des éléments DOM
         this.elements = {};
@@ -129,6 +130,9 @@ export class DiamantsUIController {
         this.bindSlider('altitude-slider', 'altitude-value', (v) => this.setAltitude(v));
         this.bindSlider('safety-slider', 'safety-value', (v) => this.setSafetyDistance(v));
         
+        // Autonomy slider (custom binding)
+        this.setupAutonomySlider();
+        
         // Toggles
         this.bindToggle('toggle-minimap', (v) => this.toggleMinimap(v));
         this.bindToggle('toggle-grid', (v) => this.toggleGrid(v));
@@ -205,7 +209,16 @@ export class DiamantsUIController {
         // Metrics panel
         const totalIntel = this.calculateTotalIntelligence(metrics, drones);
         this.updateElement('metric-intelligence', totalIntel.toFixed(0));
-        this.updateElement('metric-emergence', ((metrics.emergenceLevel || 0) * 100).toFixed(0));
+        // Emergence: show phase state instead of raw percentage
+        const eLevel = metrics.emergenceLevel || 0;
+        const ePhase = eLevel < 0.01 ? 'CENTRALISÉ'
+                     : eLevel < 0.15 ? 'TRANSITION'
+                     : 'AUTO-ORG';
+        this.updateElement('metric-emergence', ePhase);
+        const elEm = document.getElementById('metric-emergence');
+        if (elEm) {
+            elEm.style.color = eLevel < 0.01 ? '#888' : eLevel < 0.15 ? '#FFAA00' : '#00FF88';
+        }
         this.updateElement('metric-cohesion', this.calculateCohesion(drones).toFixed(0));
         this.updateElement('metric-coordination', ((metrics.collaborationEfficiency || 0) * 100).toFixed(0));
         this.updateElement('metric-coverage', `${(metrics.coveragePercentage || 0).toFixed(0)}%`);
@@ -269,15 +282,29 @@ export class DiamantsUIController {
             return;
         }
 
-        list.innerHTML = drones.map((d, i) => `
-            <div class="drone-item" data-drone="${i}">
+        list.innerHTML = drones.map((d, i) => {
+            const isReal = d.rosData?.source === 'real' || d.rosData?.source === 'mavlink';
+            const isAgent = d.rosData?.source === 'agent';
+            let sourceTag = '';
+            let itemClass = '';
+            if (isReal) {
+                sourceTag = '<span class="drone-source-tag real">RÉEL</span>';
+                itemClass = 'real-agent';
+            } else if (isAgent) {
+                const engineLabel = d.rosData?.engine ? ` ${d.rosData.engine.toUpperCase()}` : '';
+                sourceTag = `<span class="drone-source-tag agent">AGENT${engineLabel}</span>`;
+                itemClass = 'agent-driven';
+            }
+            const batteryStr = d.rosData?.battery != null ? ` 🔋${Math.round(d.rosData.battery)}%` : '';
+            return `
+            <div class="drone-item ${itemClass}" data-drone="${i}">
                 <span class="drone-status-dot ${this.getDroneStatusClass(d)}"></span>
                 <div class="drone-info">
-                    <div class="drone-name">CF${(i + 1).toString().padStart(2, '0')}</div>
-                    <div class="drone-state">${d.state || 'IDLE'} • ${d.position ? `z:${d.position.y.toFixed(1)}m` : '--'}</div>
+                    <div class="drone-name">CF${(i + 1).toString().padStart(2, '0')} ${sourceTag}</div>
+                    <div class="drone-state">${d.state || 'IDLE'} • ${d.position ? `z:${d.position.y.toFixed(1)}m` : '--'}${batteryStr}</div>
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     }
 
     getDroneStatusClass(drone) {
@@ -352,6 +379,109 @@ export class DiamantsUIController {
     setSafetyDistance(value) {
         console.log(`⚠️ Safety distance: ${value}m`);
         // Update safety distance
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AUTONOMY SLIDER
+    // ═══════════════════════════════════════════════════════════
+
+    /* ── Autonomy step definitions ── */
+    static AUTONOMY_STEPS = [
+        { step: 0, level:   0, icon: '🔗', mode: 'Centralisé',      short: 'CENTRAL',  desc: 'Tous les drones forment une seule unité coordonnée.' },
+        { step: 1, level:  25, icon: '📐', mode: 'Guidé',           short: 'GUIDÉ',    desc: 'Formation unifiée avec micro-ajustements individuels.' },
+        { step: 2, level:  50, icon: '🔀', mode: 'Hybride',         short: 'HYBRIDE',  desc: 'Objectifs de groupe + exploration locale autonome.' },
+        { step: 3, level:  75, icon: '🧠', mode: 'Semi-autonome',   short: 'SEMI-AUTO', desc: 'Exploration indépendante, coordination par stigmergie.' },
+        { step: 4, level:  90, icon: '🤖', mode: 'Autonome',        short: 'AUTONOME', desc: 'Agents indépendants, partage d\'information minimal.' },
+        { step: 5, level: 100, icon: '⚡', mode: 'Distribué total', short: 'DISTRIBUÉ', desc: 'Agents 100% autonomes — aucun contrôle central.' },
+    ];
+
+    setupAutonomySlider() {
+        const slider = document.getElementById('autonomy-slider');
+        if (!slider) return;
+
+        // Slider input → snap to step
+        slider.addEventListener('input', (e) => {
+            this.setAutonomyStep(parseInt(e.target.value, 10));
+        });
+
+        // Click on tick labels → jump to that step
+        const ticks = document.getElementById('autonomy-ticks');
+        if (ticks) {
+            ticks.addEventListener('click', (e) => {
+                const span = e.target.closest('[data-step]');
+                if (!span) return;
+                const step = parseInt(span.dataset.step, 10);
+                slider.value = step;
+                this.setAutonomyStep(step);
+            });
+        }
+
+        // Initialize — full autonomy by default (step 5)
+        this.setAutonomyStep(5);
+    }
+
+    /** Map a step index (0-5) → internal autonomy level (0-100) */
+    setAutonomyStep(stepIdx) {
+        const steps = this.constructor.AUTONOMY_STEPS;
+        const def = steps[stepIdx] || steps[steps.length - 1];
+        this.autonomyLevel = def.level;
+        this.autonomyStep = def.step;
+        this.autonomyMode = def.short;
+
+        // Expose globally so bridge / engine can read it
+        window.DIAMANTS_AUTONOMY_LEVEL = def.level;
+        window.DIAMANTS_AUTONOMY_MODE  = def.short;
+
+        // Sync slider position
+        const slider = document.getElementById('autonomy-slider');
+        if (slider) slider.value = def.step;
+
+        // Highlight active tick label
+        const tickSpans = document.querySelectorAll('#autonomy-ticks span');
+        tickSpans.forEach(s => s.classList.toggle('active', parseInt(s.dataset.step, 10) === def.step));
+
+        // Update thumb color to match current step
+        const colors = ['#00BFFF','#33bbdd','#66DDAA','#88dd88','#aaee66','#00FF88'];
+        const c = colors[def.step] || '#00FF88';
+        if (slider) {
+            slider.style.setProperty('--thumb-color', c);
+            // Dynamic thumb glow via inline style override
+            const css = `#autonomy-slider::-webkit-slider-thumb { border-color: ${c}; box-shadow: 0 0 10px ${c}88; }`;
+            let styleEl = document.getElementById('autonomy-thumb-style');
+            if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = 'autonomy-thumb-style'; document.head.appendChild(styleEl); }
+            styleEl.textContent = css + `\n#autonomy-slider::-moz-range-thumb { border-color: ${c}; box-shadow: 0 0 10px ${c}88; }`;
+        }
+
+        // Update info area
+        const modeEl = document.getElementById('autonomy-mode');
+        const iconEl = document.getElementById('autonomy-icon');
+        const descEl = document.getElementById('autonomy-description');
+
+        if (iconEl) iconEl.textContent = def.icon;
+        if (modeEl) {
+            modeEl.textContent = `${def.icon} ${def.mode}`;
+            modeEl.style.color = c;
+        }
+        if (descEl) descEl.textContent = def.desc;
+
+        // Dispatch event for other components to react
+        try {
+            window.dispatchEvent(new CustomEvent('diamants:autonomy-change', {
+                detail: { level: def.level, mode: def.mode, step: def.step }
+            }));
+        } catch (_) { /* safe */ }
+
+        console.log(`🎛️ Autonomie: ${def.icon} ${def.mode} (step ${def.step}, level ${def.level})`);
+    }
+
+    /** Backward-compatible — accepts 0-100 level and snaps to nearest step */
+    setAutonomyLevel(level) {
+        const steps = this.constructor.AUTONOMY_STEPS;
+        let best = steps[steps.length - 1];
+        for (const s of steps) {
+            if (Math.abs(s.level - level) < Math.abs(best.level - level)) best = s;
+        }
+        this.setAutonomyStep(best.step);
     }
 
     toggleMinimap(visible) {

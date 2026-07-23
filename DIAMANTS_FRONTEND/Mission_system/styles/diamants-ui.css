@@ -56,7 +56,7 @@
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     
     /* Layout */
-    --sidebar-width: 280px;
+    --sidebar-width: 420px;
     --sidebar-collapsed: 60px;
     --header-height: 48px;
     --footer-height: 32px;
@@ -81,7 +81,7 @@ html, body {
     height: 100vh;
     overflow: hidden;
     font-family: var(--font-sans);
-    font-size: 13px;
+    font-size: 14px;
     line-height: 1.5;
     color: var(--text-primary);
     background: var(--bg-primary);
@@ -276,7 +276,7 @@ html, body {
 }
 
 .panel-section-title {
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -417,7 +417,7 @@ html, body {
 }
 
 .metric-label {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -486,19 +486,154 @@ html, body {
 .drone-status-dot.warning { background: var(--accent-warning); }
 .drone-status-dot.error { background: var(--accent-danger); }
 
+/* ═══════════════════════════════════════════════════════════
+   AUTONOMY SLIDER — Centralisé ↔ Distribué
+   ═══════════════════════════════════════════════════════════ */
+.autonomy-slider-container {
+    padding: 4px 0;
+}
+.autonomy-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+.autonomy-label-left {
+    color: #00BFFF;
+}
+.autonomy-label-right {
+    color: #00FF88;
+}
+.autonomy-slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    background: linear-gradient(to right, #00BFFF 0%, #00BFFF var(--autonomy-pct, 0%), #1a2a3a var(--autonomy-pct, 0%), #1a2a3a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: background 0.1s;
+}
+.autonomy-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+    transition: background 0.3s, box-shadow 0.3s;
+    background: #00BFFF;
+}
+.autonomy-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #fff;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+    transition: background 0.3s, box-shadow 0.3s;
+    background: #00BFFF;
+}
+/* Dynamic thumb color based on data-level attribute */
+.autonomy-slider[data-level="low"]::-webkit-slider-thumb {
+    background: #00BFFF;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+}
+.autonomy-slider[data-level="mid"]::-webkit-slider-thumb {
+    background: #66DDAA;
+    box-shadow: 0 0 8px rgba(102, 221, 170, 0.5);
+}
+.autonomy-slider[data-level="high"]::-webkit-slider-thumb {
+    background: #00FF88;
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+}
+.autonomy-slider[data-level="low"]::-moz-range-thumb {
+    background: #00BFFF;
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.5);
+}
+.autonomy-slider[data-level="mid"]::-moz-range-thumb {
+    background: #66DDAA;
+    box-shadow: 0 0 8px rgba(102, 221, 170, 0.5);
+}
+.autonomy-slider[data-level="high"]::-moz-range-thumb {
+    background: #00FF88;
+    box-shadow: 0 0 8px rgba(0, 255, 136, 0.5);
+}
+.autonomy-value-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 12px;
+}
+.autonomy-icon {
+    font-size: 16px;
+}
+.autonomy-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    min-width: 32px;
+}
+.autonomy-mode {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+.autonomy-description {
+    font-size: 10px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.4;
+    font-style: italic;
+}
+
+/* Real agent indicator */
+.drone-item.real-agent {
+    border-left: 2px solid #00BFFF;
+    padding-left: 6px;
+}
+.drone-source-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 4px;
+    border-radius: 3px;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+.drone-source-tag.real {
+    background: rgba(0, 191, 255, 0.25);
+    color: #00BFFF;
+    border: 1px solid rgba(0, 191, 255, 0.4);
+}
+.drone-source-tag.agent {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00FF88;
+    border: 1px solid rgba(0, 255, 136, 0.4);
+}
+.drone-item.agent-driven {
+    border-left: 2px solid #00FF88;
+    padding-left: 6px;
+}
+
 .drone-info {
     flex: 1;
     min-width: 0;
 }
 
 .drone-name {
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
     color: var(--text-primary);
 }
 
 .drone-state {
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
     font-family: var(--font-mono);
 }
@@ -512,7 +647,7 @@ html, body {
 
 .form-label {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
     margin-bottom: var(--space-xs);
@@ -526,7 +661,7 @@ html, body {
     border: 1px solid var(--border-color);
     border-radius: 6px;
     color: var(--text-primary);
-    font-size: 12px;
+    font-size: 13px;
     font-family: inherit;
     transition: border-color var(--transition-fast);
 }
@@ -556,7 +691,7 @@ html, body {
 }
 
 .range-value {
-    font-size: 11px;
+    font-size: 12px;
     font-family: var(--font-mono);
     color: var(--accent-primary);
     text-align: right;
@@ -612,7 +747,7 @@ html, body {
     padding: 0 var(--space-lg);
     background: var(--bg-secondary);
     border-top: 1px solid var(--border-color);
-    font-size: 11px;
+    font-size: 12px;
     color: var(--text-muted);
 }
 

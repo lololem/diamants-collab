@@ -1,11 +1,13 @@
 /**
  * DIAMANTS - Interface Utilisateur Complète
  * ============================================
- * Interface de contrôle DIAMANTS
+ * Interface ROS2/Gazebo style avec contrôles DIAMANTS
  */
 
 // Mode silencieux global
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
+
+import { makeDraggable } from './panel-utils.js';
 
 export class DiamantUI {
     constructor(config = {}) {
@@ -442,6 +444,10 @@ export class DiamantUI {
 
         document.body.appendChild(advancedPanel);
 
+        // ── Drag support ──
+        const advHdr = advancedPanel.querySelector('div[style]');
+        if (advHdr) makeDraggable(advancedPanel, advHdr);
+
         // Gestionnaire de fermeture
         document.getElementById('close-advanced-panel').addEventListener('click', () => {
             advancedPanel.remove();
@@ -613,7 +619,7 @@ export class DiamantUI {
     }
 
     createMainInterface() {
-        // Interface principale
+        // Interface principale ROS2/Gazebo style
         const mainUI = document.createElement('div');
         mainUI.id = 'diamants-ui';
         mainUI.className = 'diamants-interface';
@@ -1354,14 +1360,14 @@ export class DiamantUI {
     }
 
     /**
-     * Mise à jour du bandeau d'information
+     * Mise à jour de la formule DIAMANTS
      */
-    updateFormula(formula = "DIAMANTS - Simulation Active") {
+    updateFormula(formula = "I(t) = ∬Ω |∇(φ+σ)| dΩ") {
         const formulaDisplay = document.getElementById('formula-display');
         if (formulaDisplay) {
             formulaDisplay.innerHTML = `
                 <div class="formula-display">
-                    <strong>${formula}</strong>
+                    <strong>${formula}</strong> - Intelligence Émergente DIAMANTS
                 </div>
             `;
         }

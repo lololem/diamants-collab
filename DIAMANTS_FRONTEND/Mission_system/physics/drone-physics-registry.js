@@ -14,12 +14,19 @@
  *   registry.registerCustomProfile({ id: 'MY_DRONE', ... });
  */
 
-// ─── Built-in profiles (imported at build time via Vite) ─────────────
-import profileCrazyflie from './profiles/crazyflie-2.1.json';
-import profileMavic from './profiles/mavic-pro.json';
-import profilePhantom from './profiles/phantom-4.json';
+// ─── Built-in profiles (imported at build time via Vite ?raw) ────────
+import crazyflieRaw from './profiles/crazyflie-2.1.json?raw';
+import mavicRaw from './profiles/mavic-pro.json?raw';
+import phantomRaw from './profiles/phantom-4.json?raw';
+import x500Raw from './profiles/x500-v2.json?raw';
+import s500Raw from './profiles/s500.json?raw';
+const profileCrazyflie = JSON.parse(crazyflieRaw);
+const profileMavic = JSON.parse(mavicRaw);
+const profilePhantom = JSON.parse(phantomRaw);
+const profileX500 = JSON.parse(x500Raw);
+const profileS500 = JSON.parse(s500Raw);
 
-const BUILT_IN_PROFILES = [profileCrazyflie, profileMavic, profilePhantom];
+const BUILT_IN_PROFILES = [profileCrazyflie, profileMavic, profilePhantom, profileX500, profileS500];
 
 // ─── Default values for optional fields ─────────────────────────────
 const DEFAULTS = {

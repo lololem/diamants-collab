@@ -14,16 +14,17 @@ async function diagnosticComplet() {
     };
 
     const modulesATest = [
-        './drones/authentic-crazyflie.js',
-        './missions/mission-manager.js',
-        './environment/provencal-environment.js',
-        './intelligence/collective-intelligence.js',
-        './ui/diamant-ui.js',
+        '../core/diamants-formulas.js',
+        '../drones/authentic-crazyflie.js',
+        '../missions/mission-manager.js',
+        '../environment/terrain-environment.js',
+        '../intelligence/collective-intelligence.js',
+        '../ui/diamant-ui.js',
         // Nouveaux modules migrés
-        './behaviors/flight-behaviors.js',
-        './behaviors/collaborative-scouting.js',
-        './intelligence/advanced-collective-intelligence.js',
-        './integrated-controller.js'
+        '../behaviors/flight-behaviors.js',
+        '../behaviors/collaborative-scouting.js',
+        '../intelligence/advanced-collective-intelligence.js',
+        '../tools/integrated-controller.js'
     ];
 
     console.log('📋 Test des imports...');
@@ -50,8 +51,19 @@ async function diagnosticComplet() {
     console.log('🧪 Test des méthodes critiques...');
 
     try {
+        // Test DiamantFormulas
+        const { DiamantFormulas } = await import('../core/diamants-formulas.js');
+        const formulas = new DiamantFormulas();
+
+        if (typeof formulas.calculateHarmonique !== 'function') {
+            resultats.erreurs.push('calculateHarmonique manquante dans DiamantFormulas');
+        }
+        if (typeof formulas.calculateSwarmField !== 'function') {
+            resultats.erreurs.push('calculateSwarmField manquante dans DiamantFormulas');
+        }
+
         // Test MissionManager
-        const { MissionManager } = await import('./missions/mission-manager.js');
+        const { MissionManager } = await import('../missions/mission-manager.js');
         const mission = new MissionManager();
 
         if (typeof mission.checkBoundaries !== 'function') {

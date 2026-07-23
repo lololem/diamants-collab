@@ -12,24 +12,31 @@
     },
 
     "performance": {
-        "maxSpeed": 2.5,
-        "maxClimb": 1.5,
+        "maxSpeed": 4.0,
+        "maxClimb": 2.0,
         "cruiseAlt": 3.0,
         "maxAlt": 8.0,
-        "agility": 1.8,
-        "explorationRadius": 40,
+        "agility": 2.2,
+        "explorationRadius": 80,
         "endurance_min": 7
     },
 
     "pid": {
-        "pos":  { "kp": 3.0, "ki": 0.05, "kd": 1.2 },
-        "alt":  { "kp": 4.0, "ki": 0.1,  "kd": 1.5 },
-        "yaw":  { "kp": 2.0, "ki": 0.0,  "kd": 0.3 }
+        "pos":  { "kp": 2.5, "ki": 0.04, "kd": 0.7 },
+        "alt":  { "kp": 2.5, "ki": 0.06, "kd": 0.8 },
+        "yaw":  { "kp": 1.5, "ki": 0.0,  "kd": 0.2 }
     },
 
     "visual": {
         "scale": 15,
         "color": "0x00FF88",
         "model": "crazyflie"
+    },
+
+    "agent": {
+        "role": "reactive",
+        "brainType": "reactive",
+        "teamRole": "scout",
+        "description": "Lightweight reactive scout with Multi-Ranger ToF and wall-following"
     }
 }

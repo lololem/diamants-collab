@@ -26,10 +26,12 @@ export default defineConfig({
   // Laisser Vite choisir un autre port si le 5550 est occupé
   strictPort: false,
   fs: {
-    // Permettre l'accès aux fichiers en dehors du projet (symlinks vers a private repository)
+    // Racine du dépôt uniquement. Un chemin absolu vers un dépôt privé
+    // figurait ici : il exposait l'arborescence privée et autorisait Vite à
+    // servir des fichiers hors du projet. Le dépôt public doit être
+    // autosuffisant.
     allow: [
-      path.resolve(__dirname, '../../../'),
-      '/path/to/private-repo'
+      path.resolve(__dirname, '../../../')
     ]
   }
   },

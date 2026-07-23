@@ -13,23 +13,25 @@ export class MetricsUIConnector {
         // Mapping: nom interne → ID DOM
         this.domMappings = {
             // Intelligence Metrics Panel
-            'totalIntelligence': 'total_intelligence',
+            'stigmergyValue': 'stigmergy_value',
+            'totalIntelligence': 'total_intelligence_display',
             'emergenceLevel': 'emergence_level',
             'cohesionIndex': 'cohesion_index',
             'coordinationScore': 'coordination_score',
             'emergenceBar': 'emergence_bar',
-            
+
+            // Emergence sub-metrics
+            'emM1': 'em_m1',
+            'emM2': 'em_m2',
+            'emM3': 'em_m3',
+
             // Mission Progress Panel
             'missionCoverage': 'mission_coverage',
-            'targetsDiscovered': 'targets_discovered',
-            'missionEfficiency': 'mission_efficiency',
-            'explorationSpeed': 'exploration_speed',
-            
-            // Header status
+
+            // Header status (IDs réels dans index.html)
             'droneCount': 'drone_count',
-            'statusIndicator': 'status_indicator',
-            'intelSummary': 'intel_summary',
-            'emergeSummary': 'emerge_summary'
+            'intelSummary': 'total_intelligence_display',
+            'emergeSummary': 'emergence_display',
         };
         
         // Cache des éléments DOM
@@ -48,9 +50,8 @@ export class MetricsUIConnector {
             const el = document.getElementById(domId);
             if (el) {
                 this.elements[key] = el;
-            } else {
-                console.warn(`MetricsUI: Element #${domId} not found`);
             }
+            // Silently ignore missing elements — not all panels exist in every layout
         });
         
         console.log('📊 MetricsUIConnector initialisé', Object.keys(this.elements).length, 'éléments trouvés');
@@ -95,26 +96,89 @@ export class MetricsUIConnector {
 
         // === Intelligence Metrics ===
         const metrics = controller.metrics || {};
+        const diamantFormulas = controller.diamantFormulas;
+        const sm = diamantFormulas?.swarmMetrics || {};
         
+        // Count drones actually in flight (not IDLE on pad)
+        const flyingDrones = drones.filter(d => d.state && d.state !== 'IDLE' && d.state !== 'LANDED');
+        const anyFlying = flyingDrones.length > 0;
+        
+        // Stigmergie — couverture cellulaire du moteur (proxy visuel)
+        const engine = controller.autonomousFlightEngine;
+        if (engine?.visitedCells) {
+            const visited = engine.visitedCells.size || 0;
+            const bounds = engine.explorationBounds || 60;
+            const cs = engine.cellSize || 3;
+            const totalCells = Math.pow(2 * bounds / cs, 2) || 1;
+            const stigPct = anyFlying ? Math.min(100, (visited / totalCells) * 100) : 0;
+            this.setText('stigmergyValue', `${stigPct.toFixed(0)}%`);
+        }
+
         // Total Intelligence (combinaison de plusieurs facteurs)
         const totalIntel = this.calculateTotalIntelligence(metrics, drones);
-        this.setText('totalIntelligence', totalIntel.toFixed(1));
+        const intelStr = anyFlying ? totalIntel.toFixed(0) : '0';
+        this.setText('totalIntelligence', intelStr);
+        this.setText('intelSummary', intelStr);
         
-        // Emergence Level
-        const emergence = (metrics.emergenceLevel || 0) * 100;
-        this.setText('emergenceLevel', emergence.toFixed(1));
-        
-        // Cohesion Index (calculé depuis les positions des drones)
-        const cohesion = this.calculateCohesion(drones);
+        // Emergence Level — phase transition detector (EI × significance-gated TE)
+        const emergence = anyFlying ? (sm.emergence || 0) * 100 : 0;
+        const detail = diamantFormulas?._emergenceDetail;
+        const phase = detail?.phase || 'centralized';
+
+        // Display numeric emergence value + phase badge
+        const phaseLabels = {
+            'centralized':   'CENTR',
+            'transition':    'TRANS',
+            'self-organized': 'AUTO',
+        };
+        const phaseLabel = phaseLabels[phase] || 'CENTR';
+        const emergencePercent = anyFlying ? Math.round((detail?.smoothed ?? 0) * 100) : 0;
+        this.setText('emergenceLevel', `${emergencePercent}% ${phaseLabel}`);
+
+        // Color the emergence label based on phase
+        const elEmergence = this.elements.emergenceLevel;
+        if (elEmergence) {
+            const phaseColors = {
+                'centralized':   '#888888',
+                'transition':    '#FFAA00',
+                'self-organized': '#00FF88',
+            };
+            elEmergence.style.color = phaseColors[phase] || '#888888';
+            elEmergence.style.fontSize = '11px';
+        }
+
+        // ── Emergence sub-metrics (M1/M2/M3) ──
+        if (detail && anyFlying) {
+            this.setText('emM1', `${detail.m1_coverage ?? 0}%`);
+            this.setText('emM2', `${detail.m2_diversity ?? 0}%`);
+            this.setText('emM3', `${detail.m3_infoFlow ?? 0}%`);
+        } else {
+            this.setText('emM1', '0%');
+            this.setText('emM2', '0%');
+            this.setText('emM3', '0%');
+        }
+
+        // Cohesion Index — scientific: Reynolds cohesion from swarmMetrics
+        const cohesion = anyFlying ? (sm.cohesion || 0) * 100 : 0;
         this.setText('cohesionIndex', cohesion.toFixed(1));
         
-        // Coordination Score
-        const coordination = (metrics.collaborationEfficiency || 0) * 100;
+        // Coordination Score — scientific: Vicsek alignment (= how coordinated)
+        const coordination = anyFlying ? (sm.alignment || 0) * 100 : 0;
         this.setText('coordinationScore', coordination.toFixed(1));
         
-        // Emergence bar (visual indicator)
+        // Emergence bar (visual indicator — maps phase to bar width)
         if (this.elements.emergenceBar) {
-            this.elements.emergenceBar.style.width = `${emergence}%`;
+            // Bar shows 0/50/100 for phase states (not the raw %)
+            const barWidth = phase === 'centralized' ? 0
+                           : phase === 'transition' ? 50
+                           : 100;
+            this.elements.emergenceBar.style.width = `${barWidth}%`;
+            const barColors = {
+                'centralized': '#444',
+                'transition': '#FFAA00',
+                'self-organized': '#00FF88',
+            };
+            this.elements.emergenceBar.style.background = barColors[phase] || '#444';
         }
 
         // === Mission Progress ===
@@ -139,34 +203,42 @@ export class MetricsUIConnector {
         const flyingCount = drones.filter(d => d.state && d.state !== 'IDLE' && d.state !== 'LANDING').length;
         this.setText('droneCount', `${flyingCount}/${drones.length}`);
         
-        // Summary numbers for header
-        this.setText('intelSummary', Math.round(totalIntel).toString());
-        this.setText('emergeSummary', Math.round(emergence).toString());
+        // Header emergence numeric + phase icon
+        const phaseIcons = { 'centralized': '⬜', 'transition': '🟡', 'self-organized': '🟢' };
+        this.setText('emergeSummary', anyFlying
+            ? `${emergencePercent}${phaseIcons[phase] || ''}`
+            : '0');
     }
 
     /**
      * Calcul de l'intelligence collective totale I(t)
-     * Formule: I(t) = α·Coverage + β·Coordination + γ·Emergence
+     * Uses scientific swarm metrics: coverage + alignment + emergence
      */
     calculateTotalIntelligence(metrics, drones) {
-        const α = 0.4;  // Poids couverture
-        const β = 0.3;  // Poids coordination
-        const γ = 0.3;  // Poids émergence
+        const α = 0.35;  // Poids couverture
+        const β = 0.35;  // Poids alignement (Vicsek)
+        const γ = 0.30;  // Poids émergence
         
         const coverage = (metrics.coveragePercentage || 0) / 100;
-        const coordination = metrics.collaborationEfficiency || 0;
-        const emergence = metrics.emergenceLevel || 0;
+        
+        // Use scientific swarm metrics from DIAMANTS formulas
+        const controller = this.system?.integratedController;
+        const sm = controller?.diamantFormulas?.swarmMetrics || {};
+        const alignment = sm.alignment || 0;
+        const emergence = sm.emergence || 0;
         
         // Bonus pour nombre de drones actifs
         const activeRatio = drones.filter(d => d.state && d.state !== 'IDLE').length / Math.max(1, drones.length);
         
-        const I = (α * coverage + β * coordination + γ * emergence) * 100 * activeRatio;
+        const I = (α * coverage + β * alignment + γ * emergence) * 100 * activeRatio;
         return Math.min(100, I);
     }
 
     /**
-     * Calcul de la cohésion de l'essaim
-     * Basé sur l'écart-type des distances au centroïde
+     * Calcul de la cohésion de l'essaim (fallback)
+     * Primary metric now comes from DiamantFormulas.computeReynoldsCohesion()
+     * This method is kept for backward compatibility.
+     * Ref: Reynolds C., SIGGRAPH 1987
      */
     calculateCohesion(drones) {
         if (drones.length < 2) return 0;

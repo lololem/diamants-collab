@@ -7,6 +7,8 @@
 import { logger } from '../core/logger.js';
 import { CollectiveIntelligence } from '../intelligence/collective-intelligence.js';
 import { FlightBehaviors } from './flight-behaviors.js';
+import { EnvironmentVoxelizer } from '../intelligence/environment-voxelizer.js';
+import { createPathfinderFromVoxelGrid } from '../intelligence/drone-pathfinder.js';
 
 // Mode silencieux global - utilise les fonctions globales  
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
@@ -89,6 +91,11 @@ export class CollaborativeScouting {
 
         // Traces de stigmergie simples (pour éviter les erreurs)
         this.stigmergyTraces = new Map();
+
+        // Système de pathfinding Dijkstra (injecté depuis main.js)
+        this.pathfinder = null;
+        this.voxelizer = null;
+        this.activePaths = new Map(); // droneId -> {path: [], currentIndex: 0}
 
         this.initializeScoutingSystem();
     }
@@ -254,12 +261,13 @@ export class CollaborativeScouting {
 
     /**
      * Sélection zone initiale d'exploration
+     * Each drone gets a unique angular sector based on its index and total count
      */
     selectInitialZone(droneId) {
-        // Répartition hexagonale des zones
-        const angles = [0, Math.PI / 3, 2 * Math.PI / 3, Math.PI, 4 * Math.PI / 3, 5 * Math.PI / 3];
         const idx = typeof droneId === 'number' ? droneId : (parseInt(String(droneId).match(/(\d+)/)?.[1] || '0', 10) || 0);
-        const angle = angles[idx % angles.length];
+        // Spread drones evenly around the full circle (one sector per drone)
+        const totalDrones = Math.max(1, this.droneAssignments.size || 10);
+        const angle = (idx / totalDrones) * 2 * Math.PI;
         const distance = this.config.explorationRadius * 0.7;
 
         return {
@@ -474,17 +482,21 @@ export class CollaborativeScouting {
 
     /**
      * Objectif pour drone EXPLORER
+     * Searches near the drone's assigned zone to prevent clustering
      */
     updateExplorerObjective(droneId, assignment, telemetry) {
-        // Chercher zone non explorée la plus proche
-        const unexplored = this.findUnexploredAreas(telemetry.position);
+        // Search for unexplored areas near the drone's ASSIGNED ZONE center
+        // (not its current position) to maintain spatial distribution
+        const searchCenter = assignment.zone?.center || telemetry.position;
+        const unexplored = this.findUnexploredAreas(searchCenter);
 
         if (unexplored.length > 0) {
-            const target = unexplored[0]; // Prendre la plus proche
-            assignment.target = target.position;
+            // Pick a random one from the top 3 nearest to add some diversity
+            const pick = unexplored[Math.floor(Math.random() * Math.min(3, unexplored.length))];
+            assignment.target = pick.position;
 
             // Naviguer vers la cible
-            this.navigateToTarget(droneId, target.position);
+            this.navigateToTarget(droneId, pick.position);
         }
     }
 
@@ -527,22 +539,124 @@ export class CollaborativeScouting {
     }
 
     /**
-     * Navigation vers cible
+     * Configurer le pathfinder Dijkstra (appelé depuis main.js)
+     */
+    setPathfinder(pathfinder, voxelizer = null) {
+        this.pathfinder = pathfinder;
+        this.voxelizer = voxelizer;
+        logger.info('CollaborativeScouting', '🧭 Pathfinder Dijkstra configuré');
+    }
+
+    /**
+     * Navigation vers cible avec pathfinding Dijkstra
+     * Utilise Dijkstra si pathfinder disponible, sinon navigation directe
      */
     navigateToTarget(droneId, target) {
         const physics = this.flightBehaviors.dronePhysics.get(droneId);
         if (!physics) return;
 
+        const currentPos = physics.position;
+        const dx = target.x - currentPos.x;
+        const dz = target.z - currentPos.z;
+        const directDistance = Math.sqrt(dx * dx + dz * dz);
+
+        // Si très proche, navigation directe suffit
+        if (directDistance <= 0.5) return;
+
+        // Utiliser Dijkstra si disponible et distance significative
+        if (this.pathfinder && directDistance > 3.0) {
+            let activePath = this.activePaths.get(droneId);
+            
+            // Calculer nouveau chemin si nécessaire
+            const needsNewPath = !activePath ||
+                activePath.currentIndex >= activePath.path.length - 1 ||
+                this._distanceTo(activePath.goal, target) > 2.0;
+                
+            if (needsNewPath) {
+                const startVec = { x: currentPos.x, y: currentPos.y || 1.5, z: currentPos.z };
+                const goalVec = { x: target.x, y: target.y || 1.5, z: target.z };
+                
+                const path = this.pathfinder.findPath(startVec, goalVec);
+                
+                if (path && path.length > 0) {
+                    activePath = {
+                        path: path,
+                        currentIndex: 0,
+                        goal: { ...target },
+                        timestamp: Date.now()
+                    };
+                    this.activePaths.set(droneId, activePath);
+                    
+                    // Marquer le chemin dans le voxelizer pour visualisation
+                    if (this.voxelizer?.grid) {
+                        this.voxelizer.grid.markPath(path);
+                    }
+                }
+            }
+            
+            // Suivre le chemin Dijkstra
+            if (activePath && activePath.path.length > 0) {
+                this._followPath(droneId, physics, activePath);
+                return;
+            }
+        }
+
+        // Fallback: navigation directe
+        this._navigateDirect(physics, target, directDistance);
+    }
+
+    /**
+     * Suivre un chemin calculé par Dijkstra
+     */
+    _followPath(droneId, physics, activePath) {
+        const path = activePath.path;
+        let idx = activePath.currentIndex;
+        
+        // Trouver le prochain waypoint
+        while (idx < path.length - 1) {
+            const waypoint = path[idx];
+            const dist = this._distanceTo(physics.position, waypoint);
+            if (dist > 0.8) break; // Pas encore atteint ce waypoint
+            idx++;
+        }
+        activePath.currentIndex = idx;
+        
+        const waypoint = path[idx];
+        const dx = waypoint.x - physics.position.x;
+        const dy = (waypoint.y || 1.5) - (physics.position.y || 1.5);
+        const dz = waypoint.z - physics.position.z;
+        const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        
+        if (dist > 0.3) {
+            const speed = Math.min(this.flightBehaviors.config.maxVelocity, dist * 0.6);
+            physics.velocity.x = (dx / dist) * speed;
+            physics.velocity.y = (dy / dist) * speed * 0.5; // Mouvement vertical plus lent
+            physics.velocity.z = (dz / dist) * speed;
+        }
+    }
+
+    /**
+     * Navigation directe vers cible (fallback)
+     */
+    _navigateDirect(physics, target, distance) {
         const dx = target.x - physics.position.x;
         const dz = target.z - physics.position.z;
-        const distance = Math.sqrt(dx * dx + dz * dz);
-
-        if (distance > 0.5) { // Seuil d'arrivée 50cm
+        
+        if (distance > 0.5) {
             const speed = Math.min(this.flightBehaviors.config.maxVelocity, distance * 0.5);
-
             physics.velocity.x = (dx / distance) * speed;
             physics.velocity.z = (dz / distance) * speed;
         }
+    }
+
+    /**
+     * Calcul de distance 3D
+     */
+    _distanceTo(a, b) {
+        const dx = (a.x || 0) - (b.x || 0);
+        const dy = (a.y || 0) - (b.y || 0);
+        const dz = (a.z || 0) - (b.z || 0);
+        return Math.sqrt(dx * dx + dy * dy + dz * dz);
     }
 
     /**

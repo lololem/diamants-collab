@@ -145,14 +145,15 @@ export class TreeTextureEnhancer {
             transparent: false
         });
 
-        // Matériau de feuillage amélioré
+        // Matériau de feuillage amélioré — transparent + DoubleSide for natural canopy
         this.enhancedLeafMaterial = new THREE.MeshLambertMaterial({
             map: this.leafTexture,
             color: '#4CAF50',
             transparent: true,
             opacity: 0.95,
             side: THREE.DoubleSide,
-            alphaTest: 0.1
+            alphaTest: 0.1,
+            depthWrite: true
         });
 
         // Matériaux saisonniers pour variété
@@ -160,26 +161,34 @@ export class TreeTextureEnhancer {
             spring: new THREE.MeshLambertMaterial({
                 color: '#7CB342',
                 transparent: true,
-                opacity: 0.9,
-                side: THREE.DoubleSide
+                opacity: 0.95,
+                side: THREE.DoubleSide,
+                alphaTest: 0.1,
+                depthWrite: true
             }),
             summer: new THREE.MeshLambertMaterial({
                 color: '#4CAF50',
                 transparent: true,
                 opacity: 0.95,
-                side: THREE.DoubleSide
+                side: THREE.DoubleSide,
+                alphaTest: 0.1,
+                depthWrite: true
             }),
             autumn: new THREE.MeshLambertMaterial({
                 color: '#FF8F00',
                 transparent: true,
-                opacity: 0.9,
-                side: THREE.DoubleSide
+                opacity: 0.95,
+                side: THREE.DoubleSide,
+                alphaTest: 0.1,
+                depthWrite: true
             }),
             winter: new THREE.MeshLambertMaterial({
                 color: '#6D4C41',
                 transparent: true,
-                opacity: 0.7,
-                side: THREE.DoubleSide
+                opacity: 0.95,
+                side: THREE.DoubleSide,
+                alphaTest: 0.1,
+                depthWrite: true
             })
         };
     }
@@ -210,17 +219,19 @@ export class TreeTextureEnhancer {
                     child.receiveShadow = true;
                 }
                 
-                // Amélioration du feuillage
+                // Amélioration du feuillage — always replace with MeshLambert for consistent soft look
                 if (this.isLeafMesh(child)) {
+                    // Always replace leaf material with our Lambert material (no specular)
                     child.material = this.seasonalMaterials[season].clone();
-                    
-                    // Variation saisonnière
-                    if (season === 'autumn') {
-                        const autumnColors = ['#FF8F00', '#FF6F00', '#E65100', '#BF360C'];
-                        const randomColor = autumnColors[Math.floor(Math.random() * autumnColors.length)];
-                        child.material.color.setStyle(randomColor);
+                    // Seasonal tinting
+                    const tint = season === 'autumn'
+                        ? ['#FF8F00', '#FF6F00', '#E65100', '#BF360C'][Math.floor(Math.random() * 4)]
+                        : season === 'summer'
+                            ? ['#4CAF50', '#388E3C', '#2E7D32', '#1B5E20'][Math.floor(Math.random() * 4)]
+                            : null;
+                    if (tint) {
+                        child.material.color.setStyle(tint);
                     }
-                    
                     child.castShadow = true;
                     child.receiveShadow = true;
                 }

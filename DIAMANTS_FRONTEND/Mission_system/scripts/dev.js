@@ -17,10 +17,18 @@ async function startDevServer() {
       // Configuration Vite pour DIAMANTS
       root: process.cwd(),
       server: {
-        port: 3000,
+        port: 5550,
         host: 'localhost',
-        open: true,
-        cors: true
+        open: false,
+        cors: true,
+        watch: {
+          followSymlinks: false,
+          ignored: [
+            '**/node_modules/**', '**/dist/**', '**/.cache/**',
+            '**/third-party/**', '**/assets/**', '**/public/**',
+            '**/DIAMANTS_BACKEND/**', '**/log/**', '**/.git/**'
+          ]
+        }
       },
       resolve: {
         alias: {
@@ -36,7 +44,8 @@ async function startDevServer() {
           '@missions': resolve(process.cwd(), './missions'),
           '@environment': resolve(process.cwd(), './environment'),
           '@drones': resolve(process.cwd(), './drones'),
-          '@net': resolve(process.cwd(), './net')
+          '@net': resolve(process.cwd(), './net'),
+          '@ros2_bridge': resolve(process.cwd(), './ros2_bridge')
         }
       },
       optimizeDeps: {
@@ -56,7 +65,7 @@ async function startDevServer() {
     server.printUrls();
     
     console.log('\n✅ Serveur de développement démarré !');
-    console.log('🌐 Interface 3D: http://localhost:3000');
+    console.log('🌐 Interface 3D: http://localhost:5550');
     console.log('🚁 Système multi-drones prêt pour la simulation');
     
   } catch (error) {

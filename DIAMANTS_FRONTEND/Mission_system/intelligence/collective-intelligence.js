@@ -1,12 +1,10 @@
 /**
  * DIAMANTS - Intelligence Comportementale Collective
  * ===================================================
- * Système d'intelligence distribué
+ * Système d'intelligence distribué basé sur les formules DIAMANTS
  */
 
-// Stub neutre (formulas module relocated to private repository)
-const _stub = { intensity: 0.5 };
-const _stubFormulas = { calculateHarmonique: () => _stub };
+import { DiamantFormulas } from '../core/diamants-formulas.js';
 
 // Mode silencieux global
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
@@ -21,7 +19,7 @@ export class CollectiveIntelligence {
             ...config
         };
 
-        this.diamantFormulas = _stubFormulas;
+        this.diamantFormulas = new DiamantFormulas();
 
         // État collectif
         this.collectiveState = {
@@ -49,7 +47,7 @@ export class CollectiveIntelligence {
             stigmergyMarks: [] // Marquage stigmergique (comme les fourmis)
         };
 
-        // Ajout des métriques manquantes de diamants-meshes
+        // Ajout des métriques manquantes de diamants-gazebo-meshes
         this.learningProgress = 0;
         this.innovationIndex = 0;
         this.coherenceIndex = 1.0;
@@ -144,8 +142,8 @@ export class CollectiveIntelligence {
             decisions.push(opinion);
         }
 
-        // 2. Application intelligence collective pour consensus
-        const consensusField = this.diamantFormulas.calculateHarmonique(7, {
+        // 2. Application des formules DIAMANTS pour consensus
+        const consensusField = this.diamantFormulas.calculateHarmonique(7, { // H7 - Consensus
             agents: agents.map(a => a.position),
             opinions: decisions,
             threshold: this.config.decisionThreshold
@@ -189,14 +187,14 @@ export class CollectiveIntelligence {
         }
 
         // Ajout du raisonnement DIAMANTS
-        const diamantInfluence = this.diamantFormulas.calculateHarmonique(3, {
+        const diamantInfluence = this.diamantFormulas.calculateHarmonique(3, { // H3 - Adaptation
             position: agent.position,
             situation: situation,
             experience: agent.experience || 0
         });
 
         opinion.confidence *= diamantInfluence.intensity;
-        opinion.reasoning.push(`influence: ${diamantInfluence.intensity.toFixed(2)}`);
+        opinion.reasoning.push(`DIAMANTS H3: ${diamantInfluence.intensity.toFixed(2)}`);
 
         return opinion;
     }
@@ -282,8 +280,8 @@ export class CollectiveIntelligence {
             pattern.characteristics.opposingActions = [...actionCounts.keys()];
         }
 
-        // Application pour validation
-        const emergenceValue = this.diamantFormulas.calculateHarmonique(12, {
+        // Application des formules DIAMANTS pour validation
+        const emergenceValue = this.diamantFormulas.calculateHarmonique(12, { // H12 - Émergence
             decisions,
             consensusField,
             threshold: this.config.decisionThreshold
@@ -410,8 +408,8 @@ export class CollectiveIntelligence {
 
         this.communicationNetwork.messageQueue.push(message);
 
-        // Application pour propagation
-        const propagationField = this.diamantFormulas.calculateHarmonique(8, {
+        // Application des formules DIAMANTS pour propagation
+        const propagationField = this.diamantFormulas.calculateHarmonique(8, { // H8 - Communication
             source: senderId,
             message: content,
             network: this.communicationNetwork.activeConnections
@@ -480,8 +478,8 @@ export class CollectiveIntelligence {
             this.behaviorMemory.socialInteractions.push(memoryEntry);
         }
 
-        // Application de l'apprentissage collectif
-        const learningField = this.diamantFormulas.calculateHarmonique(9, {
+        // Application de l'harmonique d'apprentissage DIAMANTS
+        const learningField = this.diamantFormulas.calculateHarmonique(9, { // H9 - Apprentissage
             situation,
             decision,
             memory: this.behaviorMemory
@@ -562,8 +560,8 @@ export class CollectiveIntelligence {
             this.collectiveState.leadershipStructure.set(agent.id, currentInfluence);
         }
 
-        // Application du leadership collectif
-        const leadershipField = this.diamantFormulas.calculateHarmonique(11, {
+        // Application de l'harmonique de leadership DIAMANTS
+        const leadershipField = this.diamantFormulas.calculateHarmonique(11, { // H11 - Leadership
             agents,
             leadershipStructure: this.collectiveState.leadershipStructure,
             situation: currentSituation
@@ -732,7 +730,7 @@ export class CollectiveIntelligence {
         log('🧠 Intelligence collective détruite proprement');
     }
 
-    // ===== MÉTHODES MANQUANTES DE DIAMANTS-MESHES =====
+    // ===== MÉTHODES MANQUANTES DE DIAMANTS-GAZEBO-MESHES =====
 
     /**
      * Calcul du progrès d'apprentissage collectif

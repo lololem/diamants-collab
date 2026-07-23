@@ -575,7 +575,11 @@ export class Tree extends THREE.Group {
       color: new THREE.Color(this.options.leaves.tint),
       side: THREE.DoubleSide,
       alphaTest: this.options.leaves.alphaTest,
-      dithering: true
+      dithering: true,
+      depthWrite: true,
+      polygonOffset: true,
+      polygonOffsetFactor: 1,
+      polygonOffsetUnits: 1
     });
 
     // Add custom shader code for branch swaying

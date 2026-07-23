@@ -52,7 +52,7 @@
                 </div>
                 <div class="status-item">
                     <span class="label">Drones</span>
-                    <span class="value" id="header-drone-count">0/8</span>
+                    <span class="value" id="header-drone-count">0/?</span>
                 </div>
                 <div class="status-item">
                     <span class="label">Intel</span>
@@ -123,6 +123,27 @@
                             <button class="btn btn-ghost" id="btn-pattern">
                                 ◈ Pattern
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- Autonomy Slider -->
+                    <div class="panel-section">
+                        <div class="panel-section-title">Mode Autonomie</div>
+                        <div class="autonomy-slider-container">
+                            <div class="autonomy-labels">
+                                <span class="autonomy-label-left">CENTRALISÉ</span>
+                                <span class="autonomy-label-right">DISTRIBUÉ</span>
+                            </div>
+                            <input type="range" class="autonomy-slider" id="autonomy-slider"
+                                   min="0" max="100" step="1" value="0">
+                            <div class="autonomy-value-row">
+                                <span class="autonomy-icon" id="autonomy-icon">🔗</span>
+                                <span class="autonomy-value" id="autonomy-value">0%</span>
+                                <span class="autonomy-mode" id="autonomy-mode">Collaboratif pur</span>
+                            </div>
+                            <div class="autonomy-description" id="autonomy-description">
+                                Tous les drones forment une seule unité coordonnée.
+                            </div>
                         </div>
                     </div>
 
@@ -343,7 +364,7 @@
                                 <span class="text-success font-mono" id="ws-status">●</span>
                             </div>
                             <div style="font-size: 10px; color: var(--text-muted); margin-top: 4px;">
-                                Bridge endpoint
+                                ws://localhost:8765
                             </div>
                         </div>
                     </div>

@@ -4,51 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIAMANTS - Crazyflie Drone Simulation</title>
+    <title>NextGEN — Hypervision 3D Essaim de Drones</title>
     <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="./styles/diamants-ui.css">
     
     <!-- Fonctions globales IMMÉDIATEMENT disponibles -->
     <script>
-        // Mode silencieux et fonctions de logging - PREMIER CHARGEMENT
-        window.SILENT_MODE = true; // RÉACTIVÉ pour stopper le déluge de logs
+        // Mode silencieux et fonctions de logging — SINGLE SOURCE OF TRUTH
+        window.SILENT_MODE = true;
         
-        // Créer les fonctions de logging globales sur window ET comme variables globales
-        window.log = ((...args) => { if (!window.SILENT_MODE) console.log(...args); });
-        window.warn = ((...args) => { 
-            // BLOQUER COMPLÈTEMENT les warnings de collision répétitifs
+        // Logging globales : log() supprimé en SILENT, warn()/error() toujours actifs
+        window.log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
+        window.warn = (...args) => { 
             const msgStr = args.join(' ').toLowerCase();
-            if (msgStr.includes('risque collision') || msgStr.includes('collision entre')) {
-                return; // Silence total pour éviter le déluge
-            }
+            // Suppress repetitive collision warnings only
+            if (msgStr.includes('risque collision') || msgStr.includes('collision entre')) return;
             console.warn(...args); 
-        }); 
-        window.error = ((...args) => { console.error(...args); }); // Gardons les erreurs
-        
-        // SÉCURISÉ: Exposer les fonctions comme variables globales sans eval()
-        // Approche sécurisée pour créer des variables globales
-        window.log = window.log;
-        window.warn = window.warn;
-        window.error = window.error;
-        
-        // Cache bust: 2025-09-13-14:50
-        
-        // Double sécurité: exposer aussi via this (équivalent à window en contexte global)
-        this.log = window.log;
-        this.warn = window.warn;
-        this.error = window.error;
+        }; 
+        window.error = (...args) => console.error(...args);
         
         console.log('✅ Fonctions de logging globales initialisées');
-        console.log('✅ Variables globales log, warn, error créées');
-        // MAINTENIR SILENT_MODE = true pour réduire tous les logs
-        // window.SILENT_MODE = false; // COMMENTÉ - gardons SILENT_MODE = true
-        
-        // Test réduit pour s'assurer que les fonctions sont accessibles (sans error qui pose problème)
-        try {
-            log('✅ Système de logging activé');
-            warn('⚠️ Mode debug activé');
-        } catch (e) {
-            console.error('❌ Erreur test fonctions globales:', e);
-        }
     </script>
 
     <!-- Import map MUST come before any module/preload scripts -->
@@ -63,14 +38,16 @@
 
     <!-- WebGL Detection and Fix Script -->
     <script>
-        // Mode silencieux global - FORCE À TRUE pour silence complet
+        // Logging functions already defined in first script block — just guard
         if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
-        
-        // Fonctions de log globales pour éviter les redéclarations
         if (typeof window.log === 'undefined') {
             window.log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
-            window.warn = (...args) => { if (!window.SILENT_MODE) console.warn(...args); };
-            window.error = (...args) => { if (!window.SILENT_MODE) console.error(...args); };
+        }
+        if (typeof window.warn === 'undefined') {
+            window.warn = (...args) => console.warn(...args); // Never suppress warnings
+        }
+        if (typeof window.error === 'undefined') {
+            window.error = (...args) => console.error(...args);
         }
         
         (function() {
@@ -140,12 +117,24 @@
             display: none !important;
         }
 
+        /* ══ ORCHESTRATION CONSOLE: globally hidden (removed from UI) ══ */
+        #orch-console {
+            display: none !important;
+        }
+
         * {
             user-select: none;
             -webkit-user-drag: none;
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+        }
+
+        :root {
+            --sidebar-width: 420px;
+            --sidebar-scale: 1.4;
+            --sidebar-pad: calc(8px * var(--sidebar-scale));
+            --sidebar-gap: calc(6px * var(--sidebar-scale));
         }
 
         body {
@@ -161,46 +150,108 @@
             /* Force refresh marker */
         }
 
-        /* Interface contrôle simulation */
+        /* Interface ROS2/Gazebo-like */
         #ros_interface {
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
-            width: 220px !important;
+            width: var(--sidebar-width, 300px) !important;
+            min-width: 220px;
+            max-width: min(55vw, 1200px);
             height: 100vh !important;
             background: linear-gradient(180deg, rgba(40, 44, 52, 0.95), rgba(25, 30, 40, 0.95));
             backdrop-filter: blur(8px);
             border-right: 2px solid #00CCFF;
-            z-index: 999999 !important;
+            z-index: 900 !important;
             overflow-y: auto;
-            padding: 6px;
+            padding: var(--sidebar-pad);
             box-sizing: border-box;
             transform: translateX(0);
             transition: transform 0.3s ease;
+            /* Base font size scaled by sidebar width */
+            font-size: calc(10px * var(--sidebar-scale, 1));
+        }
+
+        /* Dynamic scaling for ALL inline-styled elements inside sidebar */
+        #ros_interface label,
+        #ros_interface span,
+        #ros_interface div,
+        #ros_interface input,
+        #ros_interface select,
+        #ros_interface option,
+        #ros_interface button,
+        #ros_interface p,
+        #ros_interface h3,
+        #ros_interface h4 {
+            font-size: inherit !important;
+        }
+        /* Restore specific sizes relative to scale */
+        #ros_interface .ros_panel h3 {
+            font-size: calc(12px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .btn_ros {
+            font-size: calc(10px * var(--sidebar-scale, 1)) !important;
+        }
+        #ros_interface .metric_value {
+            font-size: calc(11px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .metric_display {
+            font-size: calc(10px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .drone_status {
+            font-size: calc(10px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .topic_monitor {
+            font-size: calc(9px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .emergence-sub__row {
+            font-size: calc(9px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .ros_button {
+            font-size: calc(11px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface .autonomy-ticks span {
+            font-size: calc(9px * var(--sidebar-scale)) !important;
+        }
+        /* Scale all input/select/button sizes proportionally */
+        #ros_interface select,
+        #ros_interface input[type="text"],
+        #ros_interface input[type="number"] {
+            padding: calc(4px * var(--sidebar-scale)) calc(6px * var(--sidebar-scale)) !important;
+            border-radius: calc(4px * var(--sidebar-scale)) !important;
+        }
+        #ros_interface input[type="range"] {
+            height: calc(6px * var(--sidebar-scale));
+            margin: calc(4px * var(--sidebar-scale)) 0;
+        }
+        /* Scale gap/spacing on flex and grid containers */
+        #ros_interface div[style*="display: flex"],
+        #ros_interface div[style*="display:flex"] {
+            gap: calc(6px * var(--sidebar-scale));
+        }
+        /* Emergence bar and progress indicators */
+        #ros_interface .emergence_indicator {
+            height: calc(8px * var(--sidebar-scale));
+            margin: calc(5px * var(--sidebar-scale)) 0;
+        }
+        #ros_interface .metric_bar {
+            height: calc(20px * var(--sidebar-scale));
+            margin: calc(5px * var(--sidebar-scale)) 0;
         }
 
         /* Force pour empêcher tout recouvrement du panneau */
-        #ros_interface::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            z-index: 1000000 !important;
-            pointer-events: none;
+        #ros_interface {
+            isolation: isolate; /* Creates a stacking context without z-index arms race */
         }
 
-        /* S'assurer que tous les enfants du panneau restent au-dessus */
-        #ros_interface * {
-            z-index: 1000001 !important;
+        /* S'assurer que tous les enfants du panneau restent au-dessus — via stacking context, not z-index */
+        #ros_interface > * {
             position: relative;
         }
 
         /* Anti-recouvrement : masquer ou repositionner les bandeaux flottants */
-        div[style*="position: fixed"]:not(#ros_interface):not(#toggle_panel):not(#canvas_container):not(#tactical-minimap):not(#diamants-ui-overlay),
-        div[style*="position: absolute"]:not(#ros_interface *),
+        div[style*="position: fixed"]:not(#ros_interface):not(#toggle_panel):not(#canvas_container):not(#tactical-minimap):not(#diamants-ui-overlay):not(#marl-training-panel):not(#swarm-rl-panel):not(#orch-console):not(#optimal-search-ui):not(#advanced-panel):not(#panel-feedback):not(#diamant-log-control):not(#diamants-harmonics-hud):not(#webgl-error-overlay):not(#loading-indicator):not(#quality-control-panel):not(#mobile-toolbar):not(#mobile-sidebar-backdrop):not(#minimaps-container):not(#llm-chat-fab):not(#llm-chat-panel):not(#llm-decision-toasts):not(#llm-decision-overlay):not(#mobile-mission-sheet):not(#beacon-placement-hud):not(#follow-drone-fab):not(#follow-drone-hud):not(#drone-select-panel),
+        div[style*="position: absolute"]:not(#ros_interface *):not(#marl-training-panel *):not(#swarm-rl-panel *):not(#orch-console *):not(#optimal-search-ui *):not(#advanced-panel *):not(#diamant-log-control *):not(#diamants-harmonics-hud *):not(#quality-control-panel *),
         .status-banner,
         .floating-banner,
         .overlay-banner {
@@ -212,8 +263,8 @@
         }
 
         /* Masquer spécifiquement les bandeaux de statut qui interfèrent */
-        [class*="status"]:not(#ros_interface *),
-        [id*="status"]:not(#ros_interface *) {
+        [class*="status"]:not(#ros_interface *):not(#marl-training-panel *):not(#swarm-rl-panel *):not(#orch-console *):not(#optimal-search-ui *):not(#advanced-panel *):not(#diamant-log-control *):not(#diamants-harmonics-hud *):not(#quality-control-panel *),
+        [id*="status"]:not(#ros_interface *):not(#marl-training-panel *):not(#swarm-rl-panel *):not(#orch-console *):not(#optimal-search-ui *):not(#advanced-panel *):not(#diamant-log-control *):not(#diamants-harmonics-hud *):not(#quality-control-panel *) {
             top: 60px !important;
             left: 240px !important;
         }
@@ -247,10 +298,46 @@
             display: none !important;
         }
         /* Minimap masquée par défaut (toggle JS via style.display) */
-        #minimap,
         #tactical-minimap {
             display: none;
         }
+
+        /* ── Autonomy Stepped Slider ── */
+        .autonomy-slider-wrap { position: relative; padding: 0 2px; }
+        .autonomy-slider {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 6px;
+            background: linear-gradient(to right, #00BFFF, #33bbdd, #66DDAA, #88dd88, #aaee66, #00FF88);
+            border-radius: 3px; outline: none; cursor: pointer;
+            margin: 4px 0 0 0;
+        }
+        .autonomy-slider::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; cursor: pointer;
+            border: 2px solid #00ccff;
+            box-shadow: 0 0 8px rgba(0,204,255,0.7);
+            margin-top: -5px;
+            transition: box-shadow 0.2s;
+        }
+        .autonomy-slider::-moz-range-thumb {
+            width: 16px; height: 16px; border-radius: 50%;
+            background: #fff; cursor: pointer;
+            border: 2px solid #00ccff;
+            box-shadow: 0 0 8px rgba(0,204,255,0.7);
+        }
+        .autonomy-ticks {
+            display: flex; justify-content: space-between;
+            padding: 0; margin: 2px 0 0 0;
+        }
+        .autonomy-ticks span {
+            font-size: 7.5px; color: #667;
+            text-align: center; flex: 1;
+            cursor: pointer; transition: color 0.2s;
+            line-height: 1.2;
+        }
+        .autonomy-ticks span:hover { color: #aaddff; }
+        .autonomy-ticks span.active { color: #ffffff; font-weight: bold; }
 
         /* Contrôle strict de la mini-carte tactique créée par l'UI */
         #tactical-minimap {
@@ -274,17 +361,17 @@
             background: rgba(60, 70, 80, 0.8);
             border: 1px solid #00AAFF;
             border-radius: 6px;
-            margin: 6px 0;
-            padding: 8px;
+            margin: var(--sidebar-gap) 0;
+            padding: var(--sidebar-pad);
         }
 
         .ros_panel h3 {
             margin: 0 0 6px 0;
             color: #00FFFF;
-            font-size: 12px;
+            font-size: calc(12px * var(--sidebar-scale));
             text-transform: uppercase;
             border-bottom: 1px solid #00AAFF;
-            padding-bottom: 3px;
+            padding-bottom: 4px;
         }
 
         /* Mission Control theme for DIAMANTS status panel */
@@ -304,22 +391,24 @@
 
         .mission_control {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px;
-            margin: 6px 0;
+            grid-template-columns: repeat(auto-fill, minmax(calc(80px * var(--sidebar-scale)), 1fr));
+            gap: calc(4px * var(--sidebar-scale));
+            margin: var(--sidebar-gap) 0;
         }
 
         .btn_ros {
-            padding: 6px 8px;
+            padding: calc(6px * var(--sidebar-scale)) calc(8px * var(--sidebar-scale));
             background: linear-gradient(45deg, #1e3a8a, #3b82f6);
             color: white;
             border: 1px solid #60a5fa;
-            border-radius: 4px;
+            border-radius: calc(4px * var(--sidebar-scale));
             cursor: pointer;
-            font-size: 10px;
+            font-size: calc(10px * var(--sidebar-scale));
             font-weight: bold;
             text-align: center;
             transition: all 0.3s ease;
+            min-height: calc(28px * var(--sidebar-scale));
+            line-height: 1.3;
         }
 
         .btn_ros:hover {
@@ -337,12 +426,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 8px;
-            margin: 3px 0;
+            padding: calc(5px * var(--sidebar-scale)) calc(7px * var(--sidebar-scale));
+            margin: calc(3px * var(--sidebar-scale)) 0;
             background: rgba(0, 0, 0, 0.4);
-            border-radius: 4px;
-            border-left: 3px solid #00FF88;
-            font-size: 11px;
+            border-radius: calc(4px * var(--sidebar-scale));
+            border-left: calc(3px * var(--sidebar-scale)) solid #00FF88;
+            font-size: calc(10px * var(--sidebar-scale));
         }
 
         .drone_status.inactive {
@@ -352,36 +441,64 @@
 
         .metric_display {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            font-size: 10px;
+            grid-template-columns: repeat(auto-fill, minmax(calc(70px * var(--sidebar-scale)), 1fr));
+            gap: calc(6px * var(--sidebar-scale));
+            font-size: calc(9px * var(--sidebar-scale));
         }
 
         .metric_item {
             background: rgba(0, 0, 0, 0.6);
-            padding: 6px;
-            border-radius: 4px;
+            padding: calc(5px * var(--sidebar-scale));
+            border-radius: calc(4px * var(--sidebar-scale));
             text-align: center;
         }
 
         .metric_value {
             color: #00FF88;
             font-weight: bold;
-            font-size: 12px;
+            font-size: calc(11px * var(--sidebar-scale));
+        }
+
+        /* ── Expandable emergence sub-metrics ── */
+        .metric_item--expandable {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .metric_item--expandable:hover {
+            background: rgba(0, 170, 255, 0.15);
+        }
+        .emergence-sub {
+            margin-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 4px;
+        }
+        .emergence-sub__row {
+            display: flex;
+            justify-content: space-between;
+            font-size: calc(8px * var(--sidebar-scale));
+            padding: 2px 0;
+            color: #aaa;
+        }
+        .emergence-sub__val {
+            font-weight: bold;
+            color: #00ccff;
+            min-width: 32px;
+            text-align: right;
         }
 
         .ros_button {
             background: linear-gradient(45deg, #00AAFF, #0088CC);
             color: white;
             border: none;
-            padding: 8px 16px;
-            margin: 4px 2px;
-            border-radius: 6px;
+            padding: calc(7px * var(--sidebar-scale)) calc(14px * var(--sidebar-scale));
+            margin: calc(4px * var(--sidebar-scale)) calc(2px * var(--sidebar-scale));
+            border-radius: calc(6px * var(--sidebar-scale));
             cursor: pointer;
-            font-size: 12px;
+            font-size: calc(11px * var(--sidebar-scale));
             font-weight: bold;
             transition: all 0.3s ease;
             text-transform: uppercase;
+            min-height: calc(30px * var(--sidebar-scale));
         }
 
         .ros_button:hover {
@@ -400,13 +517,13 @@
 
         .topic_monitor {
             font-family: 'Roboto Mono', monospace;
-            font-size: 9px;
+            font-size: calc(8px * var(--sidebar-scale));
             background: rgba(0, 20, 40, 0.9);
-            padding: 8px;
-            border-radius: 6px;
-            margin: 5px 0;
-            border-left: 3px solid #FFD700;
-            max-height: 120px;
+            padding: calc(6px * var(--sidebar-scale));
+            border-radius: calc(6px * var(--sidebar-scale));
+            margin: calc(5px * var(--sidebar-scale)) 0;
+            border-left: calc(3px * var(--sidebar-scale)) solid #FFD700;
+            max-height: calc(120px * var(--sidebar-scale));
             overflow-y: auto;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -457,6 +574,150 @@
             }
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to   { opacity: 0; transform: translateY(-4px); }
+        }
+
+        /* ── LLM Decision Toasts (on 3D view) ── */
+        #llm-decision-toasts {
+            position: fixed;
+            top: 60px;
+            left: 10px;
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            pointer-events: none;
+            max-height: 40vh;
+            overflow: hidden;
+        }
+        @media (max-width: 768px) {
+            #llm-decision-toasts {
+                top: 46px;
+                left: 6px;
+                max-width: 55vw;
+            }
+        }
+
+        /* ── Beacon Placement Mode Floating HUD ── */
+        #beacon-placement-hud {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 9000;
+            background: rgba(5, 15, 30, 0.92);
+            border: 2px solid rgba(251, 191, 36, 0.5);
+            border-radius: 16px;
+            padding: 20px 28px;
+            text-align: center;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 0 40px rgba(251, 191, 36, 0.2);
+            animation: fadeIn 0.3s;
+            pointer-events: auto;
+        }
+        #beacon-placement-hud.active { display: block; }
+        #beacon-placement-hud .bph-icon { font-size: 42px; margin-bottom: 8px; }
+        #beacon-placement-hud .bph-title {
+            font-size: 16px; font-weight: 700; color: #fbbf24; margin-bottom: 6px;
+        }
+        #beacon-placement-hud .bph-hint {
+            font-size: 12px; color: #aaa; margin-bottom: 14px; line-height: 1.5;
+        }
+        #beacon-placement-hud .bph-cancel {
+            padding: 10px 28px; border-radius: 10px;
+            background: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #ff6b6b; font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: background 0.15s;
+        }
+        #beacon-placement-hud .bph-cancel:hover {
+            background: rgba(239, 68, 68, 0.35);
+        }
+        @media (max-width: 768px) {
+            #beacon-placement-hud {
+                top: auto; bottom: 80px; left: 10px; right: 10px;
+                transform: none; padding: 16px 18px;
+            }
+        }
+
+        /* ── Mobile Mission Quick Sheet ── */
+        #mobile-mission-sheet {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            z-index: 8000;
+            background: rgba(5, 10, 25, 0.96);
+            border-top: 2px solid rgba(0, 180, 255, 0.4);
+            border-radius: 18px 18px 0 0;
+            padding: 16px 14px calc(env(safe-area-inset-bottom, 0px) + 60px);
+            max-height: 70vh;
+            overflow-y: auto;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.6);
+            animation: slideUp 0.25s ease-out;
+        }
+        #mobile-mission-sheet.active { display: block; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+        #mobile-mission-sheet .mms-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0, 180, 255, 0.2);
+        }
+        #mobile-mission-sheet .mms-header h3 {
+            margin: 0; font-size: 15px; color: #00d4ff;
+        }
+        #mobile-mission-sheet .mms-close {
+            width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(255, 80, 80, 0.15); border: 1px solid rgba(255, 80, 80, 0.4);
+            color: #ff6b6b; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        #mobile-mission-sheet .mms-actions {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+            margin-bottom: 12px;
+        }
+        #mobile-mission-sheet .mms-btn {
+            padding: 12px 8px; border-radius: 10px; border: 1px solid rgba(0, 180, 255, 0.25);
+            background: rgba(0, 20, 50, 0.7); color: #fff; font-size: 13px;
+            font-weight: 600; cursor: pointer; text-align: center;
+            transition: background 0.15s, transform 0.1s;
+        }
+        #mobile-mission-sheet .mms-btn:active { transform: scale(0.96); }
+        #mobile-mission-sheet .mms-btn.launch {
+            background: linear-gradient(135deg, #059669, #10b981);
+            border-color: rgba(16, 185, 129, 0.5);
+            grid-column: span 2;
+        }
+        #mobile-mission-sheet .mms-btn.stop {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            border-color: rgba(239, 68, 68, 0.5);
+            grid-column: span 2;
+        }
+        #mobile-mission-sheet .mms-select {
+            width: 100%; padding: 10px 12px; margin: 6px 0;
+            background: rgba(10, 15, 30, 0.9); color: #00ffff;
+            border: 1px solid rgba(0, 150, 255, 0.3); border-radius: 8px;
+            font-size: 16px; cursor: pointer; outline: none;
+            -webkit-appearance: menulist; appearance: menulist;
+            touch-action: manipulation;
+            min-height: 44px;
+        }
+        #mobile-mission-sheet label {
+            font-size: 11px; color: #00ccff; font-weight: 600;
+            margin-top: 8px; display: block;
+        }
+
         .emergence_indicator {
             width: 100%;
             height: 8px;
@@ -503,8 +764,8 @@
 
         /* Ajustement quand le panneau est visible */
         #canvas_container.panel-visible {
-            left: 220px !important;
-            width: calc(100vw - 220px) !important;
+            left: var(--sidebar-width, 300px) !important;
+            width: calc(100vw - var(--sidebar-width, 300px)) !important;
             border: 1px solid rgba(0, 170, 255, 0.3);
         }
 
@@ -536,7 +797,7 @@
 
         /* Position du bouton quand le panneau est visible */
         #toggle_panel.panel-visible {
-            left: 230px !important;
+            left: calc(var(--sidebar-width, 300px) + 10px) !important;
         }
 
         #toggle_panel:hover {
@@ -549,38 +810,534 @@
             transition: transform 0.3s ease !important;
         }
 
-        /* Minimap - Toujours visible et bien positionnée */
-        #minimap {
+        /* ═══ Sidebar Resize Handle ═══ */
+        #sidebar-resize-handle {
+            position: absolute;
+            top: 0;
+            right: -4px;
+            width: 8px;
+            height: 100%;
+            cursor: ew-resize;
+            z-index: 100 !important;
+            background: transparent;
+            transition: background 0.2s ease;
+        }
+        #sidebar-resize-handle:hover,
+        #sidebar-resize-handle.dragging {
+            background: rgba(0, 204, 255, 0.4);
+        }
+        #sidebar-resize-handle::after {
+            content: '⋮';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(0, 204, 255, 0.5);
+            font-size: 14px;
+            pointer-events: none;
+        }
+
+        /* ═══ Minimaps — hidden on all platforms (use map picker instead) ═══ */
+        #minimaps-container {
+            display: none !important;
+        }
+        /* Hide ALL minimap panels even if detached to body by viewPersistence */
+        .minimap-panel {
+            display: none !important;
+        }
+
+        /* ── Master toggle: hidden (minimaps accessed via picker only) ── */
+        #minimaps-master-toggle {
+            display: none !important;
+        }
+
+        /* ── Desktop "Cartes" floating button (opens picker) ── */
+        #desktop-maps-fab {
             position: fixed;
-            bottom: 20px;
+            bottom: 78px;
             right: 20px;
-            width: 320px;
+            z-index: 160;
+            height: 38px;
+            padding: 0 16px;
+            border-radius: 20px;
+            border: 1.5px solid rgba(0, 200, 255, 0.4);
+            background: rgba(0, 12, 30, 0.85);
+            color: #00d4ff;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+            transition: background 0.2s, transform 0.15s, border-color 0.2s;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            letter-spacing: 0.3px;
+        }
+        #desktop-maps-fab:hover {
+            background: rgba(0, 40, 80, 0.95);
+            border-color: rgba(0, 200, 255, 0.7);
+            transform: scale(1.04);
+        }
+        #desktop-maps-fab:active {
+            transform: scale(0.97);
+        }
+        @media (max-width: 768px), (max-height: 500px) and (max-width: 960px) {
+            #desktop-maps-fab { display: none !important; }
+        }
+
+        /* Minimap commune */
+        .minimap-panel {
+            --minimap-fs: 12px;
+            width: 280px;
             background: rgba(10, 22, 40, 0.95);
-            border: 2px solid #00FF88;
-            border-radius: 10px;
-            z-index: 150;
-            display: block;
-            padding-bottom: 8px;
-            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            padding-bottom: 4px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+            overflow: auto;
+            flex-shrink: 0;
+            resize: vertical;
+            min-height: 120px;
+            font-size: var(--minimap-fs);
+            transition: max-height 0.25s ease, opacity 0.2s ease;
+        }
+        /* Hidden minimap: completely removed from flow */
+        .minimap-panel.minimap-hidden {
+            display: none !important;
+        }
+        /* Collapsed minimap: show only the header */
+        .minimap-panel.minimap-collapsed {
+            min-height: 0 !important;
+            max-height: 34px !important;
+            overflow: hidden !important;
+            resize: none !important;
+            padding-bottom: 0 !important;
+        }
+        .minimap-panel.minimap-collapsed canvas {
+            display: none !important;
+        }
+        .minimap-panel.minimap-collapsed .minimap-footer-row {
+            display: none !important;
         }
 
-        #minimap canvas {
-            width: calc(100% - 16px);
-            height: 260px;
-            margin: 8px;
-            border-radius: 6px;
-            background: #0a1628;
+        .minimap-panel canvas {
+            width: calc(100% - 12px);
+            height: calc(100% - 42px);
+            min-height: 100px;
+            margin: 6px;
+            border-radius: 4px;
+            background: #080C18;
         }
 
-        #minimap h4 {
+        .minimap-panel .minimap-header {
             margin: 0;
-            padding: 8px 12px;
-            background: linear-gradient(90deg, #059669, #10b981);
+            padding: 6px 12px;
             color: white;
-            font-size: 11px;
+            font-size: var(--minimap-fs);
+            font-weight: 700;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        /* Detach / Dock button on minimap header */
+        .minimap-detach-btn,
+        .minimap-close-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(6, 182, 212, 0.2);
+            border: 1px solid rgba(6, 182, 212, 0.5);
+            border-radius: 5px;
+            color: #06b6d4;
+            font: inherit;
+            font-size: calc(var(--minimap-fs) * 1.25);
+            cursor: pointer;
+            padding: 3px 8px;
+            line-height: 1;
+            opacity: 0.85;
+            transition: opacity 0.15s, background 0.15s, transform 0.15s;
+            z-index: 2;
+        }
+        .minimap-detach-btn { right: 4px; }
+        .minimap-close-btn {
+            right: 36px;
+            color: #ff6b6b;
+            background: rgba(255, 80, 80, 0.15);
+            border-color: rgba(255, 80, 80, 0.4);
+            font-size: calc(var(--minimap-fs) * 1.1);
+            padding: 3px 7px;
+        }
+        .minimap-detach-btn:hover,
+        .minimap-close-btn:hover {
+            opacity: 1;
+            background: rgba(6, 182, 212, 0.4);
+            transform: translateY(-50%) scale(1.15);
+        }
+        .minimap-close-btn:hover {
+            background: rgba(255, 80, 80, 0.35);
+        }
+
+        /* Detached minimap — floating panel */
+        .minimap-panel.detached {
+            position: fixed !important;
+            z-index: 950 !important;
+            resize: none;
+            overflow: auto;
+            min-width: 220px;
+            min-height: 180px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 0 1px rgba(255,255,255,0.2);
+            transition: none;
+        }
+        .minimap-panel.detached .minimap-header {
+            cursor: grab;
+        }
+
+        /* Snapped-left: fills left half of viewport */
+        .minimap-panel.snapped-left {
+            left: 0 !important;
+            top: 0 !important;
+            right: auto !important;
+            width: 50vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            z-index: 7600 !important;
+            transition: left 0.2s ease, top 0.2s ease, width 0.2s ease, height 0.2s ease;
+        }
+        .minimap-panel.snapped-left .minimap-header {
+            border-radius: 0;
+        }
+
+        /* Snapped-right: fills right half of viewport */
+        .minimap-panel.snapped-right {
+            right: 0 !important;
+            top: 0 !important;
+            left: auto !important;
+            width: 50vw !important;
+            height: 100vh !important;
+            border-radius: 0 !important;
+            z-index: 7600 !important;
+            transition: right 0.2s ease, top 0.2s ease, width 0.2s ease, height 0.2s ease;
+        }
+        .minimap-panel.snapped-right .minimap-header {
+            border-radius: 0;
+        }
+
+        /* Grab cursor on docked minimap headers — hint they're draggable */
+        .minimap-panel:not(.detached) .minimap-header {
+            cursor: grab;
+        }
+
+        /* Ghost preview shown while dragging near edge */
+        #minimap-snap-ghost {
+            display: none;
+            position: fixed;
+            z-index: 940;
+            pointer-events: none;
+            background: rgba(6, 182, 212, 0.08);
+            border: 2px solid rgba(6, 182, 212, 0.35);
+            border-radius: 8px;
+            transition: opacity 0.15s;
+        }
+        #minimap-snap-ghost.visible {
+            display: block;
+        }
+        #minimap-snap-ghost.snap-left {
+            left: 0; top: 0; width: 50vw; height: 100vh; border-radius: 0;
+        }
+        #minimap-snap-ghost.snap-right {
+            right: 0; top: 0; left: auto; width: 50vw; height: 100vh; border-radius: 0;
+        }
+        .minimap-panel.detached canvas {
+            width: calc(100% - 12px) !important;
+            height: calc(100% - 42px) !important;
+        }
+
+        /* Hide expand indicator when detached (replaced by dock btn) */
+        .minimap-panel.detached .minimap-header::after {
+            display: none;
+        }
+
+        /* Expand indicator on header (docked state) — double-click to enlarge */
+        .minimap-panel:not(.detached) .minimap-header::after {
+            content: '⤢';
+            position: absolute;
+            right: 68px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: var(--minimap-fs);
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        /* ═══ Minimap Picker (bottom sheet — all platforms) ═══ */
+        #minimap-picker-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8000;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            align-items: flex-end;
+            justify-content: center;
+        }
+        #minimap-picker-overlay.active { display: flex; }
+        #minimap-picker-sheet {
+            width: 100%;
+            max-width: 500px;
+            max-height: 75vh;
+            background: rgba(5, 15, 30, 0.97);
+            border-radius: 20px 20px 0 0;
+            border-top: 1.5px solid rgba(0, 180, 255, 0.3);
+            padding: 16px 12px 24px;
+            overflow-y: auto;
+        }
+        @media (max-width: 768px) {
+            #minimap-picker-sheet {
+                max-width: 100%;
+                padding-bottom: calc(var(--mobile-bar, 62px) + 12px);
+            }
+        }
+        #minimap-picker-sheet h3 {
+            margin: 0 0 12px;
+            text-align: center;
+            font-size: 15px;
+            color: #cde;
+            font-weight: 600;
+        }
+        .minimap-pick-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            margin: 4px 0;
+            background: rgba(0, 40, 80, 0.3);
+            border: 1px solid rgba(0, 150, 200, 0.2);
+            border-radius: 12px;
+            cursor: pointer;
+            color: #cde;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background 0.15s, border-color 0.15s;
+            -webkit-tap-highlight-color: rgba(0, 200, 255, 0.15);
+        }
+        .minimap-pick-item:active,
+        .minimap-pick-item:hover {
+            background: rgba(0, 80, 140, 0.5);
+            border-color: rgba(0, 200, 255, 0.5);
+        }
+        .minimap-pick-icon { font-size: 24px; flex-shrink: 0; }
+        .minimap-pick-label { flex: 1; }
+
+        /* ═══ Fullscreen Minimap Viewer (all platforms) ═══ */
+        #minimap-fullscreen-viewer {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8500;
+            background: rgba(0, 5, 15, 0.97);
+            flex-direction: column;
+        }
+        #minimap-fullscreen-viewer.active { display: flex; }
+        #minimap-viewer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: rgba(0, 15, 35, 0.95);
+            border-bottom: 1px solid rgba(0, 180, 255, 0.3);
+            min-height: 48px;
+        }
+        #minimap-viewer-title {
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        #minimap-viewer-close {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 80, 80, 0.15);
+            border: 1px solid rgba(255, 80, 80, 0.4);
+            color: #ff6b6b;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #minimap-viewer-body {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            overflow: hidden;
+        }
+        #minimap-viewer-body canvas {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 8px;
+            background: #080C18;
+        }
+
+        /* ── Minimap custom resize handles (detached) ── */
+        .minimap-resize { position: absolute; z-index: 10; }
+        .minimap-resize.corner { width: 14px; height: 14px; }
+        .minimap-resize.corner::after {
+            content: ''; position: absolute; width: 8px; height: 8px;
+            border-color: rgba(6, 182, 212, 0.4); border-style: solid; border-width: 0;
+            opacity: 0; transition: opacity 0.15s;
+        }
+        .minimap-resize.corner:hover::after { opacity: 1; }
+        .minimap-resize.tl { top: 0; left: 0; cursor: nwse-resize; }
+        .minimap-resize.tl::after { top: 2px; left: 2px; border-top-width: 2px; border-left-width: 2px; border-radius: 3px 0 0 0; }
+        .minimap-resize.tr { top: 0; right: 0; cursor: nesw-resize; }
+        .minimap-resize.tr::after { top: 2px; right: 2px; border-top-width: 2px; border-right-width: 2px; border-radius: 0 3px 0 0; }
+        .minimap-resize.bl { bottom: 0; left: 0; cursor: nesw-resize; }
+        .minimap-resize.bl::after { bottom: 2px; left: 2px; border-bottom-width: 2px; border-left-width: 2px; border-radius: 0 0 0 3px; }
+        .minimap-resize.br { bottom: 0; right: 0; cursor: nwse-resize; }
+        .minimap-resize.br::after { bottom: 2px; right: 2px; border-bottom-width: 2px; border-right-width: 2px; border-radius: 0 0 3px 0; }
+        .minimap-resize.edge-t { top: 0; left: 14px; right: 14px; height: 5px; cursor: ns-resize; }
+        .minimap-resize.edge-b { bottom: 0; left: 14px; right: 14px; height: 5px; cursor: ns-resize; }
+        .minimap-resize.edge-l { left: 0; top: 14px; bottom: 14px; width: 5px; cursor: ew-resize; }
+        .minimap-resize.edge-r { right: 0; top: 14px; bottom: 14px; width: 5px; cursor: ew-resize; }
+
+        /* ── Minimap responsive ── */
+        @media (max-width: 640px) {
+            #minimaps-container { right: 4px; bottom: 4px; gap: 4px; }
+            .minimap-panel { width: 200px; min-height: 100px; }
+            .minimap-panel canvas { min-height: 70px; }
+        }
+        @media (max-height: 500px) {
+            #minimaps-container { max-height: calc(100vh - 12px); gap: 3px; }
+        }
+
+        /* ── Fullscreen minimap overlay (lightbox) ── */
+        #minimap-lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 8000;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+            align-items: center;
+            justify-content: center;
+        }
+        #minimap-lightbox.active {
+            display: flex;
+        }
+        #minimap-lightbox-inner {
+            background: rgba(10, 22, 40, 0.97);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+            max-width: 90vw;
+            max-height: 85vh;
+        }
+        #minimap-lightbox-header {
+            padding: 8px 16px;
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
             text-align: center;
             border-radius: 8px 8px 0 0;
             letter-spacing: 0.5px;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+        }
+        #minimap-lightbox-close {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(255, 80, 80, 0.15);
+            border: 1px solid rgba(255, 80, 80, 0.4);
+            color: #ff6b6b;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s;
+        }
+        #minimap-lightbox-close:hover {
+            background: rgba(255, 80, 80, 0.35);
+        }
+        #minimap-lightbox-header::after {
+            display: none;
+        }
+        #minimap-lightbox-canvas {
+            display: block;
+            border-radius: 6px;
+            background: #080C18;
+        }
+
+        /* Exploration minimap (green theme) */
+        #minimap {
+            border: 1.5px solid #00FF88;
+        }
+        #minimap .minimap-header {
+            background: linear-gradient(90deg, #059669, #10b981);
+        }
+
+        /* Perception / SLAM minimap (cyan theme) */
+        #perception-map {
+            border: 1.5px solid #00C8FF;
+        }
+        #perception-map .minimap-header {
+            background: linear-gradient(90deg, #0369a1, #0ea5e9);
+        }
+
+        /* SITAC minimap (NATO blue theme — tactical) */
+        #sitac-map {
+            border: 1.5px solid #4477CC;
+        }
+        #sitac-map .minimap-header {
+            background: linear-gradient(90deg, #1e3a5f, #2c5a8f);
+        }
+
+        /* Discovery minimap (amber theme) */
+        #discovery-map {
+            border: 1.5px solid #f59e0b;
+        }
+        #discovery-map .minimap-header {
+            background: linear-gradient(90deg, #b45309, #f59e0b);
+        }
+
+        /* Federated Learning minimap (purple theme) */
+        #federated-map {
+            border: 1.5px solid #7c3aed;
+        }
+        #federated-map .minimap-header {
+            background: linear-gradient(90deg, #5b21b6, #7c3aed);
+        }
+
+        /* Communication panel (teal theme) */
+        #comm-panel-map {
+            border: 1.5px solid #00aabb;
+        }
+        #comm-panel-map .minimap-header {
+            background: linear-gradient(90deg, #005566, #00aabb);
         }
 
         .loading_status {
@@ -596,32 +1353,568 @@
             text-align: center;
             z-index: 300;
         }
+
+        /* ══════════════════════════════════════════════════════════════
+           MOBILE RESPONSIVE — phones & small tablets (≤768px)
+           Also covers landscape phones (short + narrow screens)
+           Full ergonomic redesign for smartphone use
+           ══════════════════════════════════════════════════════════════ */
+        @media (max-width: 768px), (max-height: 500px) and (max-width: 960px) {
+            /* ── Variables ── */
+            :root {
+                --sidebar-width: 88vw !important;
+                --sidebar-scale: 1.05 !important;
+                --mobile-bar: 62px;
+            }
+
+            /* ══ SIDEBAR: full-height off-screen drawer ══ */
+            #ros_interface {
+                width: 88vw !important;
+                max-width: none !important;
+                min-width: 0 !important;
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s cubic-bezier(.4,0,.2,1) !important;
+                z-index: 950 !important;
+                padding: 12px !important;
+                padding-top: 60px !important;    /* leave room for the close btn */
+                padding-bottom: 70px !important; /* leave room for bottom bar */
+            }
+            #ros_interface[style*="display: block"],
+            #ros_interface[style*="display:block"] {
+                transform: translateX(0) !important;
+            }
+            #sidebar-resize-handle { display: none !important; }
+            .minimap-resize { display: none !important; }
+
+            /* ══ CANVAS: always full viewport ══ */
+            #canvas_container,
+            #canvas_container.panel-visible {
+                left: 0 !important;
+                width: 100vw !important;
+                height: 100vh !important;
+            }
+
+            /* ══ HAMBURGER / CLOSE BUTTON ══ */
+            #toggle_panel,
+            #toggle_panel.panel-visible {
+                left: 10px !important;
+                top: 10px !important;
+                width: 46px !important;
+                height: 46px !important;
+                font-size: 22px !important;
+                z-index: 1000 !important;
+                border-radius: 14px !important;
+                background: rgba(0, 15, 35, 0.88) !important;
+                border: 1.5px solid rgba(0, 200, 255, 0.45) !important;
+                box-shadow: 0 2px 16px rgba(0,0,0,0.5) !important;
+                backdrop-filter: blur(10px) !important;
+                -webkit-backdrop-filter: blur(10px) !important;
+            }
+
+            /* ══ BACKDROP ══ */
+            #mobile-sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.55);
+                z-index: 940;
+                -webkit-tap-highlight-color: transparent;
+            }
+            #mobile-sidebar-backdrop.active { display: block; }
+
+            /* ══ ORCHESTRATION CONSOLE: hidden on mobile ══ */
+            #orch-console {
+                display: none !important;
+            }
+            /* ══ DEBUG BUTTON: hidden on mobile ══ */
+            #btn-toggle-debug {
+                display: none !important;
+            }
+
+            /* ══ MINIMAPS: completely hidden on mobile, use picker/viewer ══ */
+            #minimaps-container {
+                display: none !important;
+            }
+            #minimaps-master-toggle {
+                display: none !important;
+            }
+
+            /* ══ MOBILE BOTTOM TAB BAR ══ */
+            #mobile-toolbar {
+                display: flex !important;
+                position: fixed !important;
+                bottom: 0 !important;
+                top: auto !important;
+                left: 0 !important;
+                right: 0 !important;
+                width: 100vw !important;
+                height: var(--mobile-bar) !important;
+                z-index: 800 !important;
+                background: rgba(0, 8, 20, 0.95) !important;
+                backdrop-filter: blur(12px) !important;
+                -webkit-backdrop-filter: blur(12px) !important;
+                border-top: 1px solid rgba(0, 180, 255, 0.25) !important;
+                align-items: stretch !important;
+                justify-content: space-around !important;
+                padding: 0 !important;
+                gap: 0 !important;
+            }
+            #mobile-toolbar .mtb-btn {
+                flex: 1 !important;
+                display: flex !important;
+                flex-direction: column !important;
+                align-items: center !important;
+                justify-content: center !important;
+                background: none !important;
+                border: none !important;
+                color: rgba(0, 210, 255, 0.65) !important;
+                font-size: 11px !important;
+                padding: 4px 2px !important;
+                cursor: pointer !important;
+                -webkit-tap-highlight-color: rgba(0, 200, 255, 0.15) !important;
+                transition: color 0.15s, background 0.15s !important;
+                gap: 3px !important;
+                position: relative !important;
+            }
+            #mobile-toolbar .mtb-btn .mtb-icon {
+                font-size: 28px !important;
+                line-height: 1 !important;
+            }
+            #mobile-toolbar .mtb-btn .mtb-label {
+                font-size: 10px !important;
+                font-weight: 600 !important;
+                letter-spacing: 0.4px !important;
+                text-transform: uppercase !important;
+                opacity: 0.8 !important;
+            }
+            #mobile-toolbar .mtb-btn.active {
+                color: #00ffaa !important;
+                background: rgba(0, 255, 170, 0.08) !important;
+            }
+            #mobile-toolbar .mtb-btn.active .mtb-label {
+                opacity: 1 !important;
+            }
+            #mobile-toolbar .mtb-btn:active {
+                background: rgba(0, 200, 255, 0.12) !important;
+            }
+
+            /* ══ ALL FLOATING PANELS ══ */
+            #advanced-panel,
+            #marl-training-panel,
+            #swarm-rl-panel,
+            #optimal-search-ui,
+            #diamants-ui-overlay,
+            #tactical-minimap {
+                max-width: calc(100vw - 16px) !important;
+                max-height: calc(100vh - 80px) !important;
+            }
+            #advanced-panel {
+                width: calc(100vw - 20px) !important;
+                height: auto !important;
+                max-height: 70vh !important;
+                top: 10px !important;
+                right: 10px !important;
+                left: 10px !important;
+                overflow-y: auto !important;
+            }
+            #swarm-rl-panel {
+                width: calc(100vw - 16px) !important;
+                left: 8px !important;
+                right: 8px !important;
+                top: auto !important;
+                bottom: 70px !important;
+                max-height: 45vh !important;
+                overflow-y: auto !important;
+            }
+            #optimal-search-ui {
+                width: calc(100vw - 20px) !important;
+                max-width: none !important;
+            }
+            #marl-training-panel {
+                min-width: 0 !important;
+                width: calc(100vw - 20px) !important;
+            }
+
+            /* ══ LLM Chat: full mobile bottom sheet ══ */
+            #llm-chat-fab {
+                bottom: calc(var(--mobile-bar) + 8px) !important;
+                right: 14px !important;
+                width: 50px !important;
+                height: 50px !important;
+                font-size: 22px !important;
+                z-index: 10000 !important;
+            }
+            #llm-chat-panel {
+                bottom: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                top: auto !important;
+                width: 100vw !important;
+                height: 80vh !important;
+                max-height: 80vh !important;
+                max-width: 100vw !important;
+                min-width: 0 !important;
+                border-radius: 18px 18px 0 0 !important;
+                padding-bottom: env(safe-area-inset-bottom, 0px) !important;
+                z-index: 9999 !important;
+            }
+            #llm-chat-panel .llm-header {
+                padding: 8px 16px !important;
+                cursor: default !important;
+            }
+            #llm-chat-panel .llm-header-actions button {
+                width: 44px !important;
+                height: 44px !important;
+                font-size: 22px !important;
+                border-radius: 8px !important;
+                background: rgba(255,255,255,0.12) !important;
+                border: 1px solid rgba(255,255,255,0.2) !important;
+                -webkit-tap-highlight-color: rgba(6,182,212,0.3) !important;
+                touch-action: manipulation !important;
+                pointer-events: auto !important;
+            }
+            #llm-chat-panel .llm-input-bar {
+                padding: 10px 12px calc(env(safe-area-inset-bottom, 0px) + 10px) !important;
+            }
+            #llm-chat-panel .llm-input {
+                font-size: 16px !important; /* prevents iOS zoom */
+                padding: 12px 14px !important;
+            }
+            #llm-chat-panel .llm-send-btn {
+                width: 48px !important;
+                height: 48px !important;
+                font-size: 20px !important;
+                touch-action: manipulation !important;
+            }
+            #llm-chat-panel .llm-quick-actions {
+                padding: 8px 12px !important;
+                gap: 8px !important;
+                flex-wrap: wrap !important;
+            }
+            #llm-chat-panel .llm-quick-btn {
+                padding: 8px 14px !important;
+                font-size: 12px !important;
+                border-radius: 20px !important;
+            }
+            #llm-chat-panel .llm-msg {
+                font-size: 14px !important;
+            }
+            /* Disable drag/resize on mobile */
+            #llm-chat-panel .llm-resize { display: none !important; }
+            /* Ensure all chat buttons are easily tappable */
+            #llm-chat-panel button {
+                min-height: 36px !important;
+                touch-action: manipulation !important;
+            }
+
+            /* ══ Touch-friendly sidebar buttons ══ */
+            .btn_ros, .ros_button {
+                min-height: 44px !important;
+                padding: 10px 12px !important;
+            }
+
+            /* ══ Text selection in inputs + native pickers for selects ══ */
+            input, textarea, select, [contenteditable] {
+                user-select: text !important;
+                -webkit-user-select: text !important;
+                touch-action: manipulation !important;
+            }
+            select {
+                -webkit-appearance: menulist !important;
+                appearance: menulist !important;
+            }
+
+            /* ══ Status toast ══ */
+            #panel-feedback {
+                top: 10px !important;
+                font-size: 12px !important;
+                left: 60px !important;
+                right: 10px !important;
+                transform: none !important;
+            }
+
+            /* ══ Minimap lightbox: full screen on mobile ══ */
+            #minimap-lightbox-inner {
+                max-width: 96vw !important;
+                max-height: 90vh !important;
+                border-radius: 8px !important;
+            }
+
+
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           VERY SMALL PHONES (≤420px)
+           ══════════════════════════════════════════════════════════════ */
+        @media (max-width: 420px) {
+            :root {
+                --sidebar-width: 100vw !important;
+                --sidebar-scale: 0.95 !important;
+            }
+            #ros_interface {
+                width: 100vw !important;
+                border-right: none !important;
+            }
+            .minimap-panel {
+                width: 180px !important;
+                min-width: 180px !important;
+            }
+            #mobile-toolbar .mtb-btn .mtb-icon {
+                font-size: 24px !important;
+            }
+            #mobile-toolbar .mtb-btn .mtb-label {
+                font-size: 9px !important;
+            }
+        }
+
+        /* ══════════════════════════════════════════════════════════════
+           LANDSCAPE PHONE (short screens)
+           ══════════════════════════════════════════════════════════════ */
+        @media (max-height: 500px) and (max-width: 960px) {
+            :root { --mobile-bar: 0px !important; }
+            #ros_interface {
+                width: 60vw !important;
+            }
+            #minimaps-container {
+                display: none !important;
+            }
+            #minimaps-master-toggle {
+                display: none !important;
+            }
+
+            /* ── Toolbar: vertical strip on the right edge ── */
+            #mobile-toolbar {
+                flex-direction: column !important;
+                width: 52px !important;
+                height: 100vh !important;
+                top: 0 !important;
+                bottom: 0 !important;
+                right: 0 !important;
+                left: auto !important;
+                border-top: none !important;
+                border-left: 1px solid rgba(0, 180, 255, 0.25) !important;
+                padding: 4px 0 !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+            }
+            #mobile-toolbar .mtb-btn {
+                flex: 0 0 auto !important;
+                padding: 6px 2px !important;
+                min-height: 0 !important;
+            }
+            #mobile-toolbar .mtb-btn .mtb-icon {
+                font-size: 20px !important;
+            }
+            #mobile-toolbar .mtb-btn .mtb-label {
+                font-size: 7px !important;
+            }
+
+            /* ── Canvas: full viewport minus toolbar ── */
+            #canvas_container,
+            #canvas_container.panel-visible {
+                width: calc(100vw - 52px) !important;
+                height: 100vh !important;
+            }
+
+            /* ── Hamburger: smaller in landscape ── */
+            #toggle_panel {
+                width: 38px !important;
+                height: 38px !important;
+                font-size: 18px !important;
+            }
+
+            /* ── LLM chat: taller in landscape ── */
+            #llm-chat-panel {
+                height: 95vh !important;
+                max-height: 95vh !important;
+            }
+
+
+
+            /* ── Mission bottom sheet: shorter in landscape ── */
+            #mobile-mission-sheet.active {
+                max-height: 70vh !important;
+            }
+
+            /* ── Auto-rotate btn: avoid right toolbar ── */
+            #auto-rotate-btn {
+                right: 62px !important;
+                top: 6px !important;
+                width: 38px !important;
+                height: 38px !important;
+                font-size: 16px !important;
+            }
+
+            /* ── LLM chat fab: avoid right toolbar, aligned with follow FAB ── */
+            #llm-chat-fab {
+                right: 62px !important;
+                bottom: 8px !important;
+                width: 44px !important;
+                height: 44px !important;
+            }
+
+            /* ── Follow drone fab: above LLM chat fab in landscape ── */
+            #follow-drone-fab {
+                right: 62px !important;
+                bottom: 66px !important;
+                top: auto !important;
+                width: 44px !important;
+                height: 44px !important;
+            }
+        }
     </style>
 </head>
 
 <body>
     <!-- DIAMANTS Forest container -->
     <!-- Bouton pour masquer/afficher le panneau -->
-    <button id="toggle_panel" onclick="togglePanel()" title="Afficher le panneau">►</button>
+    <button id="toggle_panel" onclick="togglePanel()" title="Afficher le panneau">☰</button>
+
+    <!-- ═══ AUTO-ROTATION BUTTON (top-right) ═══ -->
+    <button id="auto-rotate-btn" onclick="toggleAutoRotate()" title="Rotation automatique" style="
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(0, 15, 35, 0.88);
+        border: 1.5px solid rgba(0, 200, 255, 0.35);
+        color: rgba(0, 210, 255, 0.7);
+        font-size: 20px;
+        cursor: pointer;
+        z-index: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        touch-action: manipulation;
+        transition: background 0.2s, color 0.2s;
+    ">🔄</button>
+
+    <!-- ═══ BEACON PLACEMENT HUD ═══ -->
+    <div id="beacon-placement-hud">
+        <div class="bph-icon">📌</div>
+        <div class="bph-title">Mode placement de balise</div>
+        <div class="bph-hint">Touchez la carte 3D pour placer une balise.<br>La balise sera détectée par les drones à proximité.</div>
+        <button class="bph-cancel" onclick="window.DIAMANTS?.beacons?.exitPlacementMode();document.getElementById('beacon-placement-hud').classList.remove('active')">✕ Annuler</button>
+    </div>
+
+    <!-- ═══ MOBILE MISSION QUICK SHEET ═══ -->
+    <div id="mobile-mission-sheet">
+        <div class="mms-header">
+            <h3>🎯 Mission Control</h3>
+            <button class="mms-close" onclick="document.getElementById('mobile-mission-sheet').classList.remove('active')">✕</button>
+        </div>
+        <div class="mms-actions">
+            <button class="mms-btn launch" onclick="if(typeof launchMission==='function')launchMission();document.getElementById('mobile-mission-sheet').classList.remove('active')">▶ Lancer Mission</button>
+            <button class="mms-btn stop" onclick="if(typeof emergencyLand==='function')emergencyLand();document.getElementById('mobile-mission-sheet').classList.remove('active')">⏹ Arrêt Urgence</button>
+            <button class="mms-btn" onclick="if(typeof takeoffAllDrones==='function')takeoffAllDrones()">🛫 Décollage</button>
+            <button class="mms-btn" onclick="if(typeof landAllDrones==='function')landAllDrones()">🛬 Atterrir</button>
+            <button class="mms-btn" onclick="if(typeof returnToHome==='function')returnToHome()" style="border-color:rgba(59,130,246,0.4);">🏠 RTH</button>
+            <button class="mms-btn" onclick="if(typeof resetMission==='function')resetMission()" style="border-color:rgba(245,158,11,0.4);">🔄 Reset</button>
+            <button class="mms-btn" onclick="if(typeof topView==='function')topView()">⬆ Vue Top</button>
+        </div>
+        <label>Doctrine de vol :</label>
+        <select class="mms-select" id="mobile-mission-type" onchange="document.getElementById('mission_type').value=this.value;document.getElementById('mission_type').dispatchEvent(new Event('change'))">
+            <option value="exploration" selected>🌿 Exploration</option>
+            <option value="swarm">🐝 Essaim</option>
+            <option value="coverage">📐 Couverture</option>
+            <option value="formation">🔢 Formation</option>
+            <option value="search">🔍 Recherche</option>
+        </select>
+        <label>Course of Action :</label>
+        <select class="mms-select" id="mobile-mode-select" onchange="document.getElementById('mode_select').value=this.value;document.getElementById('mode_select').dispatchEvent(new Event('change'))">
+            <option value="adaptive" selected>🌟 Adaptatif</option>
+            <option value="stigmergy">🧠 Stigmergie</option>
+            <option value="grid">⊞ Grille</option>
+            <option value="boustrophedon">↔ Boustrophedon</option>
+            <option value="spiral">🌀 Spirale</option>
+            <option value="radial">☀ Radial</option>
+            <option value="perimeter">⬜ Périmètre</option>
+        </select>
+
+        <!-- ── Scenario Section ── -->
+        <div style="margin-top:14px; padding-top:12px; border-top: 1px solid rgba(255,100,50,0.25);">
+            <label style="color: #ff6644;">🎬 Scénario PoC :</label>
+            <select class="mms-select" id="mobile-scenario-select" style="border-color:rgba(255,100,50,0.4); color:#ff9966;">
+                <option value="" disabled selected>— Choisir un scénario —</option>
+            </select>
+            <div id="mobile-scenario-info" style="display:none; font-size:11px; color:#ccc; margin:6px 0; line-height:1.4; padding:6px 8px; background:rgba(0,0,0,0.3); border-radius:6px;"></div>
+            <button class="mms-btn" id="mobile-btn-scenario-launch" disabled style="width:100%; margin-top:6px; background:linear-gradient(135deg,#374151,#4b5563); opacity:0.5; cursor:not-allowed;">▶ Sélectionner un scénario</button>
+        </div>
+
+        <!-- ── Beacon Section ── -->
+        <div style="margin-top:14px; padding-top:12px; border-top: 1px solid rgba(251,191,36,0.25);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                <label style="color: #fbbf24;">📍 Balises</label>
+                <span id="mobile-beacon-count" style="font-size:11px; color:#a78bfa; font-weight:bold;">0</span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+                <button class="mms-btn" id="mobile-btn-place-beacon" style="border-color:rgba(16,185,129,0.4);">📌 Placer sur la carte</button>
+                <button class="mms-btn" id="mobile-btn-beacon-random" onclick="if(window.DIAMANTS?.placeRandomBeacons)window.DIAMANTS.placeRandomBeacons(1)" style="border-color:rgba(245,158,11,0.4);">📍 Aléatoire</button>
+                <button class="mms-btn" id="mobile-btn-beacon-x3" onclick="if(window.DIAMANTS?.placeRandomBeacons)window.DIAMANTS.placeRandomBeacons(3)" style="border-color:rgba(217,119,6,0.4);">📍 ×3 Aléatoire</button>
+                <button class="mms-btn" id="mobile-btn-beacon-clear" onclick="if(window.DIAMANTS?.clearBeacons)window.DIAMANTS.clearBeacons()" style="border-color:rgba(239,68,68,0.4);">🗑️ Reset balises</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile sidebar backdrop (closes sidebar on tap) -->
+    <div id="mobile-sidebar-backdrop" onclick="togglePanel()"></div>
+
+    <!-- ═══ MOBILE BOTTOM TAB BAR ═══ -->
+    <div id="mobile-toolbar" style="display:none;">
+        <button class="mtb-btn" onclick="document.getElementById('mobile-mission-sheet').classList.toggle('active')">
+            <span class="mtb-icon">▶</span><span class="mtb-label">Mission</span>
+        </button>
+        <button class="mtb-btn" id="mobile-btn-maps" onclick="_mobileToggleMaps()">
+            <span class="mtb-icon">🗺</span><span class="mtb-label">Cartes</span>
+        </button>
+        <button class="mtb-btn" onclick="if(typeof topView==='function')topView()">
+            <span class="mtb-icon">⬆</span><span class="mtb-label">Vue top</span>
+        </button>
+        <button class="mtb-btn" onclick="if(typeof resetMission==='function')resetMission()">
+            <span class="mtb-icon">🔄</span><span class="mtb-label">Reset</span>
+        </button>
+        <button class="mtb-btn" id="mobile-btn-labels" onclick="_mobileToggleLabels()">
+            <span class="mtb-icon">🏷</span><span class="mtb-label">Labels</span>
+        </button>
+    </div>
+
+    <!-- Mobile status pill removed (drone count no longer shown) -->
 
     <!-- Loading screen -->
     <div id="loading_screen" class="loading_status">
-        <h3>🚁 Chargement DIAMANTS Simulation</h3>
+        <h3>🚁 Chargement NextGEN</h3>
         <p>Chargement des mesh Crazyflie...</p>
         <div id="loading_progress">0%</div>
     </div>
 
-    <!-- Interface Simulation -->
+    <!-- Interface ROS2/Gazebo -->
     <div id="ros_interface">
+    <div id="sidebar-resize-handle"></div>
     
     <!-- ═══════════════════════════════════════════════════════════════════
          SECTION 1: STATUS — Toujours visible
          ═══════════════════════════════════════════════════════════════════ -->
     <div id="status_panel" class="ros_panel">
-        <h3>🚁 DIAMANTS</h3>
+        <h3 style="display: flex; align-items: center; gap: 8px;">🚁 NextGEN
+            <span id="mode_badge" style="
+                font-size: 9px;
+                padding: 2px 8px;
+                border-radius: 10px;
+                background: #1a1a2e;
+                border: 1px solid #555;
+                color: #888;
+                letter-spacing: 1px;
+                font-weight: bold;
+            ">—</span>
+        </h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px;">
             <div style="color: #00FF88;"><strong>Status:</strong> <span id="system_status">Active</span></div>
-            <div style="color: #FFAA00;"><strong>Drones:</strong> <span id="drone_count">0/8</span></div>
+            <div style="color: #FFAA00;"><strong>Drones:</strong> <span id="drone_count">0/?</span></div>
         </div>
         <div class="emergence_indicator" style="margin-top: 8px;">
             <div class="emergence_bar" id="emergence_bar" style="width: 0%"></div>
@@ -645,12 +1938,13 @@
         <div class="mission_control" style="margin-top: 4px;">
             <button class="btn_ros" onclick="takeoffAllDrones()">🛫 Takeoff</button>
             <button class="btn_ros" onclick="landAllDrones()">🛬 Land</button>
+            <button class="btn_ros" onclick="returnToHome()" style="background: linear-gradient(45deg, #3b82f6, #2563eb);">🏠 RTH</button>
             <button class="btn_ros" onclick="resetMission()" style="background: linear-gradient(45deg, #f59e0b, #d97706);">🔄 Reset</button>
         </div>
         <div style="margin-top: 8px;">
             <label style="font-size: 10px; color: #00CCFF;">Doctrine:</label>
             <select id="mission_type" style="width: 100%; padding: 6px; margin: 4px 0; background: #1a1a2e; color: #00FFFF; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;">
-                <option value="stigmergy" selected>🧠 Stigmergie</option>
+                <option value="exploration" selected>🌿 Exploration</option>
                 <option value="swarm">🐝 Essaim</option>
                 <option value="coverage">📐 Couverture</option>
                 <option value="formation">🔢 Formation</option>
@@ -661,12 +1955,79 @@
             <label style="font-size: 10px; color: #00CCFF;">Course of Action:</label>
             <select id="mode_select" style="width: 100%; padding: 6px; margin: 4px 0; background: #1a1a2e; color: #00FFFF; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;">
                 <option value="adaptive" selected>🌟 Adaptatif</option>
+                <option value="stigmergy">🧠 Stigmergie</option>
                 <option value="grid">⊞ Grille</option>
                 <option value="boustrophedon">↔ Boustrophedon</option>
                 <option value="spiral">🌀 Spirale</option>
                 <option value="radial">☀ Radial</option>
                 <option value="perimeter">⬜ Périmètre</option>
             </select>
+        </div>
+
+        <!-- ── Balises (Beacons) ── -->
+        <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(251,191,36,0.25);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 10px; color: #fbbf24; font-weight: bold;">📍 Balises</label>
+                <span id="beacon-count-badge" style="font-size: 10px; color: #a78bfa; font-weight: bold;">0</span>
+            </div>
+            <div class="mission_control" style="gap: 4px;">
+                <button class="btn_ros" id="btn-place-beacon-click" style="background: linear-gradient(45deg, #065f46, #10b981); font-size: 10px; padding: 4px 6px; transition: all .2s;" title="Cliquer sur la scène 3D pour placer une balise">📌 Placer</button>
+                <button class="btn_ros" id="btn-place-beacon-random" style="background: linear-gradient(45deg, #b45309, #f59e0b); font-size: 10px; padding: 4px 6px;">📍 Aléatoire</button>
+                <button class="btn_ros" id="btn-place-beacon-3" style="background: linear-gradient(45deg, #92400e, #d97706); font-size: 10px; padding: 4px 6px;">📍 ×3</button>
+                <button class="btn_ros" id="btn-clear-beacons" style="background: linear-gradient(45deg, #7c2d12, #dc2626); font-size: 10px; padding: 4px 6px;">🗑️ Reset</button>
+            </div>
+        </div>
+
+        <!-- ── Scénarios PoC Multi-Agents ── -->
+        <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(255,100,50,0.35);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                <label style="font-size: 10px; color: #ff6644; font-weight: bold;">Scénarios PoC</label>
+                <span id="scenario-status" style="font-size: 9px; color: #888;">—</span>
+            </div>
+
+            <!-- Scenario selector -->
+            <select id="scenario-select" style="width: 100%; padding: 4px 6px; font-size: 10px; background: rgba(0,0,0,0.5); color: #e0e0e0; border: 1px solid rgba(255,100,50,0.3); border-radius: 4px; margin-bottom: 6px; cursor: pointer; outline: none;">
+                <option value="" disabled selected>— Choisir un scénario —</option>
+            </select>
+
+            <!-- Scenario info (hidden until selection) -->
+            <div id="scenario-info" style="display: none; margin-bottom: 6px;">
+                <div id="scenario-desc" style="font-size: 9px; color: #ccc; line-height: 1.4; margin-bottom: 4px;"></div>
+                <div id="scenario-objective" style="font-size: 8px; color: #88aaff; line-height: 1.3; margin-bottom: 4px;"></div>
+                <div id="scenario-observe" style="font-size: 8px; color: #aaa; line-height: 1.3;"></div>
+            </div>
+
+            <!-- Launch button (independent from mission control) -->
+            <button class="btn_ros" id="btn-scenario-launch" disabled
+                    style="width: 100%; background: linear-gradient(45deg, #374151, #4b5563); font-size: 10px; padding: 5px 8px; opacity: 0.5; cursor: not-allowed; transition: all 0.3s;">
+                ▶ Sélectionner un scénario
+            </button>
+        </div>
+
+        <!-- ── Autonomy Stepped Slider ── -->
+        <div style="margin-top: 10px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(0,180,255,0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                <label style="font-size: 10px; color: #00CCFF;">Mode Autonomie</label>
+                <span id="autonomy-icon" style="font-size: 13px;">⚡</span>
+            </div>
+            <div class="autonomy-slider-wrap">
+                <input type="range" class="autonomy-slider" id="autonomy-slider"
+                       min="0" max="5" step="1" value="5">
+                <div class="autonomy-ticks" id="autonomy-ticks">
+                    <span data-step="0">Centralisé</span>
+                    <span data-step="1">Guidé</span>
+                    <span data-step="2">Hybride</span>
+                    <span data-step="3">Semi-auto</span>
+                    <span data-step="4">Autonome</span>
+                    <span data-step="5" class="active">Distribué</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px;">
+                <span id="autonomy-mode" style="font-size: 11px; color: #00FF88; font-weight: bold;">⚡ Distribué total</span>
+            </div>
+            <div id="autonomy-description" style="font-size: 9px; color: #667; margin-top: 2px; line-height: 1.3;">
+                Agents 100% autonomes — décisions individuelles, aucun contrôle central.
+            </div>
         </div>
     </div>
 
@@ -681,9 +2042,24 @@
                     <div style="font-size: 9px;">Stigmergie</div>
                     <div class="metric_value" id="stigmergy_value">0%</div>
                 </div>
-                <div class="metric_item">
-                    <div style="font-size: 9px;">Émergence</div>
+                <div class="metric_item metric_item--expandable" id="emergence_toggle" title="Cliquer pour détails">
+                    <div style="font-size: 9px;">Émergence <span id="emergence_chevron" style="font-size:7px;">▶</span></div>
                     <div class="metric_value" id="emergence_level">0%</div>
+                    <!-- Expandable sub-metrics panel -->
+                    <div id="emergence_submetics" class="emergence-sub" style="display:none;">
+                        <div class="emergence-sub__row">
+                            <span class="emergence-sub__label">M1 Couverture</span>
+                            <span class="emergence-sub__val" id="em_m1">0%</span>
+                        </div>
+                        <div class="emergence-sub__row">
+                            <span class="emergence-sub__label">M2 Diversité</span>
+                            <span class="emergence-sub__val" id="em_m2">0%</span>
+                        </div>
+                        <div class="emergence-sub__row">
+                            <span class="emergence-sub__label">M3 InfoFlow</span>
+                            <span class="emergence-sub__val" id="em_m3">0%</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="metric_item">
                     <div style="font-size: 9px;">Cohésion</div>
@@ -706,6 +2082,89 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 3b: INTELLIGENCE — LLM/Agent brains (collapsible)
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3 onclick="toggleSection('intelligence-content')" style="cursor: pointer;">🧠 Intelligence LLM ▶</h3>
+        <div id="intelligence-content" style="display: none;">
+            <!-- LLM Global Toggle -->
+            <div style="margin: 8px 0; display: flex; align-items: center; gap: 8px;">
+                <span id="llm-status-dot" style="width: 14px; height: 14px; min-width: 14px; border-radius: 50%; background: #555; display: inline-block; border: 2px solid #333; transition: background 0.3s;" title="Ollama status"></span>
+                <button class="btn_ros" onclick="toggleLLM()" id="btn-toggle-llm" style="font-size: 9px; background: linear-gradient(45deg, #2a1a4a, #5a2a8a); flex: 1;">🧠 LLM OFF</button>
+            </div>
+            <!-- Ollama URL -->
+            <div style="margin: 4px 0;">
+                <label style="font-size: 9px; color: #888;">Ollama URL:</label>
+                <input type="text" id="ollama-url" value="http://localhost:11434" style="width: 100%; padding: 3px 6px; background: #1a1a2e; color: #0ff; border: 1px solid #444; border-radius: 3px; font-size: 9px; font-family: monospace;" onchange="setOllamaUrl(this.value)">
+            </div>
+            <!-- Model per type -->
+            <div style="margin: 6px 0; font-size: 9px;">
+                <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 3px;">
+                    <span style="color: #0af; width: 40px;">X500:</span>
+                    <select id="llm-model-x500" onchange="setLLMModel('X500', this.value)" style="flex: 1; background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 3px; font-size: 9px; padding: 2px;">
+                        <option value="qwen_drone_v7:latest" selected>qwen_drone_v7 (fine-tuné)</option>
+                        <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
+                        <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
+                        <option value="qwen2.5:1.5b">qwen2.5:1.5b</option>
+                        <option value="llama3.1:8b">llama3.1:8b</option>
+                        <option value="mistral:7b-instruct">mistral:7b-instruct</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 3px;">
+                    <span style="color: #f80; width: 40px;">S500:</span>
+                    <select id="llm-model-s500" onchange="setLLMModel('S500', this.value)" style="flex: 1; background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 3px; font-size: 9px; padding: 2px;">
+                        <option value="qwen2.5-coder:7b" selected>qwen2.5-coder:7b</option>
+                        <option value="qwen_drone_v7:latest">qwen_drone_v7 (fine-tuné)</option>
+                        <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
+                        <option value="llama3.2:1b">llama3.2:1b</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="color: #0f8; width: 40px;">CF:</span>
+                    <select id="llm-model-cf" onchange="setLLMModel('CRAZYFLIE', this.value)" style="flex: 1; background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 3px; font-size: 9px; padding: 2px;">
+                        <option value="qwen2.5-coder:1.5b" selected>qwen2.5-coder:1.5b</option>
+                        <option value="qwen2.5:1.5b">qwen2.5:1.5b</option>
+                        <option value="llama3.2:1b">llama3.2:1b</option>
+                        <option value="tinyllama:latest">tinyllama</option>
+                    </select>
+                </div>
+            </div>
+            <!-- Influence slider -->
+            <div style="margin: 6px 0;">
+                <label style="font-size: 9px;">Influence LLM: <span id="llm-influence-value" style="color: #c9f;">0.5</span></label>
+                <input type="range" id="llm-influence-slider" min="0" max="1.0" step="0.05" value="0.5" style="width: 100%;" oninput="setLLMInfluence(parseFloat(this.value))">
+            </div>
+            <!-- Stats -->
+            <div id="llm-stats" style="font-size: 9px; color: #888; margin-top: 4px;">
+                <div>Requêtes: <span id="llm-stat-requests">0</span> | Cache: <span id="llm-stat-cache">0</span></div>
+                <div>Échecs: <span id="llm-stat-failures">0</span> | Latence: <span id="llm-stat-latency">-</span></div>
+            </div>
+            <!-- Actions -->
+            <div class="mission_control" style="margin-top: 6px;">
+                <button class="btn_ros" id="btn-ping-ollama" onclick="pingOllama()" style="font-size: 9px; background: linear-gradient(45deg, #333, #555);">🔌 Ping</button>
+                <button class="btn_ros" onclick="resetLLMBrains()" style="font-size: 9px; background: linear-gradient(45deg, #4a1a1a, #8a2a2a);">🔄 Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
+         SECTION 3c: LLM DECISIONS — Feed temps réel des cerveaux IA
+         ═══════════════════════════════════════════════════════════════════ -->
+    <div class="ros_panel">
+        <h3 id="ai-panel-header" onclick="toggleSection('llm-decisions-content')" style="cursor: pointer;">🧠 LLM Décisions <span id="llm-decisions-arrow">▼</span></h3>
+        <div id="llm-decisions-content">
+            <!-- Brain status summary -->
+            <div id="llm-brains-summary" style="font-size: 9px; color: #888; padding: 4px 0; border-bottom: 1px solid #333; margin-bottom: 4px;">
+                🧠 0/0 cerveaux actifs
+            </div>
+            <!-- Live decision feed -->
+            <div id="llm-decision-feed" style="max-height: 220px; overflow-y: auto; font-size: 9px; font-family: monospace;">
+                <div style="color: #555; text-align: center; padding: 12px;">En attente de décisions LLM…</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════
          SECTION 4: VISUALISATION — Caméra et affichage
          ═══════════════════════════════════════════════════════════════════ -->
     <div class="ros_panel">
@@ -723,8 +2182,10 @@
                 </button>
             </div>
             <div class="mission_control" style="margin-top: 6px;">
-                <button class="btn_ros" onclick="toggleMinimap()" style="font-size: 9px;">🗺️ Minimap</button>
-                <button class="btn_ros" onclick="toggleDebugPanels()" id="btn-toggle-debug" style="font-size: 9px;">🛠️ Debug</button>
+                <button class="btn_ros" onclick="toggleMinimap()">🗺️ Minimap</button>
+
+                <button class="btn_ros" onclick="toggleDroneLabels()" id="btn-toggle-labels" style="background: linear-gradient(45deg, #2a4a6a, #3a6a9a);" title="Afficher/masquer les labels 3D">🏷️ Labels</button>
+                <button class="btn_ros" onclick="toggleCommWaves()" id="btn-toggle-comm" style="background: linear-gradient(45deg, #005566, #00aabb);" title="Afficher/masquer les ondes de communication 3D">📡 Ondes</button>
             </div>
         </div>
     </div>
@@ -737,17 +2198,17 @@
         <div id="config-content" style="display: none;">
             <div style="margin: 8px 0;">
                 <label style="font-size: 10px;">Altitude (m): <span id="altitude_display" style="color: #00FFFF;">3.0m</span></label>
-                <input type="range" id="altitude_slider" min="1.0" max="8.0" step="0.5" value="3.0" style="width: 100%;" oninput="updateAltitudeDisplay(this.value)">
+                <input type="range" id="altitude_slider" min="1.0" max="8.0" step="0.5" value="3.0" style="width: 100%;">
             </div>
             <div style="margin: 8px 0;">
                 <label style="font-size: 10px;">Distance sécurité (m): <span id="safety_distance_value" style="color: #FFAA00;">3.0m</span></label>
-                <input type="range" id="safety_distance" min="1" max="8" value="3" style="width: 100%;" onchange="updateSafetyDistance(this.value)">
+                <input type="range" id="safety_distance" min="1" max="8" value="3" style="width: 100%;">
             </div>
             <div style="margin: 8px 0;">
                 <label style="font-size: 10px;">Zone exploration:</label>
                 <div style="display: flex; gap: 8px; margin-top: 4px;">
-                    <input type="number" id="bounds_x" value="80" min="10" max="200" step="10" style="width: 50%; padding: 4px; background: #1a1a2e; color: #fff; border: 1px solid #00AAFF; border-radius: 4px; font-size: 10px;" placeholder="X">
-                    <input type="number" id="bounds_y" value="80" min="10" max="200" step="10" style="width: 50%; padding: 4px; background: #1a1a2e; color: #fff; border: 1px solid #00AAFF; border-radius: 4px; font-size: 10px;" placeholder="Y">
+                    <input type="number" id="bounds_x" value="120" min="10" max="10000" step="10" style="width: 50%; padding: 4px; background: #1a1a2e; color: #fff; border: 1px solid #00AAFF; border-radius: 4px; font-size: 10px;" placeholder="X (m)">
+                    <input type="number" id="bounds_y" value="120" min="10" max="10000" step="10" style="width: 50%; padding: 4px; background: #1a1a2e; color: #fff; border: 1px solid #00AAFF; border-radius: 4px; font-size: 10px;" placeholder="Y (m)">
                 </div>
             </div>
         </div>
@@ -790,16 +2251,85 @@
     <!-- Zone de rendu 3D -->
     <div id="canvas_container"></div>
 
-    <!-- Minimap avec Timer d'Exploration -->
-    <div id="minimap">
-        <h4>🗺️ Exploration Map</h4>
-        <canvas id="minimap_canvas" width="300" height="260"></canvas>
+    <!-- ═══ Quad Minimaps ═══ -->
+    <div id="minimaps-container">
+        <!-- SITAC Minimap (tactical situation + object detection) -->
+        <div id="sitac-map" class="minimap-panel">
+            <div class="minimap-header">🎯 SITAC — Détection Objets <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('sitac-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <canvas id="sitac_canvas" width="280" height="200"></canvas>
+        </div>
+        <!-- Exploration Minimap (stigmergy / coordination) -->
+        <div id="minimap" class="minimap-panel">
+            <div class="minimap-header">🗺️ Exploration — Stigmergy <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('minimap')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <canvas id="minimap_canvas" width="280" height="200"></canvas>
+        </div>
+        <!-- Perception / SLAM Minimap (scene reconstruction) -->
+        <div id="perception-map" class="minimap-panel minimap-hidden">
+            <div class="minimap-header">🌲 SLAM — Reconstruction Forêt <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('perception-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <canvas id="perception_canvas" width="280" height="200"></canvas>
+        </div>
+        <!-- Discovery Minimap (pixel fog-of-war coverage) -->
+        <div id="discovery-map" class="minimap-panel minimap-hidden">
+            <div class="minimap-header">🟩 Découverte — Pixels <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('discovery-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <canvas id="discovery_canvas" width="280" height="200"></canvas>
+        </div>
+        <!-- Federated Learning Minimap (RL coordination heatmap + convergence) -->
+        <div id="federated-map" class="minimap-panel minimap-hidden">
+            <div class="minimap-header">🧠 Fédéré — RL Coordination <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('federated-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <canvas id="federated_canvas" width="280" height="200"></canvas>
+        </div>
+        <!-- Communication Panel (P2P network + comm links) -->
+        <div id="comm-panel-map" class="minimap-panel minimap-hidden">
+            <div class="minimap-header">📡 Communication — Réseau P2P <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('comm-panel-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <canvas id="comm_canvas" width="280" height="200"></canvas>
+        </div>
+    </div>
+
+    <!-- Snap ghost indicator -->
+    <div id="minimap-snap-ghost"></div>
+
+    <!-- Minimap lightbox (large view overlay) -->
+    <div id="minimap-lightbox">
+        <div id="minimap-lightbox-inner">
+            <div id="minimap-lightbox-header"><span id="minimap-lightbox-title"></span><button id="minimap-lightbox-close" onclick="if(window._closeLightbox)window._closeLightbox();else this.closest('#minimap-lightbox').classList.remove('active')" title="Fermer">✕</button></div>
+            <canvas id="minimap-lightbox-canvas" width="800" height="560"></canvas>
+        </div>
+    </div>
+
+    <!-- ═══ Desktop "Cartes" floating button ═══ -->
+    <button id="desktop-maps-fab" onclick="minimapManager.openPicker()" title="Voir les cartes">🗺 Cartes</button>
+
+    <!-- ═══ Minimap Picker (bottom sheet — all platforms) ═══ -->
+    <div id="minimap-picker-overlay" style="display:none;" onclick="minimapManager.closePicker()">
+        <div id="minimap-picker-sheet" onclick="event.stopPropagation()">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px 12px;">
+                <span style="font-size:15px;font-weight:600;color:#0af;flex:1;text-align:center;">Cartes &amp; Minimaps</span>
+                <button onclick="minimapManager.closePicker()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff6b6b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Fermer">✕</button>
+            </div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('sitac-map')">🎯 SITAC — Détection</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('minimap')">🗺️ Exploration — Stigmergy</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('perception-map')">🌲 SLAM — Reconstruction</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('discovery-map')">🟩 Découverte — Pixels</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('federated-map')">🧠 Fédéré — RL</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('comm-panel-map')">📡 Communication — P2P</div>
+        </div>
+    </div>
+
+    <!-- ═══ Fullscreen Minimap Viewer (all platforms) ═══ -->
+    <div id="minimap-fullscreen-viewer" style="display:none;">
+        <div id="minimap-viewer-header">
+            <span id="minimap-viewer-title">Minimap</span>
+            <button id="minimap-viewer-close" onclick="minimapManager.closeViewer()">✕</button>
+        </div>
+        <div id="minimap-viewer-body">
+            <canvas id="minimap-viewer-canvas" width="800" height="600"></canvas>
+        </div>
     </div>
 
     <!-- Status Display -->
     <div id="status_display">
-        🚁 DIAMANTS - Simulation avec Mesh Réels<br>
-        <span id="system_status">Initializing...</span>
+        🚁 NextGEN — Hypervision Essaim de Drones<br>
+        <span id="system_status_footer">Initializing...</span>
     </div>
 
     <!-- Vite manages module loading; legacy bootstrap removed -->
@@ -858,6 +2388,196 @@
     <script type="module" src="./main.js"></script>
 
     <!-- Cleanup stray appended script: keep only minimal debug helpers if needed -->
+
+    <!-- ═══ Touch-to-Mouse shim for mobile drag/resize support ═══ -->
+    <script>
+    (function() {
+        // On touch devices, convert single-finger touch events on UI elements
+        // (panels, headers, resize handles) to mouse events so existing
+        // mousedown/mousemove/mouseup handlers work.
+        // Exclude the 3D canvas (OrbitControls has its own touch handling).
+        if (!('ontouchstart' in window)) return;
+
+        const canvas3d = () => document.getElementById('canvas_container');
+
+        function touchToMouse(type, touch, origEvt) {
+            const evt = new MouseEvent(type, {
+                bubbles: true, cancelable: true,
+                clientX: touch.clientX, clientY: touch.clientY,
+                screenX: touch.screenX, screenY: touch.screenY,
+                button: 0, buttons: 1
+            });
+            touch.target.dispatchEvent(evt);
+        }
+
+        function isOnCanvas(el) {
+            const c = canvas3d();
+            return c && (c === el || c.contains(el));
+        }
+
+        let activeDrag = false;
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length !== 1) return;
+            const t = e.touches[0];
+            // Skip the 3D canvas — OrbitControls handles its own touch
+            if (isOnCanvas(t.target)) return;
+            const el = t.target;
+            // NEVER intercept native interactive elements — let browser handle clicks/pickers
+            // Also skip the entire mobile mission sheet and LLM panel — they handle their own events
+            if (el.closest('button, a, select, input, textarea, [contenteditable], label, .mms-btn, .mms-select, .llm-header-actions, .llm-quick-btn, .llm-send-btn, .llm-input, #mobile-mission-sheet, #llm-chat-panel, #llm-chat-fab, #follow-drone-fab, #follow-drone-hud, #drone-select-panel, #auto-rotate-btn')) return;
+            // Only convert drag for resize handles and panel headers (NOT header-actions area)
+            const isDragHandle = el.closest('.minimap-header, .llm-resize, .minimap-resize, #sidebar-resize-handle');
+            // For llm-header: only if NOT in the actions area (buttons)
+            const isLlmHeader = el.closest('.llm-header') && !el.closest('.llm-header-actions');
+            if (!isDragHandle && !isLlmHeader) return;
+            activeDrag = true;
+            touchToMouse('mousedown', t, e);
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!activeDrag || e.touches.length !== 1) return;
+            touchToMouse('mousemove', e.touches[0], e);
+            e.preventDefault();
+        }, { passive: false });
+
+        document.addEventListener('touchend', function(e) {
+            if (!activeDrag) return;
+            activeDrag = false;
+            if (e.changedTouches.length > 0) {
+                touchToMouse('mouseup', e.changedTouches[0], e);
+            }
+        }, { passive: false });
+
+        document.addEventListener('touchcancel', function(e) {
+            if (!activeDrag) return;
+            activeDrag = false;
+            if (e.changedTouches.length > 0) {
+                touchToMouse('mouseup', e.changedTouches[0], e);
+            }
+        }, { passive: false });
+    })();
+    </script>
+
+    <!-- ═══ Swipe gesture: open/close sidebar on mobile ═══ -->
+    <script>
+    (function() {
+        if (!('ontouchstart' in window)) return;
+        let startX = 0, startY = 0, startTime = 0;
+        const SWIPE_THRESHOLD = 60;  // px
+        const SWIPE_MAX_Y = 80;      // max vertical drift
+        const SWIPE_MAX_TIME = 400;   // ms
+        const EDGE_ZONE = 30;         // px from left edge to start swipe-open
+
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length !== 1) return;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+            startTime = Date.now();
+        }, { passive: true });
+
+        document.addEventListener('touchend', function(e) {
+            if (window.innerWidth > 768 && !(window.innerHeight <= 500 && window.innerWidth <= 960)) return; // Desktop — skip
+            const t = e.changedTouches[0];
+            if (!t) return;
+            const dx = t.clientX - startX;
+            const dy = Math.abs(t.clientY - startY);
+            const dt = Date.now() - startTime;
+
+            if (dt > SWIPE_MAX_TIME || dy > SWIPE_MAX_Y) return;
+
+            const panel = document.getElementById('ros_interface');
+            const isOpen = panel && panel.style.display === 'block';
+
+            // Swipe right from left edge → open sidebar
+            if (!isOpen && dx > SWIPE_THRESHOLD && startX < EDGE_ZONE) {
+                if (typeof togglePanel === 'function') togglePanel();
+            }
+            // Swipe left → close sidebar (from anywhere when open)
+            if (isOpen && dx < -SWIPE_THRESHOLD) {
+                if (typeof togglePanel === 'function') togglePanel();
+            }
+        }, { passive: true });
+    })();
+    </script>
+
+    <!-- ═══ MOBILE INIT: toolbar, auto-hide labels, toggle helpers ═══ -->
+    <script>
+    (function() {
+        const isMobile = () => window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960);
+
+        // Show/hide toolbar on resize
+        function updateToolbar() {
+            const tb = document.getElementById('mobile-toolbar');
+            if (tb) tb.style.display = isMobile() ? 'flex' : 'none';
+        }
+        // Run immediately and on resize
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', updateToolbar);
+        } else {
+            updateToolbar();
+        }
+        window.addEventListener('resize', updateToolbar);
+
+        // Auto-hide drone labels once system is ready (mobile only)
+        let _labelHideAttempts = 0;
+        function autoHideLabels() {
+            if (!isMobile()) return;
+            _labelHideAttempts++;
+            const sys = window.diamantsSystem;
+            if (sys && sys.drones && sys.drones.length > 0) {
+                // Hide all drone labels
+                for (const d of sys.drones) {
+                    if (d._labelSprite) d._labelSprite.visible = false;
+                }
+                window._mobileLabelsHidden = true;
+                console.log('[MOBILE] Labels 3D masqués automatiquement');
+            } else if (_labelHideAttempts < 30) {
+                setTimeout(autoHideLabels, 500);
+            }
+        }
+        setTimeout(autoHideLabels, 2000);
+
+        // Toggle minimaps visibility (mobile) — open picker overlay
+        window._mobileToggleMaps = function() {
+            if (window.minimapManager) {
+                window.minimapManager.openPicker();
+            }
+            const btn = document.getElementById('mobile-btn-maps');
+            if (btn) btn.classList.toggle('active');
+        };
+
+        // Toggle labels (mobile)
+        window._mobileToggleLabels = function() {
+            const sys = window.diamantsSystem;
+            if (!sys || !sys.drones) return;
+            window._mobileLabelsHidden = !window._mobileLabelsHidden;
+            for (const d of sys.drones) {
+                if (d._labelSprite) d._labelSprite.visible = !window._mobileLabelsHidden;
+            }
+            const btn = document.getElementById('mobile-btn-labels');
+            if (btn) btn.classList.toggle('active', !window._mobileLabelsHidden);
+        };
+
+        // ── FPS counter (frame-counting based, internal use only) ──
+        let _fpsFrames = 0, _fpsLast = performance.now(), _fpsValue = 60;
+        (function _fpsLoop() {
+            _fpsFrames++;
+            const now = performance.now();
+            if (now - _fpsLast >= 1000) {
+                _fpsValue = Math.round(_fpsFrames * 1000 / (now - _fpsLast));
+                _fpsFrames = 0;
+                _fpsLast = now;
+                // Also update desktop FPS display
+                const deskFps = document.getElementById('fps_display');
+                if (deskFps) deskFps.textContent = _fpsValue;
+            }
+            requestAnimationFrame(_fpsLoop);
+        })();
+    })();
+    </script>
+
     <script>
         // Configuration globale avec logging
         window.CONFIG = {
@@ -867,11 +2587,28 @@
             enableUILogging: true
         };
 
+        // Auto-rotation toggle
+        window.toggleAutoRotate = function() {
+            const sys = window.diamantsSystem;
+            if (!sys || !sys.controls) return;
+            const on = !sys.controls.autoRotate;
+            sys.controls.autoRotate = on;
+            sys.controls.autoRotateSpeed = on ? 1.5 : 0;
+            const btn = document.getElementById('auto-rotate-btn');
+            if (btn) {
+                btn.style.background = on ? 'rgba(0, 180, 255, 0.35)' : 'rgba(0, 15, 35, 0.88)';
+                btn.style.color = on ? '#00ffdd' : 'rgba(0, 210, 255, 0.7)';
+                btn.style.borderColor = on ? 'rgba(0, 255, 200, 0.6)' : 'rgba(0, 200, 255, 0.35)';
+            }
+        };
+
         // Fonction togglePanel simplifiée
         function togglePanel() {
             const panel = document.getElementById('ros_interface');
             const canvas = document.getElementById('canvas_container');
             const button = document.getElementById('toggle_panel');
+            const backdrop = document.getElementById('mobile-sidebar-backdrop');
+            const mobile = window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960);
 
             if (!panel || !canvas || !button) return;
 
@@ -881,13 +2618,19 @@
                 panel.style.display = 'block';
                 canvas.classList.add('panel-visible');
                 button.classList.add('panel-visible');
-                button.innerHTML = '◄';
+                button.innerHTML = mobile ? '✕' : '◄';
+                // Show mobile backdrop
+                if (backdrop && mobile) backdrop.classList.add('active');
             } else {
                 panel.style.display = 'none';
                 canvas.classList.remove('panel-visible');
                 button.classList.remove('panel-visible');
-                button.innerHTML = '►';
+                button.innerHTML = mobile ? '☰' : '►';
+                // Hide mobile backdrop
+                if (backdrop) backdrop.classList.remove('active');
             }
+            // Persist sidebar state
+            window.DIAMANTS?.viewPersistence?.scheduleSave();
         }
 
         // Toggle sections collapsibles
@@ -898,22 +2641,65 @@
             const isHidden = section.style.display === 'none';
             section.style.display = isHidden ? 'block' : 'none';
             
-            // Update header arrow
+            // Update header arrow — walk only text nodes to preserve child elements
+            // (e.g. <span id="llm-header-status-icon">🟢</span>)
             const header = section.previousElementSibling;
             if (header && header.tagName === 'H3') {
-                const text = header.textContent;
-                header.textContent = text.replace(/[▼▶]/g, isHidden ? '▼' : '▶');
+                for (const node of header.childNodes) {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        node.textContent = node.textContent.replace(/[▼▶]/g, isHidden ? '▼' : '▶');
+                    }
+                }
+                // Also update dedicated arrow spans (e.g. llm-decisions-arrow)
+                const arrowSpan = header.querySelector('[id$="-arrow"]');
+                if (arrowSpan) arrowSpan.textContent = isHidden ? '▼' : '▶';
             }
+            // Persist section state
+            window.DIAMANTS?.viewPersistence?.scheduleSave();
         }
+
+        // ── Emergence sub-metrics toggle ──
+        (function() {
+            const toggle = document.getElementById('emergence_toggle');
+            const panel  = document.getElementById('emergence_submetics');
+            const chev   = document.getElementById('emergence_chevron');
+            if (toggle && panel) {
+                toggle.addEventListener('click', () => {
+                    const show = panel.style.display === 'none';
+                    panel.style.display = show ? 'block' : 'none';
+                    if (chev) chev.textContent = show ? '▼' : '▶';
+                });
+            }
+        })();
 
         // Fonctions UI basiques
         function toggleMinimap() {
-            const m = document.getElementById('minimap');
-            if (m) m.style.display = m.style.display !== 'block' ? 'block' : 'none';
+            if (window.minimapManager) {
+                window.minimapManager.toggleAll();
+            } else {
+                const c = document.getElementById('minimaps-container');
+                if (c) c.style.display = c.style.display !== 'flex' ? 'flex' : 'none';
+            }
         }
 
         function toggleSAROverlay() {
             log('SAR overlay toggle');
+        }
+
+        function toggleOptimalSearch() {
+            // Toggle the OptimalSearchUI if available
+            const system = window.diamantsSystem;
+            if (system && system.optimalSearchUI) {
+                system.optimalSearchUI.toggle();
+            } else if (typeof window.OptimalSearchUI !== 'undefined') {
+                // Fallback: create instance if not already
+                if (!window._optimalSearchUI) {
+                    window._optimalSearchUI = new OptimalSearchUI();
+                }
+                window._optimalSearchUI.toggle();
+            } else {
+                log('⚠️ OptimalSearchUI non disponible');
+            }
         }
 
         function toggleTopicMonitor() {
@@ -1059,6 +2845,505 @@
         };
 
         log('✅ Fonctions UI chargées');
+
+        // ═══════════════════════════════════════════════════════════
+        // Minimap Detach / Dock System  (resize handles + font scaling)
+        // ═══════════════════════════════════════════════════════════
+        (function initMinimapDetach() {
+            const container = document.getElementById('minimaps-container');
+            if (!container) return;
+
+            // ── Constants ──
+            const BASE_W = 280;
+            const BASE_FONT = 12;
+            const MIN_SCALE = 0.85;
+            const MAX_SCALE = 2.0;
+            const MIN_W = 220;
+            const MIN_H = 180;
+            const RESIZE_DIRS = ['tl','tr','bl','br','edge-t','edge-b','edge-l','edge-r'];
+
+            // ── Font scale helper ──
+            function _updateMinimapFontScale(panel, w) {
+                const width = w || panel.offsetWidth || BASE_W;
+                const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, width / BASE_W));
+                panel.style.setProperty('--minimap-fs', (BASE_FONT * scale).toFixed(1) + 'px');
+            }
+
+            // ── Resize handles (add/remove) ──
+            function _addResizeHandles(panel) {
+                for (const dir of RESIZE_DIRS) {
+                    const h = document.createElement('div');
+                    h.className = `minimap-resize ${dir.startsWith('edge') ? dir : 'corner ' + dir}`;
+                    h.dataset.dir = dir;
+                    panel.appendChild(h);
+                }
+            }
+            function _removeResizeHandles(panel) {
+                panel.querySelectorAll('.minimap-resize').forEach(h => h.remove());
+            }
+
+            // ── Global custom resize state ──
+            let _rz = null; // { panel, dir, sx, sy, sr }
+            document.addEventListener('mousemove', (e) => {
+                if (!_rz) return;
+                const { panel, dir, sx, sy, sr } = _rz;
+                const dx = e.clientX - sx, dy = e.clientY - sy;
+                const maxW = window.innerWidth - 24;
+                const maxH = window.innerHeight - 16;
+                let l = sr.left, t = sr.top, w = sr.width, h = sr.height;
+                if (dir.includes('l') || dir === 'edge-l') { w = Math.min(maxW, Math.max(MIN_W, sr.width - dx)); l = sr.right - w; }
+                else if (dir.includes('r') || dir === 'edge-r') { w = Math.min(maxW, Math.max(MIN_W, sr.width + dx)); }
+                if (dir.includes('t') || dir === 'edge-t') { h = Math.min(maxH, Math.max(MIN_H, sr.height - dy)); t = sr.bottom - h; }
+                else if (dir.includes('b') || dir === 'edge-b') { h = Math.min(maxH, Math.max(MIN_H, sr.height + dy)); }
+                panel.style.left = l + 'px'; panel.style.top = t + 'px';
+                panel.style.width = w + 'px'; panel.style.height = h + 'px';
+                panel.style.right = 'auto'; panel.style.bottom = 'auto';
+                _updateMinimapFontScale(panel, w);
+            });
+            document.addEventListener('mouseup', () => {
+                if (_rz) window.DIAMANTS?.viewPersistence?.scheduleSave();
+                _rz = null;
+            });
+
+            // ── Snap zone config ──
+            const SNAP_EDGE_PX = 80;   // px from edge to trigger snap preview
+            const ghost = document.getElementById('minimap-snap-ghost');
+
+            /** Resize canvas buffers after snap/unsnap */
+            function _syncCanvas(panel, delay) {
+                const canvas = panel.querySelector('canvas');
+                if (!canvas) return;
+                const inst = canvas._minimapInstance;
+                setTimeout(() => {
+                    const cRect = canvas.getBoundingClientRect();
+                    const w = Math.round(cRect.width), h = Math.round(cRect.height);
+                    if (w < 10 || h < 10) return;
+                    canvas.width = w; canvas.height = h;
+                    if (inst) {
+                        if (inst._offscreen) { inst._offscreen.width = w; inst._offscreen.height = h; }
+                        if (inst._off)       { inst._off.width = w;       inst._off.height = h; }
+                        if (inst._imgData && inst.ctx) { inst._imgData = inst.ctx.createImageData(w, h); }
+                    }
+                }, delay || 60);
+            }
+
+            /** Snap panel to a side */
+            function _snapTo(panel, side) {
+                panel._preSnapRect = panel.getBoundingClientRect();
+                // Clear inline positioning so CSS !important can take over
+                panel.style.left = ''; panel.style.top = '';
+                panel.style.right = ''; panel.style.bottom = '';
+                panel.style.width = ''; panel.style.height = '';
+                panel.classList.add('snapped-' + side);
+                _updateMinimapFontScale(panel, window.innerWidth * 0.5);
+                _syncCanvas(panel, 280);   // wait for CSS transition
+                window.DIAMANTS?.viewPersistence?.scheduleSave();
+            }
+
+            /** Unsnap panel, restore floating */
+            function _unsnap(panel) {
+                const wasSnapped = panel.classList.contains('snapped-left') || panel.classList.contains('snapped-right');
+                panel.classList.remove('snapped-left', 'snapped-right');
+                if (wasSnapped && panel._preSnapRect) {
+                    const r = panel._preSnapRect;
+                    panel.style.width = r.width + 'px';
+                    panel.style.height = r.height + 'px';
+                    _updateMinimapFontScale(panel, r.width);
+                    _syncCanvas(panel, 60);
+                }
+            }
+
+            /** Shared drag logic with snap-to-edge.
+             *  Works from BOTH docked and detached states.
+             *  Dragging a docked panel auto-detaches it first. */
+            function _drag(panel, header, detachFn) {
+                let dragging = false, sx, sy, ox, oy;
+                let wasSnapped = false;
+                const DRAG_THRESHOLD = 8; // px moved before auto-detach from docked
+                let pendingDetach = false, startX, startY;
+
+                header.addEventListener('mousedown', (e) => {
+                    if (e.target.closest('button')) return;
+                    const isDocked = !panel.classList.contains('detached');
+                    const isSnapped = panel.classList.contains('snapped-left') || panel.classList.contains('snapped-right');
+
+                    if (isDocked) {
+                        // Start pending detach — will auto-detach after threshold
+                        pendingDetach = true;
+                        startX = e.clientX; startY = e.clientY;
+                        document.body.style.userSelect = 'none';
+                        header.style.cursor = 'grabbing';
+                        e.preventDefault();
+                        return;
+                    }
+
+                    wasSnapped = isSnapped;
+                    if (wasSnapped) {
+                        // Unsnap on drag start — keep mouse centered on original width
+                        const prevW = panel._preSnapRect ? panel._preSnapRect.width : 380;
+                        const prevH = panel._preSnapRect ? panel._preSnapRect.height : 310;
+                        _unsnap(panel);
+                        ox = e.clientX - prevW / 2;
+                        oy = e.clientY - 16;
+                        panel.style.left = ox + 'px'; panel.style.top = oy + 'px';
+                        panel.style.width = prevW + 'px'; panel.style.height = prevH + 'px';
+                    } else {
+                        const r = panel.getBoundingClientRect();
+                        ox = r.left; oy = r.top;
+                    }
+                    sx = e.clientX; sy = e.clientY;
+                    panel.style.right = 'auto'; panel.style.bottom = 'auto';
+                    document.body.style.userSelect = 'none';
+                    header.style.cursor = 'grabbing';
+                    dragging = true;
+                    e.preventDefault();
+                });
+
+                document.addEventListener('mousemove', (e) => {
+                    // Pending detach: auto-detach once user has dragged beyond threshold
+                    if (pendingDetach) {
+                        const dx = e.clientX - startX, dy = e.clientY - startY;
+                        if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+                            pendingDetach = false;
+                            // Auto-detach with panel positioned at mouse
+                            const dockRect = panel.getBoundingClientRect();
+                            detachFn(panel);
+                            // Override the centered position to match where user grabbed
+                            const pw = 380, ph = 310;
+                            ox = e.clientX - pw / 2;
+                            oy = Math.max(0, e.clientY - 16);
+                            panel.style.left = ox + 'px'; panel.style.top = oy + 'px';
+                            panel.style.right = 'auto'; panel.style.bottom = 'auto';
+                            sx = e.clientX; sy = e.clientY;
+                            dragging = true;
+                        }
+                        return;
+                    }
+                    if (!dragging) return;
+                    const newL = Math.max(0, ox + e.clientX - sx);
+                    const newT = Math.max(0, oy + e.clientY - sy);
+                    panel.style.left = newL + 'px';
+                    panel.style.top = newT + 'px';
+
+                    // Snap ghost preview
+                    if (ghost) {
+                        const nearLeft = e.clientX < SNAP_EDGE_PX;
+                        const nearRight = e.clientX > window.innerWidth - SNAP_EDGE_PX;
+                        ghost.className = '';
+                        ghost.id = 'minimap-snap-ghost';
+                        if (nearLeft) {
+                            ghost.classList.add('visible', 'snap-left');
+                        } else if (nearRight) {
+                            ghost.classList.add('visible', 'snap-right');
+                        }
+                    }
+                });
+
+                document.addEventListener('mouseup', (e) => {
+                    if (pendingDetach) {
+                        pendingDetach = false;
+                        document.body.style.userSelect = '';
+                        header.style.cursor = 'grab';
+                        return;
+                    }
+                    if (!dragging) return;
+                    dragging = false;
+                    document.body.style.userSelect = '';
+                    header.style.cursor = 'grab';
+
+                    // Hide ghost
+                    if (ghost) { ghost.className = ''; ghost.id = 'minimap-snap-ghost'; }
+
+                    // Snap?
+                    if (e.clientX < SNAP_EDGE_PX) {
+                        _snapTo(panel, 'left');
+                    } else if (e.clientX > window.innerWidth - SNAP_EDGE_PX) {
+                        _snapTo(panel, 'right');
+                    } else {
+                        // Floating position changed — persist
+                        window.DIAMANTS?.viewPersistence?.scheduleSave();
+                    }
+                });
+            }
+
+            let _detachOffset = 0;
+            /** Detach minimap from sidebar to floating panel */
+            function detachPanel(panel) {
+                // Remember original position for re-docking
+                panel._dockIndex = Array.from(container.children).indexOf(panel);
+                // Move to body
+                document.body.appendChild(panel);
+                // Restore previous detached rect if available, else center with defaults
+                const prev = panel._lastDetachedRect;
+                let vx, vy, pw, ph;
+                if (prev) {
+                    vx = prev.left; vy = prev.top; pw = prev.width; ph = prev.height;
+                } else {
+                    pw = 380; ph = 310;
+                    const offset = _detachOffset * 35;
+                    _detachOffset = (_detachOffset + 1) % 6;
+                    vx = Math.max(10, Math.round((window.innerWidth - pw) / 2) + offset);
+                    vy = Math.max(40, Math.round((window.innerHeight - ph) / 3) + offset);
+                }
+                panel.style.left = vx + 'px';
+                panel.style.top = vy + 'px';
+                panel.style.width = pw + 'px';
+                panel.style.height = ph + 'px';
+                panel.classList.add('detached');
+                // Add custom resize handles
+                _addResizeHandles(panel);
+                // Init font scale for detach width
+                _updateMinimapFontScale(panel, pw);
+                // Mousedown listener for resize handles
+                panel.addEventListener('mousedown', panel._rzDown = (e) => {
+                    const handle = e.target.closest('.minimap-resize');
+                    if (!handle) return;
+                    _rz = { panel, dir: handle.dataset.dir, sx: e.clientX, sy: e.clientY, sr: panel.getBoundingClientRect() };
+                    e.preventDefault(); e.stopPropagation();
+                });
+                // Update canvas size
+                const canvas = panel.querySelector('canvas');
+                if (canvas) {
+                    const inst = canvas._minimapInstance;
+                    if (inst) {
+                        setTimeout(() => {
+                            const cRect = canvas.getBoundingClientRect();
+                            const w = Math.round(cRect.width);
+                            const h = Math.round(cRect.height);
+                            canvas.width = w; canvas.height = h;
+                            if (inst._offscreen) { inst._offscreen.width = w; inst._offscreen.height = h; }
+                            if (inst._off) { inst._off.width = w; inst._off.height = h; }
+                            if (inst._imgData && inst.ctx) { inst._imgData = inst.ctx.createImageData(w, h); }
+                        }, 50);
+                    }
+                }
+                // Update button
+                const btn = panel.querySelector('.minimap-detach-btn');
+                if (btn) { btn.textContent = '⇲'; btn.title = 'Re-docker'; }
+                window.DIAMANTS?.viewPersistence?.scheduleSave();
+            }
+            function dockPanel(panel) {
+                // Save detached rect so re-detach restores size & position
+                if (panel.classList.contains('detached')) {
+                    const r = panel.getBoundingClientRect();
+                    panel._lastDetachedRect = { left: Math.round(r.left), top: Math.round(r.top), width: Math.round(r.width), height: Math.round(r.height) };
+                }
+                // Remove custom resize handles + listener
+                _removeResizeHandles(panel);
+                if (panel._rzDown) { panel.removeEventListener('mousedown', panel._rzDown); panel._rzDown = null; }
+                panel.classList.remove('detached', 'snapped-left', 'snapped-right');
+                panel._preSnapRect = null;
+                panel.style.left = ''; panel.style.top = '';
+                panel.style.width = ''; panel.style.height = '';
+                panel.style.right = ''; panel.style.bottom = '';
+                // Reset font scale to base
+                panel.style.setProperty('--minimap-fs', BASE_FONT + 'px');
+                // Reinsert at original position
+                const idx = panel._dockIndex ?? container.children.length;
+                if (idx < container.children.length) {
+                    container.insertBefore(panel, container.children[idx]);
+                } else {
+                    container.appendChild(panel);
+                }
+                // Restore canvas to default size
+                const canvas = panel.querySelector('canvas');
+                if (canvas) {
+                    canvas.width = 280; canvas.height = 200;
+                    const inst = canvas._minimapInstance;
+                    if (inst) {
+                        if (inst._offscreen) { inst._offscreen.width = 280; inst._offscreen.height = 200; }
+                        if (inst._off) { inst._off.width = 280; inst._off.height = 200; }
+                        if (inst._imgData && inst.ctx) { inst._imgData = inst.ctx.createImageData(280, 200); }
+                    }
+                }
+                const btn = panel.querySelector('.minimap-detach-btn');
+                if (btn) { btn.textContent = '⇱'; btn.title = 'Détacher'; }
+                window.DIAMANTS?.viewPersistence?.scheduleSave();
+            }
+
+            // ResizeObserver to update canvas when panel is resized (docked or detached)
+            const ro = new ResizeObserver(entries => {
+                for (const entry of entries) {
+                    const panel = entry.target;
+                    const canvas = panel.querySelector('canvas');
+                    if (!canvas) continue;
+                    const cRect = canvas.getBoundingClientRect();
+                    const w = Math.round(cRect.width); const h = Math.round(cRect.height);
+                    if (w < 10 || h < 10) continue;
+                    if (canvas.width === w && canvas.height === h) continue;
+                    canvas.width = w; canvas.height = h;
+                    const inst = canvas._minimapInstance;
+                    if (inst) {
+                        if (inst._offscreen) { inst._offscreen.width = w; inst._offscreen.height = h; }
+                        if (inst._off) { inst._off.width = w; inst._off.height = h; }
+                        if (inst._imgData && inst.ctx) { inst._imgData = inst.ctx.createImageData(w, h); }
+                    }
+                    // Update font scale on any resize
+                    if (panel.classList.contains('detached')) {
+                        _updateMinimapFontScale(panel, panel.offsetWidth);
+                    }
+                }
+            });
+
+            container.querySelectorAll('.minimap-panel').forEach(panel => {
+                const header = panel.querySelector('.minimap-header');
+                const btn = panel.querySelector('.minimap-detach-btn');
+                if (!header || !btn) return;
+
+                // Drag support (works from docked AND detached state)
+                _drag(panel, header, detachPanel);
+
+                // Observe for resize
+                ro.observe(panel);
+
+                // Detach / Dock toggle
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (panel.classList.contains('detached')) {
+                        dockPanel(panel);
+                    } else {
+                        detachPanel(panel);
+                    }
+                });
+            });
+
+            // Dock back any floating panels (minimaps are now accessed via picker only)
+            document.querySelectorAll('.minimap-panel.detached').forEach(p => dockPanel(p));
+
+            log('📌 Minimap detach/dock + resize + font-scale initialisé');
+        })();
+    </script>
+
+    <!-- ═══ MINIMAP MANAGER — picker + fullscreen viewer (all platforms) ═══ -->
+    <script>
+    (function() {
+        'use strict';
+
+        const MINIMAP_IDS = ['sitac-map', 'minimap', 'perception-map', 'discovery-map', 'federated-map', 'comm-panel-map'];
+        const MINIMAP_LABELS = {
+            'sitac-map': '🎯 SITAC — Détection',
+            'minimap': '🗺️ Exploration — Stigmergy',
+            'perception-map': '🌲 SLAM — Reconstruction',
+            'discovery-map': '🟩 Découverte — Pixels',
+            'federated-map': '🧠 Fédéré — RL',
+            'comm-panel-map': '📡 Communication — P2P'
+        };
+        const CANVAS_IDS = {
+            'sitac-map': 'sitac_canvas',
+            'minimap': 'minimap_canvas',
+            'perception-map': 'perception_canvas',
+            'discovery-map': 'discovery_canvas',
+            'federated-map': 'federated_canvas',
+            'comm-panel-map': 'comm_canvas'
+        };
+
+        let _viewerActive = false;
+        let _viewerAnimFrame = null;
+
+        const mgr = {
+            /* ═══ Picker (bottom sheet) ═══ */
+            openPicker() {
+                const overlay = document.getElementById('minimap-picker-overlay');
+                if (overlay) { overlay.style.display = 'flex'; }
+            },
+
+            closePicker() {
+                const overlay = document.getElementById('minimap-picker-overlay');
+                if (overlay) { overlay.style.display = 'none'; }
+            },
+
+            /* ═══ Fullscreen Viewer ═══ */
+            openViewer(id) {
+                mgr.closePicker();
+                const srcCanvas = document.getElementById(CANVAS_IDS[id]);
+                if (!srcCanvas) { console.warn('[MINIMAP] Canvas not found for', id); return; }
+
+                const viewer = document.getElementById('minimap-fullscreen-viewer');
+                const titleEl = document.getElementById('minimap-viewer-title');
+                const destCanvas = document.getElementById('minimap-viewer-canvas');
+                if (!viewer || !destCanvas) return;
+
+                if (titleEl) titleEl.textContent = MINIMAP_LABELS[id] || id;
+                viewer.style.display = 'flex';
+                _viewerActive = true;
+
+                const ctx = destCanvas.getContext('2d');
+                // Use offscreen buffer directly to avoid flicker (visible canvas may be
+                // mid-clear or discarded by mobile browsers when parent is display:none)
+                const offscreen = srcCanvas._minimapInstance?._offscreen;
+                function mirrorFrame() {
+                    if (!_viewerActive) return;
+                    const body = document.getElementById('minimap-viewer-body');
+                    if (body) {
+                        const dpr = window.devicePixelRatio || 1;
+                        const cw = body.clientWidth;
+                        const ch = body.clientHeight;
+                        destCanvas.width = cw * dpr;
+                        destCanvas.height = ch * dpr;
+                        destCanvas.style.width = cw + 'px';
+                        destCanvas.style.height = ch + 'px';
+                        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    }
+                    try {
+                        const src = offscreen || srcCanvas;
+                        ctx.clearRect(0, 0, destCanvas.width, destCanvas.height);
+                        if (src.width > 0 && src.height > 0) {
+                            const dw = body ? body.clientWidth : destCanvas.width;
+                            const dh = body ? body.clientHeight : destCanvas.height;
+                            const scale = Math.min(dw / src.width, dh / src.height);
+                            const w = src.width * scale;
+                            const h = src.height * scale;
+                            const x = (dw - w) / 2;
+                            const y = (dh - h) / 2;
+                            ctx.drawImage(src, x, y, w, h);
+                        }
+                    } catch(e) { /* cross-origin or empty canvas */ }
+                    _viewerAnimFrame = requestAnimationFrame(mirrorFrame);
+                }
+                requestAnimationFrame(mirrorFrame);
+            },
+
+            closeViewer() {
+                _viewerActive = false;
+                if (_viewerAnimFrame) { cancelAnimationFrame(_viewerAnimFrame); _viewerAnimFrame = null; }
+                const viewer = document.getElementById('minimap-fullscreen-viewer');
+                if (viewer) viewer.style.display = 'none';
+            },
+
+            /* ═══ Legacy stubs (for compatibility) ═══ */
+            close() {},
+            show() {},
+            toggleAll() { mgr.openPicker(); },
+            _updateMasterBadge() {}
+        };
+
+        window.minimapManager = mgr;
+
+        // Escape key closes viewer, picker, mission sheet, or beacon HUD
+        document.addEventListener('keydown', function(e) {
+            if (e.code === 'Escape') {
+                // Close beacon placement HUD first
+                const bph = document.getElementById('beacon-placement-hud');
+                if (bph && bph.classList.contains('active')) {
+                    window.DIAMANTS?.beacons?.exitPlacementMode();
+                    bph.classList.remove('active');
+                    e.preventDefault();
+                    return;
+                }
+                if (_viewerActive) { mgr.closeViewer(); e.preventDefault(); }
+                else {
+                    const overlay = document.getElementById('minimap-picker-overlay');
+                    if (overlay && overlay.style.display !== 'none') { mgr.closePicker(); e.preventDefault(); }
+                    else {
+                        const mms = document.getElementById('mobile-mission-sheet');
+                        if (mms && mms.classList.contains('active')) { mms.classList.remove('active'); e.preventDefault(); }
+                    }
+                }
+            }
+        });
+
+        console.log('[MINIMAP-MANAGER] Initialisé — picker + viewer mode');
+    })();
     </script>
 
     <!-- Charger la forêt EZ-Tree (authentic) -->

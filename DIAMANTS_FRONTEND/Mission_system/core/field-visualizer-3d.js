@@ -1,9 +1,11 @@
 /**
  * DIAMANTS 3D Field Visualizer
  * ============================
- * Visualisation volumétrique des champs
+ * Visualisation volumétrique des champs ψ, ∇ψ et harmoniques
  * Utilise InstancedMesh pour performance optimale
  */
+
+import { makeDraggable } from '../ui/panel-utils.js';
 
 export class FieldVisualizer3D {
     constructor(scene, diamantFormulas, options = {}) {
@@ -395,13 +397,69 @@ export class FieldVisualizer3D {
     }
 }
 
-// Harmonics HUD display
+// ═══════════════════════════════════════════════════════════════════════════
+// DIAMANTS Decision-Support HUD
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * DIAMANTS Operational HUD — Scientific Swarm Metrics
+ *
+ * Based on peer-reviewed algorithms:
+ *   • Vicsek order parameter φ — collective alignment (Phys. Rev. Lett. 1995)
+ *   • Reynolds Boids — separation, alignment, cohesion (SIGGRAPH 1987)
+ *   • Digital pheromone stigmergy — σ-field coverage (Aznar, PLoS ONE 2018)
+ *   • Emergence detection — Vicsek phase transition above 1/√N baseline
+ *
+ * PDE harmonics H1-H7, H15 remain available in the raw data panel.
+ */
+
+// Which harmonics are actually computed via real PDE integrals
+const REAL_HARMONICS = [0, 1, 2, 3, 4, 5, 6, 14]; // H1-H7, H15 (0-indexed)
+const STUB_HARMONICS = [7, 8, 9, 10, 11, 12, 13]; // H8-H14
+
+/**
+ * Compute honest I(t): only sum REAL harmonics, not stubs
+ */
+function computeHonestI(H, alpha) {
+    return REAL_HARMONICS.reduce((sum, i) => sum + alpha[i] * H[i], 0);
+}
+
+/**
+ * Trend arrow from rate of change (H7 = dI/dt)
+ */
+function trendArrow(dI) {
+    if (dI > 1)    return { arrow: '↑', color: '#00ff88', label: 'croissant' };
+    if (dI > 0.01) return { arrow: '↗', color: '#88ddaa', label: 'lent +' };
+    if (dI < -1)   return { arrow: '↓', color: '#ff6666', label: 'décroissant' };
+    if (dI < -0.01) return { arrow: '↘', color: '#ffaa66', label: 'lent −' };
+    return            { arrow: '→', color: '#999',    label: 'stable' };
+}
+
+/** Color for a [0,1] metric value */
+function metricBarColor(v) {
+    if (v < 0.2) return '#ff4444';
+    if (v < 0.5) return '#ffaa44';
+    if (v < 0.8) return '#88ddbb';
+    return '#00ff88';
+}
+
+/** Format a [0,1] value as percentage string */
+function pct(v) {
+    if (typeof v !== 'number' || isNaN(v)) return '—';
+    return (v * 100).toFixed(1) + '%';
+}
+
+
 export class HarmonicsHUD {
     constructor(formulas, container = document.body) {
         this.formulas = formulas;
         this.container = container;
         this.element = null;
         this._lastUpdate = 0;
+        this._expanded = false;
+        // History ring buffer for sparkline (last 60 samples ~ 15s at 250ms)
+        this._history = [];
+        this._historyMax = 60;
         
         this.init();
     }
@@ -413,51 +471,248 @@ export class HarmonicsHUD {
             position: fixed;
             top: 10px;
             right: 10px;
-            background: rgba(0, 0, 0, 0.85);
-            color: #00ff88;
-            padding: 15px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            z-index: 10000;
-            min-width: 200px;
-            border: 1px solid #00ff88;
-            box-shadow: 0 0 20px rgba(0, 255, 136, 0.2);
+            background: rgba(8, 12, 20, 0.94);
+            color: #c0e8d8;
+            padding: 0;
+            border-radius: 10px;
+            font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+            font-size: 11px;
+            z-index: 5000;
+            width: 290px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+            user-select: none;
         `;
         
+        this.element.addEventListener('click', (e) => {
+            if (e.target.closest('.hud-toggle')) {
+                this._expanded = !this._expanded;
+                this._forceRender();
+            }
+        });
+
+        // ── Persistent drag header ──
+        const dragHeader = document.createElement('div');
+        dragHeader.style.cssText = 'padding: 3px 12px; cursor: grab; background: rgba(0,255,136,0.06); border-bottom: 1px solid rgba(0,255,136,0.15); font-size: 9px; color: #446; text-align: center; user-select: none; letter-spacing: 2px;';
+        dragHeader.textContent = '⋮⋮⋮';
+        this.element.appendChild(dragHeader);
+
+        // Content div for dynamic HTML
+        this._contentDiv = document.createElement('div');
+        this.element.appendChild(this._contentDiv);
+        
         this.container.appendChild(this.element);
-        console.log('✅ DIAMANTS Harmonics HUD initialized');
+
+        // ── Drag support ──
+        makeDraggable(this.element, dragHeader);
+
+        console.log('✅ DIAMANTS HUD initialized (scientific mode)');
+    }
+
+    _forceRender() {
+        this._lastUpdate = 0;
+        this.update(performance.now());
     }
     
     update(time) {
-        if (time - this._lastUpdate < 200) return;
+        if (time - this._lastUpdate < 250) return;
         this._lastUpdate = time;
         
-        const H = this.formulas.harmonics || [];
-        const I = this.formulas.diamants_value || 0;
-        const E = this.formulas.emergence_factor || 0;
-        const C = this.formulas.coherence_level || 0;
-        
-        const formatVal = (v) => typeof v === 'number' ? v.toFixed(3) : '—';
-        
-        this.element.innerHTML = `
-            <div style="text-align: center; margin-bottom: 10px; font-size: 14px; color: #fff;">
-                <strong>◆ DIAMANTS ◆</strong>
+        const H = this.formulas.harmonics || new Array(15).fill(0);
+        const alpha = this.formulas.config?.alpha || Array(15).fill(1).map((_, i) => 1 / (i + 1));
+        const sm = this.formulas.swarmMetrics || {};
+
+        // Honest I(t) — only real harmonics
+        const I = computeHonestI(H, alpha);
+
+        // Record history
+        this._history.push(I);
+        if (this._history.length > this._historyMax) this._history.shift();
+
+        // Trend from H7
+        const trend = trendArrow(H[6]);
+
+        // Sparkline SVG
+        const spark = this._sparkline(this._history, 200, 24);
+
+        const N = sm.activeAgents || 0;
+
+        // ── Header ──
+        let html = `
+        <div style="padding: 10px 12px 6px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="color: #fff; font-size: 12px; font-weight: bold; letter-spacing: 1px;">◆ DIAMANTS</span>
+                <span style="font-size: 9px; color: #555; border: 1px solid #333; padding: 1px 6px; border-radius: 3px;">${N} agent${N !== 1 ? 's' : ''} actif${N !== 1 ? 's' : ''}</span>
             </div>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;">
-                <span>I(t):</span><span style="text-align: right;">${formatVal(I)}</span>
-                <span>Emergence:</span><span style="text-align: right;">${formatVal(E)}</span>
-                <span>Cohérence:</span><span style="text-align: right;">${formatVal(C)}</span>
+        </div>`;
+
+        // ── I(t) with sparkline ──
+        html += `
+        <div style="padding: 8px 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                <span style="color: #aaa; font-size: 10px;">I(t) Intelligence collective</span>
+                <span style="color: ${trend.color}; font-size: 11px;">${trend.arrow}</span>
             </div>
-            <div style="margin-top: 10px; border-top: 1px solid #00ff88; padding-top: 8px;">
-                <div style="color: #888; margin-bottom: 4px;">Harmoniques:</div>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; font-size: 10px;">
-                    ${H.slice(0, 15).map((h, i) => 
-                        `<span>H${i+1}: ${formatVal(h)}</span>`
-                    ).join('')}
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 20px; font-weight: bold; color: #fff; min-width: 70px;">${this._fmt(I)}</span>
+                <div style="flex: 1;">${spark}</div>
+            </div>
+        </div>`;
+
+        // ── Scientific Swarm Metrics ──
+        html += `<div style="padding: 0 12px 8px;">`;
+
+        // 1. ALIGNEMENT — Vicsek Order Parameter
+        html += this._domainCard('◎ Alignement', 'Vicsek φ (1995)', [
+            { label: 'Paramètre d\'ordre φ', value: sm.alignment, format: 'pct' },
+            { label: 'Seuil aléatoire 1/√N', value: N >= 2 ? 1 / Math.sqrt(N) : 0, format: 'pct', dim: true },
+        ]);
+
+        // 2. FORMATION — Reynolds Boids
+        html += this._domainCard('◈ Formation', 'Reynolds (1987)', [
+            { label: 'Cohésion (CV⁻¹)', value: sm.cohesion, format: 'pct' },
+            { label: 'Séparation (d_min/d₀)', value: sm.separation, format: 'pct' },
+        ]);
+
+        // 3. STIGMERGIE — Pheromone field
+        html += this._domainCard('⚡ Stigmergie', 'champ σ phéromone', [
+            { label: 'Couverture σ-field', value: sm.stigmergyCoverage, format: 'pct' },
+            { label: 'Intensité moyenne', value: sm.stigmergyIntensity, format: 'num' },
+        ]);
+
+        // 4. ÉMERGENCE — Not yet implemented
+        html += this._domainCard('✦ Émergence', 'pas encore implémentée', [
+            { label: 'Métrique', value: null, format: 'na' },
+            { label: 'Entropie Shannon', value: sm.entropy, format: 'bits' },
+        ]);
+
+        html += `</div>`;
+
+        // ── Toggle for raw PDE data ──
+        html += `
+        <div style="padding: 0 12px 8px; text-align: center;">
+            <span class="hud-toggle" style="cursor: pointer; color: #555; font-size: 9px; padding: 2px 10px; border: 1px solid #333; border-radius: 4px;">
+                ${this._expanded ? '▲ masquer' : '▼ harmoniques PDE brutes'}
+            </span>
+        </div>`;
+
+        // ── Expanded: raw harmonics table ──
+        if (this._expanded) {
+            html += `<div style="padding: 4px 12px 10px; border-top: 1px solid rgba(255,255,255,0.06);">`;
+            html += `<table style="width: 100%; border-collapse: collapse; font-size: 10px;">`;
+            html += `<tr style="color: #555;"><td style="padding: 2px 0;">ID</td><td>Valeur</td><td style="text-align:right;">Source</td></tr>`;
+            for (let i = 0; i < 15; i++) {
+                const isReal = REAL_HARMONICS.includes(i);
+                const v = H[i];
+                const rowColor = isReal ? '#bbb' : '#444';
+                const badge = isReal
+                    ? '<span style="color:#00aa66;font-size:8px;">PDE</span>'
+                    : '<span style="color:#664400;font-size:8px;">stub</span>';
+                html += `<tr style="color: ${rowColor}; border-top: 1px solid rgba(255,255,255,0.03);">
+                    <td style="padding: 2px 0;">H${i + 1}</td>
+                    <td style="font-variant-numeric: tabular-nums;">${this._fmt(v)}</td>
+                    <td style="text-align:right;">${badge}</td>
+                </tr>`;
+            }
+            html += `</table>`;
+            html += `<div style="color: #444; font-size: 8px; margin-top: 4px; text-align: center;">
+                Réf: Vicsek (1995) · Reynolds (1987) · Aznar (2018)
+            </div>`;
+            html += `</div>`;
+        }
+
+        this._contentDiv.innerHTML = html;
+    }
+
+    /**
+     * Render a domain card with bar visualization
+     */
+    _domainCard(title, ref, metrics) {
+        let html = `<div style="
+            background: rgba(255,255,255,0.03);
+            border-radius: 6px;
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            border-left: 3px solid rgba(0,255,136,0.3);
+        ">`;
+        html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+            <span style="color: #889; font-size: 9px; text-transform: uppercase; letter-spacing: 1px;">${title}</span>
+            <span style="color: #444; font-size: 8px; font-style: italic;">${ref}</span>
+        </div>`;
+
+        for (const m of metrics) {
+            const v = m.value || 0;
+            let display, barWidth, barColor;
+
+            if (m.format === 'na') {
+                display = '— non implémentée';
+                barWidth = 0;
+                barColor = '#555';
+            } else if (m.format === 'pct') {
+                display = pct(v);
+                barWidth = Math.min(100, v * 100);
+                barColor = m.color || metricBarColor(v);
+            } else if (m.format === 'bits') {
+                display = typeof v === 'number' && !isNaN(v) ? v.toFixed(2) + ' bits' : '—';
+                barWidth = Math.min(100, (v / 5) * 100); // 5 bits = max
+                barColor = '#88ddbb';
+            } else {
+                display = this._fmt(v);
+                barWidth = Math.min(100, (v / 5) * 100);
+                barColor = '#88ddbb';
+            }
+
+            const labelColor = m.dim ? '#555' : '#aab';
+
+            html += `<div style="margin-bottom: 2px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; height: 16px;">
+                    <span style="color: ${labelColor}; font-size: 10px;">${m.label}</span>
+                    <span style="color: ${barColor}; font-size: 11px; font-weight: bold; font-variant-numeric: tabular-nums;">${display}</span>
                 </div>
-            </div>
-        `;
+                ${m.dim ? '' : `<div style="height: 2px; background: rgba(255,255,255,0.06); border-radius: 1px; margin-top: 1px;">
+                    <div style="height: 100%; width: ${barWidth}%; background: ${barColor}; border-radius: 1px; transition: width 0.3s;"></div>
+                </div>`}
+            </div>`;
+        }
+
+        html += `</div>`;
+        return html;
+    }
+
+    /**
+     * SVG sparkline from history array
+     */
+    _sparkline(data, width, height) {
+        if (data.length < 2) return '';
+        const min = Math.min(...data);
+        const max = Math.max(...data);
+        const range = max - min || 1;
+        const step = width / (data.length - 1);
+
+        const points = data.map((v, i) => {
+            const x = (i * step).toFixed(1);
+            const y = (height - 2 - ((v - min) / range) * (height - 4)).toFixed(1);
+            return `${x},${y}`;
+        }).join(' ');
+
+        return `<svg width="${width}" height="${height}" style="display:block;">
+            <polyline points="${points}" fill="none" stroke="rgba(0,255,136,0.5)" stroke-width="1.5" />
+            <circle cx="${((data.length - 1) * step).toFixed(1)}" cy="${(height - 2 - ((data[data.length - 1] - min) / range) * (height - 4)).toFixed(1)}" r="2.5" fill="#00ff88" />
+        </svg>`;
+    }
+
+    /**
+     * Smart number formatting
+     */
+    _fmt(v) {
+        if (typeof v !== 'number' || isNaN(v)) return '—';
+        const abs = Math.abs(v);
+        if (abs === 0) return '0';
+        if (abs < 0.001) return v.toExponential(1);
+        if (abs < 1) return v.toFixed(3);
+        if (abs < 10) return v.toFixed(2);
+        if (abs < 100) return v.toFixed(1);
+        return v.toFixed(0);
     }
     
     setVisible(visible) {
