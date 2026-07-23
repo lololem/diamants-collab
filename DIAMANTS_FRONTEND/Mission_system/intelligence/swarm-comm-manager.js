@@ -51,7 +51,8 @@ export class SwarmCommManager {
 
     // ── Lectures : collections vides, jamais null/undefined ──────────
     getLocalCellsSet(_droneId) { return new Set(); }
-    getCommNeighbors(_droneId) { return []; }
+    // Set, et non Array : autonomous-flight-engine lit .has() et .size dessus.
+    getCommNeighbors(_droneId) { return new Set(); }
     getPendingWaves() { return []; }
     getBeaconZones(_droneId) { return []; }
     getAllKnownBeaconZones() { return []; }
@@ -61,7 +62,18 @@ export class SwarmCommManager {
     getGlobalInfoFlowRatio() { return 0; }
     getLatestEvent(_droneId) { return null; }
     getDirective(_droneId) { return null; }
-    getCommDetails(_droneId) { return null; }
+    // Objet structure, et non null : l'UI parcourt .peers et lit .infoFlow.
+    getCommDetails(_droneId) {
+        return {
+            active: false,
+            peers: [],
+            ownKnowledge: 0,
+            directive: null,
+            infoFlow: { explored: 0, received: 0, ratio: 0 },
+            beaconZones: 0,
+            beaconZoneList: [],
+        };
+    }
     getCommLabel(_droneId) { return ''; }
     isCommunicating(_droneId) { return false; }
     getStats() {
@@ -70,7 +82,7 @@ export class SwarmCommManager {
 
     // ── Écritures : absorbées sans effet ─────────────────────────────
     consumeDirective(_droneId) { return null; }
-    reportBeaconFound(_droneId, _beacon) { /* no-op */ }
+    reportBeaconFound(_droneId, _position, _beaconId) { /* no-op */ }
 }
 
 export default SwarmCommManager;
