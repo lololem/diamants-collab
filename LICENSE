@@ -127,24 +127,12 @@ of your licenses.
 
 ---
 
-## Composants tiers / Third-party components
+## Third-party components
 
-Ce dépôt embarque des logiciels tiers qui restent sous leur propre licence.
-Les termes ci-dessus ne s'y appliquent **pas** :
+This repository bundles third-party software that remains under its own licence.
+The terms above do **not** apply to it:
 
 - `DIAMANTS_FRONTEND/Mission_system/third-party/ez-tree/` — EZ-Tree
-- dépendances installées via `npm` — voir la licence de chaque paquet
+- dependencies installed via `npm` — see each package's own licence
 
-Se reporter au fichier LICENSE de chaque composant pour ses conditions.
-
-## Note historique / Historical note
-
-Ce dépôt a été distribué sous licence MIT jusqu'au 23 juillet 2026. Les copies
-obtenues avant cette date restent régies par les termes MIT alors en vigueur ;
-ce changement de licence ne s'applique qu'aux versions distribuées à partir de
-cette date.
-
-This repository was distributed under the MIT License until 23 July 2026.
-Copies obtained before that date remain governed by the MIT terms then in
-effect; this licence change applies only to versions distributed from that
-date onwards.
+Refer to each component's own LICENSE file for its terms.
