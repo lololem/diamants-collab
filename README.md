@@ -1,145 +1,127 @@
-# DIAMANTS — Distributed Autonomous Multi-Agent Systems
+# DIAMANTS
 
-Plateforme 3D de simulation et de visualisation d'essaims de drones
-hétérogènes, exécutée dans le navigateur.
+**Faire voler un essaim de drones dans votre navigateur, et y brancher votre propre intelligence.**
 
-DIAMANTS est une **infrastructure** : vous décrivez votre drone dans un fichier
-JSON, vous implémentez une interface JavaScript pour votre algorithme d'essaim,
-et le système prend en charge le reste — rendu 3D, contrôle PID, évitement de
-collisions, exploration autonome.
+DIAMANTS est un terrain de jeu pour la recherche en essaims. Vous ouvrez une page
+web, une flotte de drones décolle d'un héliport au milieu d'une forêt et part
+explorer. Tout tourne en local, sans serveur, sans compte à créer.
 
-> **Licence : PolyForm Noncommercial 1.0.0.** Vous pouvez télécharger, étudier,
-> modifier et redistribuer ce logiciel pour tout usage **non commercial**
-> (recherche, enseignement, projets personnels, organisations à but non
-> lucratif). Toute exploitation commerciale est interdite. Voir [LICENSE](LICENSE).
+L'idée derrière : la partie pénible d'un projet d'essaim — le rendu 3D, la
+physique de vol, les collisions, les modèles de drones — est déjà faite. Vous
+arrivez avec votre algorithme de coordination, vous l'écrivez dans une interface
+JavaScript, et vous le regardez piloter la flotte. Vous voulez un autre drone ?
+C'est un fichier JSON.
 
----
-
-## Ce que fait le projet
-
-- Simulation 3D d'essaims hétérogènes (Crazyflie, X500, S500, ou votre drone)
-- Moteur de vol autonome à contrôle PID, dans le navigateur
-- Système de greffons : profils de drones (JSON) et intelligence d'essaim (JS)
-- Doctrines commutables en temps réel
-- Minimap d'exploration avec suivi de couverture
-- Destiné à la recherche, l'enseignement et le prototypage d'algorithmes
+> **Licence : PolyForm Noncommercial 1.0.0.** Téléchargez, étudiez, modifiez,
+> redistribuez — pour la recherche, l'enseignement, vos projets personnels ou une
+> organisation à but non lucratif. En revanche, pas d'exploitation commerciale.
+> Le texte complet est dans [LICENSE](LICENSE).
 
 ---
 
-## Installation
+## Démarrer
 
-### Prérequis
-
-| Outil | Version | Note |
-|-------|---------|------|
-| Node.js | **20.x** | testé sur 20.20.0 ; `nvm` recommandé |
-| npm | 10.x | fourni avec Node 20 |
-| Navigateur | récent | WebGL 2 requis |
-
-Une carte graphique n'est pas indispensable, mais le rendu logiciel est très
-lent — comptez quelques images par seconde.
-
-### Étapes
+Il vous faut **Node.js 20 ou plus récent** et un navigateur avec WebGL 2
+(n'importe quel Chrome, Firefox ou Edge des dernières années).
 
 ```bash
 git clone https://github.com/lololem/diamants-collab.git
 cd diamants-collab/DIAMANTS_FRONTEND/Mission_system
-
-# Node 20 recommandé
-nvm use 20        # ou : nvm install 20
-
 npm install
 npm run dev
 ```
 
-Ouvrez ensuite <http://localhost:5550>. Les drones apparaissent sur l'héliport
-et explorent de façon autonome.
+L'installation télécharge un peu moins de 800 paquets et prend une demi-minute.
+Vous verrez passer des avertissements `npm warn deprecated` : ils viennent de
+dépendances indirectes et sont sans conséquence.
 
-### Autres commandes
+Vite vous affiche ensuite l'adresse à ouvrir, en général
+**http://localhost:5550**. Si ce port est déjà pris, il en choisit un autre tout
+seul et vous le dit — il n'y a rien à configurer.
+
+Les drones apparaissent sur l'héliport et commencent à explorer.
+
+**Si l'écran reste noir**, c'est presque toujours l'accélération matérielle
+désactivée dans le navigateur. Si tout est très lent (quelques images par
+seconde), c'est que le rendu se fait sur le processeur au lieu de la carte
+graphique.
+
+Quelques autres commandes utiles :
 
 ```bash
-npm run build      # build de production dans dist/
-npm run preview    # sert le build de production
-npm test           # tests unitaires (vitest)
-npm run coverage   # tests + couverture
+npm run build      # construit la version de production dans dist/
+npm run preview    # sert cette version
+npm test           # lance la suite de tests
 ```
-
-### En cas de problème
-
-| Symptôme | Cause probable |
-|----------|----------------|
-| Page noire, « WebGL non disponible » | accélération matérielle désactivée dans le navigateur |
-| Très basse fréquence d'images | rendu logiciel ; vérifiez que le GPU est utilisé |
-| `npm install` échoue | version de Node ≠ 20.x |
-| Port 5550 occupé | modifiez `port` dans `scripts/dev.js` |
 
 ---
 
 ## Ce que ce dépôt ne contient pas
 
-Ce dépôt est la **partie publique** du projet. Plusieurs modules de recherche
-restent privés et sont remplacés ici par des **stubs** : des fichiers qui
-exposent la même API mais ne font rien. L'application démarre, les drones
-volent, l'interface est complète — seuls les comportements ci-dessous sont
-inertes.
+Autant le dire tout de suite pour vous éviter de chercher.
 
-| Module stubbé | Effet dans ce dépôt |
-|---------------|---------------------|
-| `intelligence/stigmergy-engine.js` | pas d'intelligence stigmergique ; le chargeur bascule sur un repli |
-| `intelligence/distributed-swarm-engine.js` | pas d'agents distribués |
-| `intelligence/swarm-comm-manager.js` | pas de radio simulée : les drones ne partagent pas leur carte |
-| `intelligence/drone-intelligence.js` | pas d'appel aux modèles de langage locaux |
-| `intelligence/scenario-engine.js` | catalogue de scénarios vide |
-| `intelligence/optimized-search.js` | recherche hiérarchique non implémentée |
-| `core/diamants-formulas.js` | métriques de champ inertes |
+DIAMANTS est développé dans un dépôt privé, et une partie du travail de
+recherche n'est pas publiée. Concrètement, **sept modules sont remplacés par des
+coquilles vides** : des fichiers qui ont la bonne forme, que le reste du code
+peut appeler sans planter, mais qui ne font rien.
 
-Chaque stub porte un en-tête expliquant ce qu'il remplace. Pour brancher votre
-propre implémentation, remplacez simplement le fichier : les interfaces sont
-documentées dans `intelligence/swarm-intelligence-interface.js` et
+L'application démarre normalement, les drones volent, explorent et évitent les
+obstacles. Ce qui manque, c'est leur **intelligence collective** :
+
+| Ce qui est remplacé | Ce que vous perdez |
+|---|---|
+| `stigmergy-engine.js` | les drones ne déposent pas de phéromones et ne s'en servent pas pour choisir où aller |
+| `distributed-swarm-engine.js` | pas d'agents autonomes coordonnés |
+| `swarm-comm-manager.js` | les drones ne se parlent pas et ne partagent pas leur carte |
+| `drone-intelligence.js` | pas d'appel aux modèles de langage locaux |
+| `scenario-engine.js` | la liste de scénarios est vide |
+| `optimized-search.js` | la recherche hiérarchique n'est pas implémentée |
+| `core/diamants-formulas.js` | les métriques de champ restent à zéro |
+
+Chacune de ces coquilles porte un en-tête qui explique ce qu'elle remplace.
+**Rien ne vous empêche d'écrire la vôtre** : c'est même l'usage prévu. Les
+contrats à respecter sont documentés dans
+`intelligence/swarm-intelligence-interface.js` et
 `intelligence/stigmergy-interface.js`.
 
-**Note sur le panneau « Intelligence LLM ».** Il s'appuie sur un serveur
-[Ollama](https://ollama.com) local, qui ne peut pas être fourni par un dépôt
-Git. En son absence, le panneau affiche des décisions **simulées** à titre de
-démonstration ; ce ne sont pas des sorties de modèle.
+**Le backend ROS 2 / SLAM et la passerelle WebSocket ne sont pas publiés non
+plus.** Ils servent à piloter de vrais drones ou une simulation Gazebo, et
+restent dans le dépôt privé. Ça ne vous gêne pas pour autant : le frontend
+fonctionne seul, c'est même son mode normal.
+
+**À propos du panneau « Intelligence LLM ».** Il est prévu pour dialoguer avec un
+serveur [Ollama](https://ollama.com) qui tourne sur votre machine. Un dépôt Git
+ne peut évidemment pas en fournir un. Sans lui, le panneau affiche des décisions
+**simulées**, uniquement pour la démonstration — ce ne sont pas des sorties de
+modèle.
 
 ---
 
-## Structure du projet
+## Comment c'est organisé
 
 ```
 diamants-collab/
-  DIAMANTS_FRONTEND/Mission_system/     # Application principale
-    main.js                             # Point d'entrée, boucle de rendu
-    index.html                          # Interface et panneaux
-    physics/
-      autonomous-flight-engine.js       # Moteur de vol PID (cœur)
-      drone-physics-registry.js         # Chargement des profils
-      pid-controller.js                 # Contrôleur PID
-      profiles/                         # Déposez votre JSON de drone ici
-    intelligence/                       # Interfaces d'essaim (+ stubs)
-    behaviors/                          # Motifs de vol et reconnaissance
-    missions/                           # Missions et doctrines
-    environment/                        # Terrain, végétation, ciel
-    shaders/                            # Shaders GLSL (herbe, ciel)
-    drones/                             # Modèles et visuels de drones
-    ui/                                 # Panneaux, minimaps, overlays
-    core/                               # État applicatif, événements
-    assets/                             # Maillages, textures
-    third-party/ez-tree/                # Générateur d'arbres (licence propre)
-  DIAMANTS_BACKEND/                     # Ponts ROS 2 / SLAM (optionnel)
-  DIAMANTS_API/                         # Passerelle WebSocket (optionnel)
-  DEMO/                                 # Vidéos et données d'exemple
+  DIAMANTS_FRONTEND/Mission_system/     ← toute l'application est ici
+    main.js                             point d'entrée, boucle de rendu
+    index.html                          interface et panneaux de contrôle
+    physics/                            moteur de vol PID, profils de drones
+    intelligence/                       interfaces d'essaim (et les coquilles)
+    environment/                        terrain, végétation, ciel
+    shaders/                            herbe et ciel en GLSL
+    drones/                             modèles 3D et visuels
+    ui/                                 panneaux, minimaps, superpositions
+    core/                               état de l'application, événements
+    assets/                             maillages et textures
+    third-party/ez-tree/                générateur d'arbres (licence propre)
+  DEMO/                                 vidéos et données d'exemple
 ```
-
-Le frontend fonctionne **seul**. Le backend et l'API ne sont nécessaires que
-pour piloter des drones réels ou une simulation Gazebo.
 
 ---
 
 ## Ajouter votre drone
 
-Créez un fichier JSON dans `DIAMANTS_FRONTEND/Mission_system/physics/profiles/` :
+Déposez un fichier JSON dans `physics/profiles/`. Le moteur charge tout ce qu'il
+y trouve au démarrage.
 
 ```json
 {
@@ -175,16 +157,15 @@ Créez un fichier JSON dans `DIAMANTS_FRONTEND/Mission_system/physics/profiles/`
 }
 ```
 
-Champs obligatoires : `id`, `label`, `physical`, `performance`, `pid`. Le schéma
-complet est dans `profiles/drone-profile.schema.json`. Le moteur charge tous les
-JSON du répertoire au démarrage.
+Seuls `id`, `label`, `physical`, `performance` et `pid` sont obligatoires ; le
+reste a des valeurs par défaut. Le schéma complet est dans
+`profiles/drone-profile.schema.json`.
 
 ---
 
-## Ajouter votre intelligence d'essaim
+## Brancher votre algorithme d'essaim
 
-Implémentez `SwarmIntelligenceInterface`
-(`intelligence/swarm-intelligence-interface.js`) :
+Vous étendez une classe, vous implémentez deux méthodes, c'est tout.
 
 ```javascript
 import { SwarmIntelligenceInterface } from './swarm-intelligence-interface.js';
@@ -197,80 +178,77 @@ export class MySwarmAlgorithm extends SwarmIntelligenceInterface {
     }
 
     initialize(config) {
-        // Appelé une fois au démarrage : { droneCount, arena, profiles }
+        // Appelé une fois au démarrage.
+        // config contient { droneCount, arena, profiles }
     }
 
     computeInfluences(droneStates, dt) {
-        // Appelé à chaque frame.
+        // Appelé à chaque image.
         // droneStates : Map<id, {position, velocity, target, ...}>
-        // Retour     : Map<id, {targetModifier, velocityBias, priorityOverride}>
+        // Vous renvoyez : Map<id, {targetModifier, velocityBias, priorityOverride}>
+        // Une Map vide = aucune influence, les drones continuent comme avant.
         return new Map();
     }
 }
 ```
 
-Le moteur appelle `computeInfluences()` à chaque frame et fusionne vos sorties
-avec le contrôleur PID. **Vous observez, vous suggérez — le PID décide.**
+Le principe est volontairement simple : **vous observez et vous suggérez, le
+contrôleur PID décide.** Vos sorties sont fusionnées avec la commande de vol, pas
+substituées à elle. Vous ne pouvez donc pas faire s'écraser un drone par erreur,
+et vous n'avez pas à vous occuper de la stabilité.
 
 ---
 
-## Pile technique
+## Sous le capot
 
-| Composant | Technologie | Version |
-|-----------|-------------|---------|
-| Moteur 3D | Three.js | 0.167.x |
-| Build | Vite | 4.5.3 |
-| Tests | Vitest | 1.6.x |
-| Exécution | Node.js | 20.x |
-| Langage | modules ES6 | — |
+Three.js 0.167 pour le rendu, Vite 4.5 pour le build et le serveur de
+développement, Vitest pour les tests, et des modules ES sans transpilation. Node
+20 ou plus récent.
 
 ---
 
-## Vidéos
+## Voir avant d'installer
 
-- [Démo frontend 3D](https://www.youtube.com/watch?v=fyEmYu4lbzo) — interface Three.js
-- [Systèmes multi-agents](https://www.youtube.com/watch?v=1Av_o-9fzrE) — coordination distribuée
-- [Navigation par gradient](https://www.youtube.com/watch?v=ElABxOde6ak) — planification
-- [Coordination d'essaim](https://www.youtube.com/watch?v=L8V64LajM2w) — formations
-- [Démo stigmergie](https://www.youtube.com/watch?v=SyqeRwcbDO4) — coordination bio-inspirée
+- [Démo frontend 3D](https://www.youtube.com/watch?v=fyEmYu4lbzo)
+- [Systèmes multi-agents](https://www.youtube.com/watch?v=1Av_o-9fzrE)
+- [Navigation par gradient](https://www.youtube.com/watch?v=ElABxOde6ak)
+- [Coordination d'essaim](https://www.youtube.com/watch?v=L8V64LajM2w)
+- [Démo stigmergie](https://www.youtube.com/watch?v=SyqeRwcbDO4)
 
-D'autres démonstrations sont dans `DEMO/`.
+D'autres vidéos et des données d'exemple sont dans `DEMO/`.
 
 ---
 
 ## Contribuer
 
-Les contributions sont bienvenues, dans le cadre non commercial de la licence :
+Les contributions sont les bienvenues, dans le cadre non commercial de la
+licence. Ce qui aide le plus :
 
-- ajouter un profil de drone (JSON + modèle 3D optionnel)
-- implémenter un algorithme d'essaim (étendre l'interface JS)
-- améliorer la visualisation 3D
-- corriger des bugs, écrire des tests, améliorer la documentation
+- un profil de drone (et son modèle 3D si vous en avez un)
+- une implémentation d'algorithme d'essaim
+- des améliorations du rendu
+- des corrections de bugs, des tests, de la documentation
 
-Fork, branche, pull request. Voir [Contributing.md](Contributing.md).
-
-En proposant une contribution, vous acceptez qu'elle soit distribuée sous la
-même licence que le projet.
+Fork, branche, pull request. Les détails sont dans
+[Contributing.md](Contributing.md). En proposant une contribution, vous acceptez
+qu'elle soit distribuée sous la même licence que le projet.
 
 ---
 
 ## Licence
 
-**PolyForm Noncommercial License 1.0.0** — voir [LICENSE](LICENSE).
+**PolyForm Noncommercial License 1.0.0** — [LICENSE](LICENSE).
 
-En résumé : usage libre pour la recherche, l'enseignement, l'étude personnelle
-et les organisations à but non lucratif. **Toute exploitation commerciale est
-interdite.**
+En clair : faites-en ce que vous voulez tant que vous n'en tirez pas de revenus.
+Recherche, enseignement, apprentissage, association : oui. Produit commercial,
+service payant, intégration dans une offre : non.
 
-Les composants tiers embarqués (EZ-Tree, Crazyswarm2, paquets npm) restent sous
-leur propre licence ; la section « Composants tiers » du fichier LICENSE les
-énumère.
-
-Ce dépôt a été distribué sous licence MIT jusqu'au 23 juillet 2026 ; les copies
-antérieures restent régies par ces termes.
+Les composants tiers embarqués (EZ-Tree, Crazyswarm2, paquets npm) gardent leur
+propre licence ; ils sont listés à la fin du fichier LICENSE.
 
 ---
 
 ## Contact
 
-- Issues : [github.com/lololem/diamants-collab/issues](https://github.com/lololem/diamants-collab/issues)
+Une question, un bug, une idée :
+[ouvrez une issue](https://github.com/lololem/diamants-collab/issues).
