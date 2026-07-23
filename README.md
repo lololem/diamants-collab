@@ -9,6 +9,18 @@ algorithm.
 > **PolyForm Noncommercial 1.0.0** — free for research, teaching, personal and
 > non-profit use. Commercial use is not permitted. See [LICENSE](LICENSE).
 
+![The simulation running: a heterogeneous fleet — two large X500/S500 quadcopters and several Crazyflie micro-drones — on a helipad in a forest, each drone showing its own status panel](docs/images/simulation.jpg)
+
+*A heterogeneous fleet on the helipad. Every drone carries its own status panel
+(id, phase, autonomy mode). Larger X500/S500 platforms and Crazyflie
+micro-drones fly side by side, each with its own physics profile.*
+
+![The mission control panel open on the left: Launch, Stop, Takeoff, Land and Return-to-Home buttons, a doctrine selector, beacon placement, scenario picker and an autonomy slider](docs/images/controls.jpg)
+
+*The control panel. Launch a mission, switch flight doctrine and course of
+action on the fly, drop beacons, or slide the autonomy from centrally guided to
+fully distributed — where the agents coordinate with no central control.*
+
 ---
 
 ## Getting started
