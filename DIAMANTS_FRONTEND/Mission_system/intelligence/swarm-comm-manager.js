@@ -9,9 +9,7 @@
 /**
  * SwarmCommManager — Stub public
  * ================================
- * L'implémentation réelle (radio simulée entre drones : portée, pertes de
- * paquets, latence, synchronisation de connaissance locale, horloges
- * vectorielles, directives) vit dans le dépôt privé.
+ * The concrete implementation is not part of this distribution.
  *
  * Ce stub reproduit STRICTEMENT la surface d'API consommée par le reste du
  * code, avec des valeurs neutres. Il est importé statiquement par
