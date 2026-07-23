@@ -17,11 +17,11 @@
  * @vitest-environment jsdom
  */
 /*
- * DIAMANTS — Simulation d'essaim de drones collaboratifs
- * Copyright (c) 2026 Loïc Lemasle
+ * DIAMANTS — Collaborative drone swarm simulation
+ * Copyright (c) 2026 Loic Lemasle
  *
- * Distribué sous PolyForm Noncommercial License 1.0.0.
- * Usage commercial interdit. Voir le fichier LICENSE à la racine.
+ * Licensed under the PolyForm Noncommercial License 1.0.0.
+ * Commercial use is not permitted. See LICENSE at the repository root.
  * https://polyformproject.org/licenses/noncommercial/1.0.0/
  */
 
