@@ -5,7 +5,6 @@
  * Ce fichier est le CŒUR du système qui fait "scooter" les drones.
  * Toute modification DOIT être testée contre cette baseline.
  * Restaurer : git checkout v0-origin -- physics/autonomous-flight-engine.js
- * Archive  : /path/to/baseline-backup.tar.gz
  *
  * Fast, fluid, dynamic exploration with proper PID control.
  * Handles mixed drone types (Crazyflie + larger drones),

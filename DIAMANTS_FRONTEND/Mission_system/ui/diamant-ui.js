@@ -1362,7 +1362,7 @@ export class DiamantUI {
     /**
      * Mise à jour de la formule DIAMANTS
      */
-    updateFormula(formula = "I(t) = ∬Ω |∇(φ+σ)| dΩ") {
+    updateFormula(formula = "DIAMANTS - Simulation Active") {
         const formulaDisplay = document.getElementById('formula-display');
         if (formulaDisplay) {
             formulaDisplay.innerHTML = `
