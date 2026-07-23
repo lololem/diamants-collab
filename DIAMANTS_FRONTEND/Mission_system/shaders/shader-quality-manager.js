@@ -68,7 +68,7 @@ const SHADER_CONFIGS = {
     
     [QUALITY_LEVELS.ULTRA]: {
         vertexShader: 'grass-vertex-ultra.js',
-    fragmentShader: 'grass-fragment-stable.js',
+        fragmentShader: 'grass-fragment-ultra.js',
         description: '🔴 Ultra - Effets visuels maximum',
         features: {
             wind: true,
@@ -142,13 +142,31 @@ function importShaderByName(name, fallback) {
  */
 export class ShaderQualityManager {
     constructor() {
-        this.currentQuality = QUALITY_LEVELS.MEDIUM;
+        this.currentQuality = QUALITY_LEVELS.MEDIUM; // safe default − overridden by autoDetect
         this.autoQuality = false;
         this.performanceMetrics = {
             fps: 60,
             drawCalls: 0,
             triangles: 0
         };
+    }
+
+    /**
+     * Auto-detect optimal quality on startup.
+     * Should be called once after the WebGL renderer is available.
+     * Falls back gracefully if detection fails.
+     */
+    async autoDetectOnInit(renderer) {
+        try {
+            const quality = await this.detectOptimalQuality(renderer);
+            log(`🎯 Auto-détection qualité: ${quality}`);
+            this.currentQuality = quality;
+            return quality;
+        } catch (e) {
+            console.warn('⚠️ Auto-détection qualité échouée, MEDIUM par défaut', e);
+            this.currentQuality = QUALITY_LEVELS.MEDIUM;
+            return QUALITY_LEVELS.MEDIUM;
+        }
     }
 
     /**
@@ -317,7 +335,7 @@ export class ShaderQualityManager {
     }
 
     /**
-     * Détection automatique de la qualité optimale selon le GPU
+     * Détection automatique de la qualité optimale selon le GPU + device
      */
     async detectOptimalQuality(renderer) {
         // Rendre l'argument renderer optionnel et robuste
@@ -346,24 +364,41 @@ export class ShaderQualityManager {
         
         // Analyse du GPU
         const gpuTier = this.analyzeGPU(String(debugInfo || 'unknown'));
-        
+
+        // Device heuristics
+        const isMobile = /android|iphone|ipad|mobile/i.test(navigator.userAgent);
+        const cores = navigator.hardwareConcurrency || 2;
+        const memoryGB = (navigator.deviceMemory || 4);
+        const screenPixels = window.screen.width * window.screen.height * (window.devicePixelRatio || 1);
+
         // Test de performance rapide
         const perfTest = await this.quickPerformanceTest(renderer);
-        
-        // Détermination de la qualité optimale
-        let optimalQuality = QUALITY_LEVELS.MEDIUM;
-        // Affiner selon le score
-        if (perfTest.score >= 0.95 && gpuTier === 'high') {
+
+        // Composite score (0‒1)
+        let score = perfTest.score; // fps-based
+
+        // Adjust by device characteristics
+        if (isMobile) score *= 0.6;                          // mobile penalty
+        if (cores <= 2) score *= 0.7;                         // weak CPU
+        if (memoryGB <= 2) score *= 0.7;                      // low memory
+        if (gpuTier === 'high') score = Math.max(score, 0.9); // high-end GPU overrides
+        if (gpuTier === 'low')  score = Math.min(score, 0.5); // integrated caps at medium
+
+        // Determine quality
+        let optimalQuality;
+        if (score >= 0.85) {
             optimalQuality = QUALITY_LEVELS.ULTRA;
-        } else if (perfTest.score >= 0.8 && gpuTier !== 'low') {
+        } else if (score >= 0.6) {
             optimalQuality = QUALITY_LEVELS.HIGH;
-        } else if (perfTest.score < 0.45 || gpuTier === 'low') {
+        } else if (score >= 0.35) {
+            optimalQuality = QUALITY_LEVELS.MEDIUM;
+        } else {
             optimalQuality = QUALITY_LEVELS.LOW;
         }
-        
-        log(`🔍 GPU détecté: ${debugInfo}`);
-        log(`📊 Score performance: ${perfTest.score.toFixed(2)}`);
-        log(`🎯 Qualité optimale suggérée: ${optimalQuality}`);
+
+        log(`🔍 GPU: ${debugInfo} (${gpuTier})`);
+        log(`📊 Device: mobile=${isMobile}, cores=${cores}, mem=${memoryGB}GB, px=${(screenPixels/1e6).toFixed(1)}Mpx`);
+        log(`📊 Score: ${score.toFixed(2)} → ${optimalQuality}`);
         
         return optimalQuality;
     }
@@ -373,17 +408,22 @@ export class ShaderQualityManager {
      */
     analyzeGPU(renderer) {
         const gpu = String(renderer || '').toLowerCase();
-        
-        // GPU haut de gamme
-        if (gpu.includes('rtx') || gpu.includes('rx 6') || gpu.includes('rx 7')) {
-            return 'high';
-        }
-        
-        // GPU entrée de gamme
-        if (gpu.includes('intel') || gpu.includes('gt ') || gpu.includes('mx ')) {
-            return 'low';
-        }
-        
+
+        // Mobile GPU → low
+        if (/adreno|mali|powervr|apple gpu|sgx/.test(gpu)) return 'low';
+
+        // High-end discrete GPUs
+        if (/rtx\s*(30|40|50)|rx\s*(6[89]|7)|radeon\s*(rx\s*)?7|geforce\s*gtx\s*1[0-9]{3}/.test(gpu)) return 'high';
+
+        // Mid-range discrete
+        if (/gtx|rx\s*(5[0-9]{2,3}|6[0-7])|radeon|geforce/.test(gpu)) return 'medium';
+
+        // Intel integrated
+        if (/intel|mesa|llvmpipe|swiftshader|swrast/.test(gpu)) return 'low';
+
+        // Apple Silicon (M1/M2/M3) — medium-high
+        if (/apple\s*m[1-4]/.test(gpu)) return 'medium';
+
         return 'medium';
     }
 
@@ -394,20 +434,34 @@ export class ShaderQualityManager {
         return new Promise((resolve) => {
             const startTime = performance.now();
             let frames = 0;
-            
+            let settled = false;
+
+            const done = (fps) => {
+                if (settled) return;
+                settled = true;
+                clearTimeout(safety);
+                resolve({ fps, score: Math.min(fps / 60, 1) });
+            };
+
+            // Safety net: rAF can be throttled/paused (background tab, headless),
+            // which would otherwise hang init forever. Resolve with a medium-tier
+            // estimate if the test hasn't completed via rAF within 2s wall-clock.
+            const safety = setTimeout(() => {
+                const elapsed = performance.now() - startTime;
+                const fps = elapsed > 0 ? Math.round((frames / elapsed) * 1000) : 45;
+                done(fps || 45);
+            }, 2000);
+
             const testFrame = () => {
                 frames++;
                 const elapsed = performance.now() - startTime;
-                
                 if (elapsed > 1000) { // Test d'1 seconde
-                    const fps = frames;
-                    const score = Math.min(fps / 60, 1);
-                    resolve({ fps, score });
+                    done(frames);
                 } else {
                     requestAnimationFrame(testFrame);
                 }
             };
-            
+
             testFrame();
         });
     }

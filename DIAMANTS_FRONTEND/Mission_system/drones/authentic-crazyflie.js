@@ -18,16 +18,22 @@ const boundaryLog = SILENT_DRONE_LOGS ? () => {} : (...args) => console.log(...a
 // Import du logger pour diagnostics détaillés
 import { logger } from '../core/logger.js';
 
-// Import de ray-aabb pour la détection de collision avancée
-import createRay from 'ray-aabb';
+// ray-aabb removed — bare specifier crashes browser without bundler,
+// and createRay was never actually used in this file.
 
 // IMPORTANT: dans l'app, THREE est chargé via CDN global (r128).
 // L'import ESM de 'three' échoue dans le navigateur sans bundler.
 // Utiliser une référence MUTABLE afin d'éviter de capturer 'undefined' au chargement du module.
 let THREE = (typeof window !== 'undefined' && window.THREE) ? window.THREE : undefined;
-// DiamantFormulas module relocated to private repository
+// Désactiver l'import DiamantFormulas pour éviter les erreurs de dépendance
+// import { DiamantFormulas } from '../core/diamants-formulas.js';
 
 export class AuthenticCrazyflie {
+    // ── Static DAE cache: load once, clone for every drone ──
+    static _daeSceneCache = null;   // parsed THREE.Group (body)
+    static _daeLoadPromise = null;  // dedup concurrent loads
+    static _daeBasePath = null;     // base path used for propellers
+
     constructor(id, x = 0, y = 3, z = 0, type = 'SCOUT', scene = null) {
         logger.debug('Drone', `🚁 AuthenticCrazyflie.constructor() - Début création drone ${id}`);
 
@@ -444,6 +450,191 @@ export class AuthenticCrazyflie {
         if (this.scene) {
             this.scene.add(this.mesh);
         }
+
+        // ── 3D status label above drone ──
+        this._createStatusLabel();
+    }
+
+    // ─── Rich 3D label sprite ────────────────────────────────────────
+    _createStatusLabel() {
+        if (!THREE) return;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = 512;
+        canvas.height = 320;
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+        const material = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: false
+        });
+
+        this._labelSprite = new THREE.Sprite(material);
+
+        // Detect parent mesh scale to compute correct local offset & size
+        // CF mesh is scale 15 → local units are 1/15 of world
+        // X500 / fallback mesh is scale ~1 → local units ≈ world
+        const parentScale = this.mesh?.scale?.x || 15;
+        // Position well above drone: ~3.5 m world above mesh origin
+        this._labelSprite.position.set(0, 3.5 / parentScale, 0);
+        // Label world size: ~5 m wide × 3.1 m tall (readable from afar)
+        this._labelSprite.scale.set(5.0 / parentScale, 3.1 / parentScale, 1);
+        this._labelSprite.renderOrder = 999;
+
+        if (this.mesh) {
+            this.mesh.add(this._labelSprite);
+        }
+        this._labelCanvas = canvas;
+        this._labelLastDraw = 0;
+    }
+
+    /**
+     * Update the 3D label above the drone.
+     * Accepts a simple string (legacy) or a rich info object:
+     *   { phase, doctrine, coa, autonomy, action, waypointsVisited }
+     */
+    updateStatusText(status) {
+        if (!this._labelSprite || !this._labelCanvas) return;
+
+        const canvas = this._labelCanvas;
+        const ctx = canvas.getContext('2d');
+        const W = canvas.width, H = canvas.height;
+
+        ctx.clearRect(0, 0, W, H);
+
+        // Background panel with rounded corners and subtle border
+        const r = 14;
+        ctx.fillStyle = 'rgba(8, 12, 20, 0.82)';
+        ctx.strokeStyle = 'rgba(80, 200, 255, 0.45)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(r, 0); ctx.lineTo(W - r, 0);
+        ctx.quadraticCurveTo(W, 0, W, r); ctx.lineTo(W, H - r);
+        ctx.quadraticCurveTo(W, H, W - r, H); ctx.lineTo(r, H);
+        ctx.quadraticCurveTo(0, H, 0, H - r); ctx.lineTo(0, r);
+        ctx.quadraticCurveTo(0, 0, r, 0);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.textAlign = 'center';
+
+        if (typeof status === 'string') {
+            ctx.font = 'bold 30px monospace';
+            ctx.fillStyle = this.flightState?.isFlying ? '#00ff00' : '#ffaa00';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${this.id.toUpperCase()}: ${status}`, W / 2, H / 2);
+        } else {
+            const info = status;
+            const phaseColors = {
+                IDLE: '#888888', TAKEOFF: '#22ccff', EXPLORE: '#00ff88',
+                HOVER: '#ffcc00', LAND: '#ff6644', LANDED: '#777777'
+            };
+            const phaseIcons = {
+                IDLE: '\u23F8', TAKEOFF: '\u2B06', EXPLORE: '\u2692',
+                HOVER: '\u2B55', LAND: '\u2B07', LANDED: '\u2B1B'
+            };
+            const phase = info.phase || 'IDLE';
+            const pColor = phaseColors[phase] || '#ffffff';
+
+            // ── Line 1: ID + Phase (large, prominent) ──
+            ctx.font = 'bold 32px monospace';
+            ctx.textBaseline = 'top';
+            ctx.fillStyle = pColor;
+            const icon = phaseIcons[phase] || '';
+            ctx.fillText(`${this.id.toUpperCase()}  ${icon} ${phase}`, W / 2, 12);
+
+            // Colored underline for phase
+            ctx.fillStyle = pColor;
+            ctx.fillRect(W * 0.15, 50, W * 0.7, 3);
+
+            // ── Line 2: Doctrine / COA ──
+            ctx.font = 'bold 24px monospace';
+            ctx.fillStyle = '#88ccff';
+            const docLabel = info.doctrine || '\u2014';
+            const coaLabel = info.coa || '\u2014';
+            ctx.fillText(`${docLabel}  \u2502  ${coaLabel}`, W / 2, 62);
+
+            // ── Line 3: Autonomy mode badge + action ──
+            const autonomy = info.autonomy ?? 100;
+            const autoMode = info.autonomyMode || (autonomy >= 90 ? 'DISTRIBUÉ' : autonomy >= 75 ? 'SEMI-AUTO' : autonomy >= 50 ? 'HYBRIDE' : autonomy >= 25 ? 'GUIDÉ' : 'CENTRAL');
+            const barY = 102;
+            // Mode badge background
+            const badgeColors = { 'CENTRAL': '#00BFFF', 'GUIDÉ': '#33bbdd', 'HYBRIDE': '#66DDAA', 'SEMI-AUTO': '#88dd88', 'AUTONOME': '#aaee66', 'DISTRIBUÉ': '#00FF88' };
+            const badgeColor = badgeColors[autoMode] || '#00FF88';
+            const badgeW = ctx.measureText(autoMode).width + 16 || 80;
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.beginPath(); ctx.roundRect(24, barY - 4, badgeW + 8, 22, 4); ctx.fill();
+            ctx.fillStyle = badgeColor;
+            ctx.font = 'bold 18px monospace';
+            ctx.textAlign = 'left';
+            ctx.fillText(autoMode, 30, barY + 12);
+
+            // Action text (right-aligned, prominent)
+            if (info.action) {
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#ffdd66';
+                ctx.font = 'bold 20px monospace';
+                const maxLen = 16;
+                const txt = info.action.length > maxLen ? info.action.slice(0, maxLen) + '\u2026' : info.action;
+                ctx.fillText(txt, W - 20, barY + 14);
+            }
+
+            // ── Line 4: Decision / FSM detail ──
+            ctx.textAlign = 'center';
+            ctx.font = '18px monospace';
+            ctx.fillStyle = '#aaaacc';
+            const wpText = info.waypointsVisited !== undefined ? `WP:${info.waypointsVisited}` : '';
+            const decisionText = info.decision || '';
+            const line4 = [decisionText, wpText].filter(Boolean).join('  \u2502  ');
+            if (line4) {
+                ctx.fillText(line4, W / 2, 140);
+            }
+
+            // ── Line 5: LLM / reasoning hint (future-ready) ──
+            if (info.reasoning) {
+                ctx.font = 'bold 14px monospace';
+                ctx.fillStyle = '#ddbbff';
+                const maxR = 55;
+                const rTxt = info.reasoning.length > maxR ? info.reasoning.slice(0, maxR) + '\u2026' : info.reasoning;
+                ctx.fillText(rTxt, W / 2, 168);
+            }
+
+            // ── Line 6: Inter-drone COMMUNICATION (realistic radio) ──
+            // Shows when this drone is exchanging data with a peer.
+            // Cognitive drones (🧠) show differently from ant drones (🐜).
+            if (info.comm) {
+                const commY = info.reasoning ? 196 : 168;
+                // Animated glow border when actively communicating
+                if (info.commActive) {
+                    ctx.strokeStyle = 'rgba(0, 255, 200, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    const r2 = 10;
+                    ctx.moveTo(r2, 0); ctx.lineTo(W - r2, 0);
+                    ctx.quadraticCurveTo(W, 0, W, r2); ctx.lineTo(W, H - r2);
+                    ctx.quadraticCurveTo(W, H, W - r2, H); ctx.lineTo(r2, H);
+                    ctx.quadraticCurveTo(0, H, 0, H - r2); ctx.lineTo(0, r2);
+                    ctx.quadraticCurveTo(0, 0, r2, 0);
+                    ctx.stroke();
+                }
+                ctx.font = 'bold 16px monospace';
+                const typeIcon = info.droneType === 'CRAZYFLIE' ? '🐜' : '🧠';
+                ctx.fillStyle = info.commActive ? '#00ffcc' : '#66aa88';
+                const commMax = 42;
+                const cTxt = info.comm.length > commMax ? info.comm.slice(0, commMax) + '…' : info.comm;
+                ctx.fillText(`${typeIcon} ${cTxt}`, W / 2, commY);
+                // Local knowledge indicator
+                if (info.localKnowledge > 0) {
+                    ctx.font = '12px monospace';
+                    ctx.fillStyle = '#557766';
+                    ctx.fillText(`🗺 ${info.localKnowledge} cells`, W / 2, commY + 18);
+                }
+            }
+        }
+
+        this._labelSprite.material.map.needsUpdate = true;
     }
 
     async ensureColladaLoader() {
@@ -486,7 +677,15 @@ export class AuthenticCrazyflie {
                                         }
                                     }
                                 } catch (_) { /* noop */ }
-                                return __origParse.call(this, text, path);
+                                // Suppress "File version" + ColladaLoader log lines inside parse
+                                const __origLog = console.log;
+                                console.log = (...a) => {
+                                    const joined = a.map(String).join(' ');
+                                    if (joined.includes('File version') || joined.includes('ColladaLoader')) return;
+                                    __origLog.apply(console, a);
+                                };
+                                try { return __origParse.call(this, text, path); }
+                                finally { console.log = __origLog; }
                             };
                             this._ColladaLoaderClass.__diamantsParsePatched = true;
                         }
@@ -534,7 +733,7 @@ export class AuthenticCrazyflie {
 
         // 3) Fallback ESM distant (évite le mélange UMD/ESM et les conflits de version)
         try {
-            const modCdn = await import('https://unpkg.com/three@0.167.0/examples/jsm/loaders/ColladaLoader.js');
+            const modCdn = await import('https://unpkg.com/three@0.167.1/examples/jsm/loaders/ColladaLoader.js');
             if (modCdn && modCdn.ColladaLoader) {
                 logger.info('Drone', '✅ ColladaLoader chargé via CDN ESM');
                 this._ColladaLoaderClass = modCdn.ColladaLoader;
@@ -674,30 +873,32 @@ export class AuthenticCrazyflie {
         const seen = new Set();
         const unique = candidates.filter(p => { const k = (p || '').trim(); if (!k || seen.has(k)) return false; seen.add(k); return true; });
 
-        // Tester avec GET + sniff anti-HTML (certains serveurs renvoient index.html pour tout)
-        for (const base of unique) {
-            try {
+        // Race all candidates in parallel — first valid response wins
+        try {
+            const winner = await Promise.any(unique.map(base => {
                 const abs = new URL((base.endsWith('/') ? base : base + '/') + filename, window.location.origin).toString();
                 const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
-                const t = ctl ? setTimeout(() => ctl.abort(), 2000) : null;
-                const res = await fetch(abs, { method: 'GET', cache: 'no-cache', signal: ctl?.signal, headers: { 'Accept': 'model/vnd.collada+xml,application/xml,text/xml,*/*' } });
-                if (t) clearTimeout(t);
-                if (!res.ok) continue;
-                const ct = (res.headers.get('content-type') || '').toLowerCase();
-                let okType = ct.includes('xml') || ct.includes('collada') || ct.includes('text/plain') || ct === '';
-                const head = (await res.clone().text()).slice(0, 256).toLowerCase();
-                const looksHtml = head.includes('<!doctype html') || head.startsWith('<html') || head.includes('<head>') || head.includes('<title>');
-                const looksCollada = head.includes('<collada') || head.includes('<asset') || head.includes('<library_geometries');
-                if (!looksHtml && (okType || looksCollada)) {
-                    if (typeof window !== 'undefined') window.DIAMANTS_MESH_BASE = base.endsWith('/') ? base : (base + '/');
-                    logger.info('Drone', `📦 Base assets DAE validée: ${window.DIAMANTS_MESH_BASE}`);
-                    return window.DIAMANTS_MESH_BASE;
-                }
-            } catch (_) { /* try next */ }
-        }
+                const t = ctl ? setTimeout(() => ctl.abort(), 1500) : null;
+                return fetch(abs, { method: 'GET', cache: 'no-cache', signal: ctl?.signal, headers: { 'Accept': 'model/vnd.collada+xml,application/xml,text/xml,*/*' } })
+                    .then(async res => {
+                        if (t) clearTimeout(t);
+                        if (!res.ok) throw new Error('not ok');
+                        const ct = (res.headers.get('content-type') || '').toLowerCase();
+                        const okType = ct.includes('xml') || ct.includes('collada') || ct.includes('text/plain') || ct.includes('octet-stream') || ct === '';
+                        const head = (await res.clone().text()).slice(0, 1024).toLowerCase();
+                        const looksHtml = head.includes('<!doctype html') || head.startsWith('<html') || head.includes('<head>') || head.includes('<title>');
+                        const looksCollada = head.includes('<collada') || head.includes('<asset') || head.includes('<library_geometries') || (head.includes('<?xml') && !looksHtml);
+                        if (looksHtml || (!okType && !looksCollada)) throw new Error('invalid content');
+                        return base.endsWith('/') ? base : (base + '/');
+                    });
+            }));
+            if (typeof window !== 'undefined') window.DIAMANTS_MESH_BASE = winner;
+            logger.info('Drone', `📦 Base assets DAE validée: ${winner}`);
+            return winner;
+        } catch (_) { /* all candidates failed */ }
 
         // Dernier recours absolu connu
-        const fallback = '/conception/Mission_system/assets/crazyflie/meshes/';
+        const fallback = './assets/crazyflie/meshes/';
         logger.warning('Drone', `⚠️ Base assets DAE: utilisation fallback: ${fallback}`);
         if (typeof window !== 'undefined') window.DIAMANTS_MESH_BASE = fallback;
         return fallback;
@@ -724,229 +925,145 @@ export class AuthenticCrazyflie {
             }
             logger.info('Drone', `🔄 Drone ${this.id}: DÉBUT CHARGEMENT DAE...`);
 
-            const ColladaLoader = await this.ensureColladaLoader();
-            if (!ColladaLoader) {
-                logger.warning('Drone', `❌ Drone ${this.id}: ColladaLoader indisponible - utilisation fallback visible`);
-                throw new Error('ColladaLoader indisponible');
+            // ── CACHED PATH: reuse parsed DAE body from first drone ──
+            if (!AuthenticCrazyflie._daeLoadPromise) {
+                // First drone: load + parse + cache
+                AuthenticCrazyflie._daeLoadPromise = this._loadAndCacheDAE();
             }
-            logger.info('Drone', `✅ Drone ${this.id}: ColladaLoader disponible`);
+            const cached = await AuthenticCrazyflie._daeLoadPromise;
+            if (!cached) throw new Error('DAE cache failed');
 
-            const loader = new ColladaLoader();
-            // Keep control of orientation to avoid Z_UP warning
-            try { if (loader.options) loader.options.convertUpAxis = false; } catch (_) {}
+            // Clone the cached model for this drone instance
+            const model = cached.scene.clone(true);
+            model.rotation.x = -Math.PI / 2;
+            model.scale.set(1, 1, 1);
+            model.position.set(0, 0, 0);
 
-            // Nouvelle localisation des assets: sous DIAMANTS_FRONTEND_ARCHITECTURE/assets/
-            // Comme index.html est dans le même dossier, on peut utiliser un chemin relatif simple.
-            // Découverte fiable du chemin des meshes (avec validation réseau)
-            const basePath = await this._findValidMeshBasePath('cf2_assembly.dae');
-            let url = (basePath.endsWith('/') ? basePath : basePath + '/') + 'cf2_assembly.dae';
+            // Recentre: bas du modèle à y=0
             try {
-                url = new URL(url, window.location.origin).toString();
-            } catch (_) { /* keep as-is */ }
-
-            logger.info('Drone', `📁 Drone ${this.id}: Chemin DAE tenté: ${url}`);
-            logger.debug('Drone', `📁 Drone ${this.id}: Base path résolu: ${basePath}`);
-            if (window.location) {
-                logger.debug('Drone', `🌐 Location href: ${window.location.href}`);
-                logger.debug('Drone', `🌐 Location origin: ${window.location.origin}`);
-                logger.debug('Drone', `🌐 Location pathname: ${window.location.pathname}`);
+                const bbox = new THREE.Box3().setFromObject(model);
+                const center = new THREE.Vector3();
+                bbox.getCenter(center);
+                model.position.x -= center.x;
+                model.position.z -= center.z;
+                model.position.y -= bbox.min.y;
+                this._bodyYOffset = -bbox.min.y;
+            } catch (_) {
+                this._bodyYOffset = 0;
             }
 
-            await new Promise((resolve, reject) => {
-                logger.info('Drone', `📥 Drone ${this.id}: Démarrage chargement DAE...`);
+            // Prepare model group
+            if (this.modelGroup && this.modelGroup.parent) {
+                this.modelGroup.parent.remove(this.modelGroup);
+            }
+            this.modelGroup = new THREE.Group();
 
-                // Timeout pour éviter les blocages
-                const timeout = setTimeout(() => {
-                    logger.error('Drone', `⏱️ Drone ${this.id}: TIMEOUT chargement DAE après 10 secondes`);
-                    reject(new Error('Timeout chargement DAE'));
-                }, 10000);
-
-                loader.load(url, async (dae) => {
-                    clearTimeout(timeout);
-                    try {
-                        logger.info('Drone', `✅ Drone ${this.id}: DAE CHARGÉ:`, dae);
-                        // Certaines versions retournent null/objet incomplet en cas d'erreur silencieuse → tenter fallback parse
-                        if (!dae || (typeof dae === 'object' && !dae.scene && !dae.library)) {
-                            logger.warning('Drone', `⚠️ Drone ${this.id}: DAE onLoad a renvoyé null — tentative fallback parse()`);
-                            dae = await this._fetchAndParseDAE(url, basePath);
-                            if (!dae) throw new Error('DAE null après fallback parse');
-                        }
-
-                        const model = (dae && dae.scene) ? dae.scene : dae;
-                        if (!model) throw new Error('Modèle DAE invalide (null/undefined)');
-                        // Normalisation orientation Collada (Z-up) -> Three.js (Y-up)
-                        model.rotation.x = -Math.PI / 2;
-                        model.scale.set(1, 1, 1);
-                        model.position.set(0, 0, 0);
-
-                        logger.debug('Drone', `🔧 Drone ${this.id}: Modèle DAE configuré:`, model);
-
-                        // Log rapide des premiers meshes pour diagnostic
-                        try {
-                            let firstMesh = null;
-                            model.traverse(n => { if (!firstMesh && n.isMesh) firstMesh = n; });
-                            if (firstMesh) logger.info('Drone', `🧩 Premier mesh DAE: ${firstMesh.name || '(sans nom)'} | geom=${firstMesh.geometry?.type}`);
-                        } catch (_) {}
-
-                        // Recentre le modèle: horizontalement au centre, verticalement le bas à y=0
-                        // Ceci garantit que position.y du groupe = altitude du bas du drone
-                        try {
-                            const bbox = new THREE.Box3().setFromObject(model);
-                            const center = new THREE.Vector3();
-                            bbox.getCenter(center);
-                            model.position.x -= center.x;
-                            model.position.z -= center.z;
-                            // Décaler verticalement pour que le bas du modèle soit à y=0 en espace local
-                            model.position.y -= bbox.min.y;
-                            // Stocker l'offset pour aligner les hélices au même niveau
-                            this._bodyYOffset = -bbox.min.y;
-                            logger.info('Drone', `📐 Drone ${this.id}: bbox min.y=${bbox.min.y.toFixed(4)}, max.y=${bbox.max.y.toFixed(4)}, bodyYOffset=${this._bodyYOffset.toFixed(4)}`);
-                        } catch (e) {
-                            this._bodyYOffset = 0;
-                            logger.warning('Drone', `⚠️ Drone ${this.id}: Calcul centre échoué:`, e);
-                        }
-
-                        // Prepare/refresh model group (remove older instance if present)
-                        if (this.modelGroup && this.modelGroup.parent) {
-                            this.modelGroup.parent.remove(this.modelGroup);
-                        }
-                        this.modelGroup = new THREE.Group();
-
-                        // Supprimer les fallback debug
-                        this.mesh.children.slice().forEach(ch => {
-                            if (ch?.userData?.debug || ch?.userData?.fallbackType === 'body') {
-                                log('🗑️ Suppression fallback debug:', ch);
-                                this.mesh.remove(ch);
-                            }
-                        });
-
-                        // Insert DAE body
-                        this.modelGroup.add(model);
-                        this.mesh.add(this.modelGroup);
-
-                        logger.info('Drone', `✅ Drone ${this.id}: Corps DAE ajouté au mesh`);
-
-                        this.modelGroup.traverse((n) => {
-                            if (n.isMesh) {
-                                n.castShadow = true;
-                                n.receiveShadow = true;
-                                // Ensure body materials render reliably
-                                const mats = Array.isArray(n.material) ? n.material : [n.material];
-                                mats.forEach(m => {
-                                    if (!m) return;
-                                    m.side = THREE.DoubleSide;
-                                    if (typeof m.transparent !== 'undefined') m.transparent = false;
-                                    if (typeof m.opacity !== 'undefined') m.opacity = 1.0;
-                                    if (typeof m.depthWrite !== 'undefined') m.depthWrite = true;
-                                });
-                            }
-                        });
-
-                        logger.debug('Drone', `🎨 Drone ${this.id}: Matériaux DAE configurés`);
-
-                        // Charger les hélices CW/CCW
-                        logger.info('Drone', `🚁 Drone ${this.id}: Début chargement hélices DAE...`);
-                        this.loadPropellers(basePath).then(() => {
-                            logger.info('Drone', `✅ Drone ${this.id}: SUCCÈS COMPLET DAE + HÉLICES`);
-                            resolve();
-                        }).catch(propError => {
-                            logger.error('Drone', `❌ Drone ${this.id}: ÉCHEC hélices DAE:`, propError);
-                            // Ne pas invalider le corps DAE si les hélices échouent
-                            if (this.allowFallbackProps) {
-                                try {
-                                    // this.ensureFallbackPropellers(); // SUPPRIMÉ - DAE uniquement
-                                    logger.warning('Drone', '🟡 Fallback hélices rétabli (BoxGeometry) après échec DAE');
-                                } catch (_) { /* safe */ }
-                            }
-                            // Considérer la charge du corps comme succès pour supprimer les cubes fallback
-                            resolve();
-                        });
-
-                    } catch (error) {
-                        clearTimeout(timeout);
-                        logger.error('Drone', `❌ Drone ${this.id}: ERREUR traitement DAE:`, error);
-                        reject(error);
-                    }
-                }, undefined, async (error) => {
-                    clearTimeout(timeout);
-                    logger.error('Drone', `❌ Drone ${this.id}: ERREUR chargement DAE:`, error);
-                    logger.error('Drone', `📁 Drone ${this.id}: URL tentée: ${url}`);
-                    // Tentative de récupération via fetch + parse (sanitized)
-                    try {
-                        let dae = await this._fetchAndParseDAE(url, basePath);
-                        if (!dae) {
-                            // One more attempt with ultra sanitizer
-                            const res = await fetch(url, { cache: 'no-cache' });
-                            let xml = await res.text();
-                            xml = this._ultraSanitizeXml(xml);
-                            const ColladaLoader2 = await this.ensureColladaLoader();
-                            const loader2 = new ColladaLoader2();
-                            // Ensure fallback parser also doesn't auto-convert
-                            try { if (loader2.options) loader2.options.convertUpAxis = false; } catch (_) {}
-                            dae = loader2.parse(xml, basePath || url.substring(0, url.lastIndexOf('/') + 1));
-                        }
-                        if (!dae) return reject(error);
-                        // Simuler le chemin onLoad avec l'objet parsé
-                        logger.info('Drone', `↩️ Récupération DAE via parse() — poursuite du pipeline`);
-                        const model = (dae && dae.scene) ? dae.scene : dae;
-                        if (!model) throw new Error('Modèle DAE invalide après fallback parse');
-                        model.rotation.x = -Math.PI / 2;
-                        model.scale.set(1, 1, 1);
-                        model.position.set(0, 0, 0);
-
-                        // Décaler verticalement pour que le bas du modèle soit à y=0
-                        try {
-                            const bbox2 = new THREE.Box3().setFromObject(model);
-                            const center2 = new THREE.Vector3();
-                            bbox2.getCenter(center2);
-                            model.position.x -= center2.x;
-                            model.position.z -= center2.z;
-                            model.position.y -= bbox2.min.y;
-                            this._bodyYOffset = -bbox2.min.y;
-                        } catch (_) {
-                            this._bodyYOffset = 0;
-                        }
-
-                        // Prepare/refresh model group (remove older instance if present)
-                        if (this.modelGroup && this.modelGroup.parent) {
-                            this.modelGroup.parent.remove(this.modelGroup);
-                        }
-                        this.modelGroup = new THREE.Group();
-                        // Supprimer les fallback debug
-                        this.mesh.children.slice().forEach(ch => {
-                            if (ch?.userData?.debug || ch?.userData?.fallbackType === 'body') {
-                                this.mesh.remove(ch);
-                            }
-                        });
-                        this.modelGroup.add(model);
-                        this.mesh.add(this.modelGroup);
-                        this.modelGroup.traverse((n) => {
-                            if (n.isMesh) {
-                                n.castShadow = true;
-                                n.receiveShadow = true;
-                                const mats = Array.isArray(n.material) ? n.material : [n.material];
-                                mats.forEach(m => {
-                                    if (!m) return;
-                                    m.side = THREE.DoubleSide;
-                                    if (typeof m.transparent !== 'undefined') m.transparent = false;
-                                    if (typeof m.opacity !== 'undefined') m.opacity = 1.0;
-                                    if (typeof m.depthWrite !== 'undefined') m.depthWrite = true;
-                                });
-                            }
-                        });
-                        // Charger les hélices puis resolve
-                        this.loadPropellers(basePath).then(resolve).catch(reject);
-                    } catch (e2) {
-                        reject(error);
-                    }
-                });
+            // Remove debug fallback cubes
+            this.mesh.children.slice().forEach(ch => {
+                if (ch?.userData?.debug || ch?.userData?.fallbackType === 'body') {
+                    this.mesh.remove(ch);
+                }
             });
-            // Success reaching here
+
+            this.modelGroup.add(model);
+            this.mesh.add(this.modelGroup);
+
+            // Fix materials
+            this.modelGroup.traverse((n) => {
+                if (n.isMesh) {
+                    n.castShadow = true;
+                    n.receiveShadow = true;
+                    const mats = Array.isArray(n.material) ? n.material : [n.material];
+                    mats.forEach(m => {
+                        if (!m) return;
+                        m.side = THREE.DoubleSide;
+                        if (typeof m.transparent !== 'undefined') m.transparent = false;
+                        if (typeof m.opacity !== 'undefined') m.opacity = 1.0;
+                        if (typeof m.depthWrite !== 'undefined') m.depthWrite = true;
+                    });
+                }
+            });
+
+            logger.info('Drone', `✅ Drone ${this.id}: Corps DAE ajouté (depuis cache)`);
+
+            // Load propellers
+            const basePath = cached.basePath;
+            try {
+                await this.loadPropellers(basePath);
+                logger.info('Drone', `✅ Drone ${this.id}: SUCCÈS COMPLET DAE + HÉLICES`);
+            } catch (propError) {
+                logger.warning('Drone', `⚠️ Drone ${this.id}: Hélices échouées, corps DAE conservé`);
+            }
+
             return true;
         } catch (e) {
             logger.error('Drone', `❌ Drone ${this.id}: EXCEPTION tryLoadRealMesh:`, e);
-            throw e; // propagate to caller
+            throw e;
         }
+    }
+
+    /**
+     * Load and parse the DAE file once, caching the result for all drones.
+     * @returns {Promise<{scene: THREE.Group, basePath: string}>}
+     */
+    async _loadAndCacheDAE() {
+        const ColladaLoader = await this.ensureColladaLoader();
+        if (!ColladaLoader) throw new Error('ColladaLoader indisponible');
+
+        const loader = new ColladaLoader();
+        try { if (loader.options) loader.options.convertUpAxis = false; } catch (_) {}
+
+        const basePath = await this._findValidMeshBasePath('cf2_assembly.dae');
+        AuthenticCrazyflie._daeBasePath = basePath;
+        let url = (basePath.endsWith('/') ? basePath : basePath + '/') + 'cf2_assembly.dae';
+        try { url = new URL(url, window.location.origin).toString(); } catch (_) {}
+
+        logger.info('Drone', `📁 Chargement DAE maître: ${url}`);
+
+        const dae = await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Timeout DAE 10s')), 10000);
+
+            loader.load(url, async (result) => {
+                clearTimeout(timeout);
+                try {
+                    if (!result || (!result.scene && !result.library)) {
+                        const fallback = await this._fetchAndParseDAE(url, basePath);
+                        if (!fallback) throw new Error('DAE null');
+                        return resolve(fallback);
+                    }
+                    resolve(result);
+                } catch (e) { reject(e); }
+            }, undefined, async (error) => {
+                clearTimeout(timeout);
+                try {
+                    let fallback = await this._fetchAndParseDAE(url, basePath);
+                    if (!fallback) {
+                        const res = await fetch(url, { cache: 'no-cache' });
+                        let xml = await res.text();
+                        xml = this._ultraSanitizeXml(xml);
+                        const L2 = await this.ensureColladaLoader();
+                        const l2 = new L2();
+                        try { if (l2.options) l2.options.convertUpAxis = false; } catch (_) {}
+                        fallback = l2.parse(xml, basePath || url.substring(0, url.lastIndexOf('/') + 1));
+                    }
+                    if (fallback) resolve(fallback);
+                    else reject(error);
+                } catch (e) { reject(error); }
+            });
+        });
+
+        const scene = (dae && dae.scene) ? dae.scene : dae;
+        if (!scene) throw new Error('DAE scene null');
+
+        // Normalize once
+        scene.rotation.x = -Math.PI / 2;
+        scene.scale.set(1, 1, 1);
+        scene.position.set(0, 0, 0);
+
+        // Cache the parsed result (original — clones will be made per drone)
+        AuthenticCrazyflie._daeSceneCache = { scene, basePath };
+        logger.info('Drone', `📦 DAE maître mis en cache (basePath: ${basePath})`);
+        return AuthenticCrazyflie._daeSceneCache;
     }
 
     async loadPropellers(basePath) {
@@ -1071,9 +1188,9 @@ export class AuthenticCrazyflie {
                         log(`🌀 Moteur ${i + 1}: ${isCW ? 'CW' : 'CCW'} (SDF: ${expectedDir})`);
 
                         // Correction d'orientation selon CW/CCW
-                        // Joint axis est 0 0 1 (Z-up), joints revolute Z
+                        // Dans Gazebo SDF: joint axis est 0 0 1 (Z-up), joints revolute Z
                         // Après conversion Z-up DAE -> Y-up Three.js (rotation.x = PI/2 + PI)
-                        // Orientation basée sur le type de fichier DAE et direction moteur
+                        // Orientation basée sur le type de fichier DAE et direction Gazebo
                         realPropGeometry.rotation.y = isCW ? Math.PI : 0;
 
                         // Matériaux DAE - conservation de l'authenticité + coloration moyeu
@@ -1403,9 +1520,9 @@ export class AuthenticCrazyflie {
 
     /* ═══════════════════════════════════════════════════════════════════
      * SIMULATION METHODS — ALL NO-OPS IN VIEWER MODE
-     * The drone renders at positions received from the controller via
+     * The drone renders at positions received from the backend via
      * setTargetPosition(). No physics, no autonomous exploration,
-     * no sensor simulation. The controller is the single
+     * no sensor simulation. The backend (ROS2/Gazebo) is the single
      * source of truth for all drone positions and states.
      * ═══════════════════════════════════════════════════════════════════ */
 
@@ -1455,13 +1572,16 @@ export class AuthenticCrazyflie {
     updateVisuals(deltaTime) {
         if (!this.mesh) return;
 
-        // Position et rotation
-        this.mesh.position.copy(this.position);
+        // Position et rotation — skip when externally controlled by AutonomousFlightEngine
+        // (applyToDrone already set mesh.position and mesh.rotation from flight state)
+        if (!this._engineControlled) {
+            this.mesh.position.copy(this.position);
 
-        // Orientation issue de la dynamique (quaternion)
-        try {
-            this.mesh.quaternion.copy(this.orientation);
-        } catch (_) { /* safe */ }
+            // Orientation issue de la dynamique (quaternion)
+            try {
+                this.mesh.quaternion.copy(this.orientation);
+            } catch (_) { /* safe */ }
+        }
 
     // Rotation des hélices (DAE via propellerGroups: rotation sur l'axe horizontal Z; sinon fallback via this.propellers)
         if (this.propellerGroups && this.propellerGroups.length) {
@@ -1477,7 +1597,7 @@ export class AuthenticCrazyflie {
                 }
                 const angularSpeed = (rpm / 60) * 2 * Math.PI; // rad/s
                 const deltaAngle = angularSpeed * deltaTime;
-                // Direction: CW = -1, CCW = +1
+                // Direction: CW = -1, CCW = +1 (aligné Gazebo)
                 const dir = pg.isCW ? -1 : 1;
                 if (blade && blade.rotation) {
                     // Tourner sur l'axe horizontal Z par défaut (rotation dans le plan XY)
@@ -1728,6 +1848,9 @@ export class AuthenticCrazyflie {
             // Stocker le mesh pour les futures références
             this.mesh = group;
 
+            // ── 3D status label for X500/fallback drones ──
+            this._createStatusLabel();
+
             log(`✅ Mesh créé pour drone ${this.id} à la position:`, this.position);
             return this.mesh;
 
@@ -1746,7 +1869,7 @@ export class AuthenticCrazyflie {
 
     // =============================================
     // VOL & EXPLORATION — NO-OPS (VIEWER MODE)
-    // Le contrôleur gère tout. Le frontend
+    // Le backend ROS2/Gazebo contrôle tout. Le frontend
     // ne fait que rendre la position reçue via setTargetPosition().
     // =============================================
 
@@ -1831,7 +1954,7 @@ export class AuthenticCrazyflie {
 
             // Direction selon le type de moteur (CW/CCW)
             const motorSpec = this.specs.motors[i];
-            // Alignement moteur: CW = -1, CCW = +1
+            // Alignement avec Gazebo: CW = -1, CCW = +1
             const direction = motorSpec.dir === 'cw' ? -1 : 1;
 
             this.propellerAnimation.rotations[i] += speed * direction * deltaTime;

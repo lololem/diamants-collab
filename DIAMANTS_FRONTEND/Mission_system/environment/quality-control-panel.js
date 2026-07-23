@@ -3,6 +3,7 @@
  * Panneau de contrôle de la qualité graphique
  */
 import { shaderQualityManager, QUALITY_LEVELS } from '../shaders/shader-quality-manager.js';
+import { makeDraggable } from '../ui/panel-utils.js';
 
 // Sécurité: ES6 modules n'ont pas accès aux variables globales automatiquement
 // Récupérer les fonctions de logging depuis window
@@ -41,6 +42,17 @@ export class QualityControlPanel {
             this.updateDisplay();
             this.startMetricsUpdating();
         }, 100);
+
+        // Keyboard toggle: G key to show/hide quality panel
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'g' || e.key === 'G') {
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+                if (this.panel) {
+                    const visible = this.panel.style.display !== 'none';
+                    this.panel.style.display = visible ? 'none' : 'block';
+                }
+            }
+        });
     }
 
     createPanel() {
@@ -53,17 +65,18 @@ export class QualityControlPanel {
 
         this.panel = document.createElement('div');
         this.panel.className = 'quality-control-panel';
+        this.panel.id = 'quality-control-panel';
         this.panel.innerHTML = `
             <div class="quality-panel-header">
                 <h3>🎮 Qualité Graphique</h3>
-                <button class="panel-toggle">-</button>
+                <button class="panel-toggle">+</button>
             </div>
-            <div class="quality-panel-content">
+            <div class="quality-panel-content collapsed">
                 <!-- Sélection de qualité -->
                 <div class="quality-section">
                     <label>Niveau de qualité:</label>
                     <select class="quality-selector">
-                        <option value="${QUALITY_LEVELS.LOW}">🟢 Faible - Performance</option>
+                        <option value="${QUALITY_LEVELS.LOW}" selected>🟢 Faible - Performance</option>
                         <option value="${QUALITY_LEVELS.MEDIUM}">🟡 Moyenne - Équilibré</option>
                         <option value="${QUALITY_LEVELS.HIGH}">🟠 Élevée - Qualité</option>
                         <option value="${QUALITY_LEVELS.ULTRA}">🔴 Ultra - Maximum</option>
@@ -128,6 +141,10 @@ export class QualityControlPanel {
         this.addStyles();
         
         this.container.appendChild(this.panel);
+
+        // ── Drag support ──
+        const qcHeader = this.panel.querySelector('.quality-panel-header');
+        if (qcHeader) makeDraggable(this.panel, qcHeader);
     }
 
     addStyles() {
@@ -135,8 +152,8 @@ export class QualityControlPanel {
         style.textContent = `
             .quality-control-panel {
                 position: fixed;
-                top: 20px;
-                right: 20px;
+                top: 70px;
+                left: 10px;
                 width: 320px;
                 max-height: 80vh;
                 background: rgba(0, 0, 0, 0.9);
@@ -145,9 +162,10 @@ export class QualityControlPanel {
                 color: white;
                 font-family: 'Courier New', monospace;
                 font-size: 13px;
-                z-index: 99999;
+                z-index: 7000;
                 backdrop-filter: blur(10px);
                 box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+                display: none;
             }
 
             .quality-panel-header {
@@ -454,7 +472,7 @@ export class QualityControlPanel {
             log('🔄 Mise à jour du panneau de qualité...');
             
             // Obtenir la qualité actuelle
-            let currentQuality = QUALITY_LEVELS.MEDIUM; // défaut (lowercase)
+            let currentQuality = QUALITY_LEVELS.LOW; // défaut (lowercase)
             
             if (shaderQualityManager && shaderQualityManager.getCurrentLevel) {
                 try {

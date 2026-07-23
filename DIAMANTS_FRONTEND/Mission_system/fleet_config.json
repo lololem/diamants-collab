@@ -1,0 +1,140 @@
+{
+    "$schema": "./fleet_config.schema.json",
+    "_comment": "DIAMANTS Fleet Configuration — Single source of truth for drone fleet",
+    
+    "fleet": {
+        "name": "DIAMANTS Default Fleet",
+        "version": "1.0.0"
+    },
+
+    "defaults": {
+        "drone_type": "crazyflie",
+        "target_altitude": 0.5,
+        "max_speed": 0.25,
+        "sensor_range": 15,
+        "spawn_radius": 3.0,
+        "spawn_altitude": 0.0
+    },
+
+    "drone_types": {
+        "crazyflie": {
+            "label": "Crazyflie 2.1",
+            "size": 0.6,
+            "max_speed": 0.25,
+            "agility": 2.0,
+            "sensor_range": 15,
+            "color": "#00FF88",
+            "role": "exploration",
+            "model_path": "crazyflie",
+            "weight_kg": 0.027,
+            "endurance_min": 7,
+            "gazebo_model": "crazyflie"
+        },
+        "scout": {
+            "label": "Scout Autonome",
+            "size": 0.6,
+            "max_speed": 0.35,
+            "agility": 2.2,
+            "sensor_range": 20,
+            "color": "#4444FF",
+            "role": "reconnaissance",
+            "model_path": "crazyflie",
+            "weight_kg": 0.027,
+            "endurance_min": 6,
+            "gazebo_model": "crazyflie"
+        },
+        "x500": {
+            "label": "Holybro X500 V2",
+            "size": 1.0,
+            "max_speed": 12.0,
+            "agility": 0.8,
+            "sensor_range": 35,
+            "color": "#FF4400",
+            "role": "cognitive",
+            "model_path": "x500",
+            "weight_kg": 2.0,
+            "endurance_min": 25,
+            "gazebo_model": "x500_depth"
+        },
+        "heavy": {
+            "label": "X500 Porteur",
+            "size": 1.0,
+            "max_speed": 10.0,
+            "agility": 0.8,
+            "sensor_range": 35,
+            "color": "#FF4400",
+            "role": "transport",
+            "model_path": "x500",
+            "weight_kg": 2.0,
+            "endurance_min": 25,
+            "gazebo_model": "x500_depth"
+        },
+        "leader": {
+            "label": "X500 Coordinateur",
+            "size": 1.0,
+            "max_speed": 12.0,
+            "agility": 0.8,
+            "sensor_range": 35,
+            "color": "#FF4400",
+            "role": "coordination",
+            "model_path": "x500",
+            "weight_kg": 2.0,
+            "endurance_min": 25,
+            "gazebo_model": "x500_depth"
+        },
+        "s500": {
+            "label": "Holybro S500",
+            "size": 1.1,
+            "max_speed": 10.0,
+            "agility": 0.7,
+            "sensor_range": 20,
+            "color": "#2E86C1",
+            "role": "patrol",
+            "model_path": "s500",
+            "weight_kg": 2.3,
+            "endurance_min": 22,
+            "gazebo_model": "s500"
+        }
+    },
+
+    "drones": [
+        {"id": "drone_01", "type": "crazyflie"},
+        {"id": "drone_02", "type": "crazyflie"},
+        {"id": "drone_03", "type": "crazyflie"},
+        {"id": "drone_04", "type": "crazyflie"},
+        {"id": "drone_05", "type": "crazyflie"},
+        {"id": "drone_06", "type": "crazyflie"},
+        {"id": "drone_07", "type": "crazyflie"},
+        {"id": "drone_08", "type": "crazyflie"},
+        {"id": "drone_09", "type": "x500"},
+        {"id": "drone_10", "type": "s500"},
+        {"id": "drone_11", "type": "x500"}
+    ],
+
+    "simulation": {
+        "spawn_pattern": "circle",
+        "spawn_radius": 3.0,
+        "spawn_center": [0.0, 0.0],
+        "exploration_radius": 8.0,
+        "safe_distance": 0.8,
+        "control_rate_hz": 10.0,
+        "takeoff_stagger_sec": 0.5,
+        "exploration_cell_size": 0.5,
+        "auto_start": true,
+        "auto_start_delay": 5.0
+    },
+
+    "network": {
+        "api_port": 8000,
+        "ws_port": 8765,
+        "frontend_port": 5550
+    },
+
+    "preservation": {
+        "enabled": true,
+        "max_runtime_seconds": 1800,
+        "max_ws_backlog": 1000,
+        "max_scene_objects": 5000,
+        "emergency_action": "rtl_all"
+    }
+}

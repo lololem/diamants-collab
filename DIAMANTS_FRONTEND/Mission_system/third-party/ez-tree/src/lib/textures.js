@@ -61,7 +61,7 @@ export function getLeafTexture(leafType) {
  */
 const loadTexture = (url, srgb = true) => {
   const texture = textureLoader.load(url);
-  texture.premultiplyAlpha = true;
+  texture.premultiplyAlpha = false;
   if (srgb) {
     texture.colorSpace = THREE.SRGBColorSpace;
   }

@@ -1,7 +1,7 @@
 /**
  * DIAMANTS Flow Particles
  * =======================
- * Particules fluides pour visualisation de champs
+ * Particules fluides qui suivent le gradient ∇ψ
  * Visualisation dynamique de la stigmergie en action
  */
 
@@ -199,9 +199,13 @@ export class FlowParticles {
         const colors = this.geometry.attributes.color.array;
         const { speed, lifetime, domainSize, offset } = this.options;
         
-        // Color interpolation
-        const startColor = new THREE.Color(this.options.colorStart);
-        const endColor = new THREE.Color(this.options.colorEnd);
+        // Color interpolation — reuse pre-allocated Color objects (avoid 120K allocs/sec)
+        if (!this._startColor) this._startColor = new THREE.Color(this.options.colorStart);
+        if (!this._endColor) this._endColor = new THREE.Color(this.options.colorEnd);
+        if (!this._tmpColor) this._tmpColor = new THREE.Color();
+        const startColor = this._startColor;
+        const endColor = this._endColor;
+        const tmpColor = this._tmpColor;
         
         for (let i = 0; i < this.particles.length; i++) {
             const particle = this.particles[i];
@@ -271,7 +275,8 @@ export class FlowParticles {
             // Color based on field value and age
             const t = Math.min(1, fieldVal / 3);  // Normalize field value
             const ageRatio = particle.age / particle.lifetime;
-            const color = startColor.clone().lerp(endColor, t);
+            tmpColor.copy(startColor).lerp(endColor, t);
+            const color = tmpColor;
             
             // Fade out near end of life
             const fade = ageRatio < 0.8 ? 1.0 : (1.0 - ageRatio) / 0.2;

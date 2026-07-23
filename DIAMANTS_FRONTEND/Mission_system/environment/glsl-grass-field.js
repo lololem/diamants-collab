@@ -9,33 +9,33 @@
  */
 
 import * as THREE from 'three';
-import grassVertexShader from '../shaders/grass-vertex-stable.js';
-import grassFragmentShader from '../shaders/grass-fragment-stable.js';
+import grassVertexShader from '../shaders/grass-vertex-ultra.js';
+import grassFragmentShader from '../shaders/grass-fragment-ultra.js';
 
 export class GLSLGrassField {
     constructor(config = {}) {
         this.config = {
             fieldSize: config.fieldSize || 220,
-            grassCount: config.grassCount || 100000,  // Réduit pour la performance
-            grassScale: config.grassScale || 0.6,     // Plus petit
+            grassCount: config.grassCount || 250000,  // ULTRA density
+            grassScale: config.grassScale || 0.9,     // ULTRA scale
             tipColor: config.tipColor || '#8fbc8f',
             baseColor: config.baseColor || '#228b22',
             fogColor: config.fogColor || '#87ceeb',
             ...config
         };
         
-        this.halfWidth = 0.02;   // Plus fin
-        this.height = 0.7;       // Plus court
+        this.halfWidth = 0.025;  // ULTRA - légèrement plus épais
+        this.height = 0.95;      // ULTRA - plus haut
         this.lodThreshold = 50;
         this.camera = null;
         this.material = null;
         this.grassData = [];
         this.instancedMesh = null;
         
-        // SYSTÈME DE CHUNKS DYNAMIQUES
+        // SYSTÈME DE CHUNKS DYNAMIQUES - ULTRA
         this.chunkSize = 20;     // Taille d'un chunk en unités
-        this.renderDistance = 60; // Distance de rendu autour du joueur
-        this.grassPerChunk = 2000; // Densité par chunk
+        this.renderDistance = 80; // ULTRA distance de rendu
+        this.grassPerChunk = 12000; // ULTRA densité par chunk
         this.activeChunks = new Map();
         this.lastPlayerPos = new THREE.Vector3();
         this.chunkUpdateThreshold = 5; // Mise à jour si déplacement > 5 unités
@@ -127,7 +127,7 @@ export class GLSLGrassField {
             uniforms: {
                 uFrequency: { value: new THREE.Vector2(5, 5) },  // Ajouté du repo référence
                 uTime: { value: 0 },
-                uSpeed: { value: 0.8 },  // Vitesse réduite pour mouvement subtil
+                uSpeed: { value: 1.4 },  // ULTRA - vent plus dynamique
                 uTipColor: { value: new THREE.Color(this.config.tipColor) },
                 uBaseColor: { value: new THREE.Color(this.config.baseColor) },
                 uFogColor: { value: new THREE.Color(this.config.fogColor) },
@@ -372,7 +372,7 @@ export class GLSLGrassField {
         const dummy = new THREE.Object3D();
         let highIndex = 0;
         let lowIndex = 0;
-        const LODDistance = 25; // Distance fixe pour le LOD
+        const LODDistance = 35; // ULTRA - distance LOD étendue
         
         for (let i = 0; i < this.grassData.length; i++) {
             const { x, z, rotation } = this.grassData[i];

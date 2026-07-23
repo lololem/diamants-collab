@@ -1031,11 +1031,10 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
      * Calculs métriques avancées
      */
     calculateEmergenceLevel() {
-        const leadershipLevel = this.wahooSystem.emergentLeaders.size / 3; // Max 3 leaders
-        const patternLevel = this.wahooSystem.emergentPatterns.size / 8; // Max 8 patterns
-        const attractorLevel = Math.min(1, this.wahooSystem.attractors.size / 10); // Max 10 attracteurs
-
-        return (leadershipLevel + patternLevel + attractorLevel) / 3;
+        // Émergence calculée exclusivement par diamants-formulas.js
+        // (Effective Information + Transfer Entropy — Klein & Hoel 2020, Schreiber 2000)
+        // Cette méthode retourne 0 pour ne pas interférer.
+        return 0;
     }
 
     calculateStabilityLevel() {

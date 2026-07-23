@@ -274,7 +274,7 @@ export class BenchmarkRunner {
      * Reconfigure l'essaim avec un nouveau nombre de drones
      */
     async reconfigureSwarm(droneCount) {
-        // Ce sera connecté au contrôleur pour spawner/despawner des drones
+        // Ce sera connecté au backend ROS2 pour spawner/despawner des drones
         // Pour l'instant, on ajuste côté frontend
         if (this.system?.integratedController) {
             console.log(`   🔄 Reconfiguration essaim: ${droneCount} drones`);

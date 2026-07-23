@@ -82,9 +82,9 @@ class DiamantsInitializer {
             
             return true;
             
-        } catch (error) {
-            error('🚨 Erreur initialisation DIAMANTS:', error);
-            throw error;
+        } catch (err) {
+            console.error('🚨 Erreur initialisation DIAMANTS:', err);
+            throw err;
         }
     }
     
@@ -178,8 +178,8 @@ class DiamantsInitializer {
 window.diamantsInitializer = new DiamantsInitializer();
 
 // Auto-démarrage
-window.diamantsInitializer.initialize().catch(error => {
-    error('💥 Échec initialisation DIAMANTS:', error);
+window.diamantsInitializer.initialize().catch(err => {
+    console.error('💥 Échec initialisation DIAMANTS:', err);
 });
 
 // Fonction d'aide

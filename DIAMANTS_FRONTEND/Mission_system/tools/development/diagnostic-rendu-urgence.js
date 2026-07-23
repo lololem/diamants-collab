@@ -255,7 +255,7 @@ function creerUILogsVisible() {
         border: 2px solid #00ff00;
         border-radius: 5px;
         overflow-y: auto;
-        z-index: 10000;
+        z-index: 5000;
         display: block;
     `;
     

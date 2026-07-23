@@ -1,7 +1,7 @@
 /**
  * DIAMANTS - Gestionnaire de Missions Multi-Agent
  * ==================================================
- * Système de missions basé sur l'architecture DIAMANTS
+ * Système de missions basé sur l'architecture ROS2 de DIAMANTS_FRONTEND
  * Gestion des comportements collectifs et auto-organisation
  */
 
@@ -714,7 +714,7 @@ export class MissionManager {
     }
 
     calculateMissionField(mission, drones) {
-        // Simplifié - calcul basique de champ de mission
+        // Simplifié - implémentation complète nécessiterait DiamantFormulas
         const field = {
             phi: new Map(), // Champ d'attraction vers objectifs
             sigma: new Map() // Champ de répulsion/exploration

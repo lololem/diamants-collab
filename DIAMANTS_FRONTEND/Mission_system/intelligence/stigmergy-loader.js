@@ -58,11 +58,21 @@ export const DEFAULT_STIGMERGY_CONFIG = {
  * Returns the StigmergyEngine class or null.
  */
 async function tryLoadPrivateEngine() {
+    // Try 1: Distributed Swarm Engine (autonomous agents)
     try {
-        // Try loading from symlink (stigmergy-engine-private.js → diamants-private)
+        const distModule = await import('./distributed-swarm-engine.js');
+        if (distModule.DistributedSwarmEngine) {
+            return { Engine: distModule.DistributedSwarmEngine, mode: 'distributed' };
+        }
+    } catch (err) {
+        console.debug('🔍 Distributed engine not available:', err.message);
+    }
+
+    // Try 2: symlink stigmergy-engine-private.js → diamants-private
+    try {
         const module = await import('./stigmergy-engine-private.js');
         if (module.StigmergyEngine) {
-            return module.StigmergyEngine;
+            return { Engine: module.StigmergyEngine, mode: 'centralized' };
         }
     } catch (err) {
         // File not found or symlink broken — that's OK, it's optional
@@ -70,6 +80,17 @@ async function tryLoadPrivateEngine() {
             console.debug('🔍 Private stigmergy module not available:', err.message);
         }
     }
+
+    // Try 3: Direct import of stigmergy-engine.js (concrete implementation)
+    try {
+        const module = await import('./stigmergy-engine.js');
+        if (module.StigmergyEngine) {
+            return { Engine: module.StigmergyEngine, mode: 'centralized' };
+        }
+    } catch (err) {
+        console.debug('🔍 Stigmergy engine not found:', err.message);
+    }
+
     return null;
 }
 
@@ -95,15 +116,16 @@ export async function loadStigmergyEngine(config = {}) {
         }
     }
 
-    // 2. Try dynamic import from symlink (async)
-    const PrivateEngine = await tryLoadPrivateEngine();
-    if (PrivateEngine) {
+    // 2. Try dynamic import (distributed first, then centralized)
+    const result = await tryLoadPrivateEngine();
+    if (result) {
         try {
-            const engine = new PrivateEngine(mergedConfig);
-            console.log('🧠 StigmergyEngine loaded via dynamic import');
+            const engine = new result.Engine(mergedConfig);
+            const modeIcon = result.mode === 'distributed' ? '🌐' : '🧠';
+            console.log(`${modeIcon} StigmergyEngine loaded — mode: ${result.mode.toUpperCase()}`);
             return engine;
         } catch (err) {
-            console.warn('⚠️ Failed to instantiate private StigmergyEngine:', err);
+            console.warn('⚠️ Failed to instantiate StigmergyEngine:', err);
         }
     }
 

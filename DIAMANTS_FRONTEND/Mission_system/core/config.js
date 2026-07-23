@@ -166,4 +166,63 @@ export function validateConfig() {
     return true;
 }
 
+/**
+ * Load fleet configuration from the API.
+ * Updates CONFIG, DRONE_TYPES, and exposes window.FLEET_CONFIG.
+ * @returns {Promise<Object>} The fleet config
+ */
+export async function loadFleetConfig(apiUrl = 'http://localhost:8000') {
+    try {
+        const ctrl = new AbortController();
+        const timer = setTimeout(() => ctrl.abort(), 2000);
+        const resp = await fetch(`${apiUrl}/api/fleet`, { signal: ctrl.signal });
+        clearTimeout(timer);
+        if (!resp.ok) throw new Error(`Fleet API returned ${resp.status}`);
+        const fleet = await resp.json();
+        
+        // Update CONFIG
+        CONFIG.maxDrones = fleet.numDrones || CONFIG.maxDrones;
+        
+        // Merge drone types from backend
+        if (fleet.droneTypes) {
+            for (const [key, val] of Object.entries(fleet.droneTypes)) {
+                const upperKey = key.toUpperCase();
+                DRONE_TYPES[upperKey] = {
+                    name: val.label || key,
+                    size: val.size || 0.6,
+                    speed: val.speed || 8,
+                    color: parseInt((val.color || '#00FF88').replace('#', '0x')),
+                    role: val.role || 'exploration',
+                    sensorRange: val.sensorRange || 15,
+                    agility: val.agility || 1.0,
+                };
+            }
+        }
+        
+        // Expose globally
+        window.FLEET_CONFIG = fleet;
+        console.log(`✅ Fleet config loaded: ${fleet.numDrones} drones`);
+        return fleet;
+    } catch (e) {
+        // Fleet config API unavailable is expected when no backend — silent fallback
+        // Fallback: try loading from local file
+        try {
+            const ctrl2 = new AbortController();
+            const timer2 = setTimeout(() => ctrl2.abort(), 2000);
+            const localResp = await fetch('/fleet_config.json', { signal: ctrl2.signal });
+            clearTimeout(timer2);
+            if (localResp.ok) {
+                const local = await localResp.json();
+                window.FLEET_CONFIG = { numDrones: local.drones?.length || 8, drones: local.drones || [] };
+                CONFIG.maxDrones = window.FLEET_CONFIG.numDrones;
+                console.log(`✅ Fleet config loaded from local file: ${window.FLEET_CONFIG.numDrones} drones`);
+                return window.FLEET_CONFIG;
+            }
+        } catch (_) { /* ignore */ }
+        
+        window.FLEET_CONFIG = { numDrones: 8, drones: [] };
+        return window.FLEET_CONFIG;
+    }
+}
+
 export default CONFIG;

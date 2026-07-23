@@ -6,8 +6,8 @@
         "treeDistance": 5.0,
         "treeForceScale": 8.0,
         "treeVerticalPush": 2.0,
-        "droneDistance": 4.0,
-        "droneForceScale": 6.0
+        "droneDistance": 6.0,
+        "droneForceScale": 5.0
     },
 
     "exploration": {
@@ -18,7 +18,9 @@
         "spiralAngleMax": 1.0,
         "minWaypointDist": 8,
         "altitudeVariation": 2.0,
-        "cellSize": 3.0
+        "cellSize": 3.0,
+        "stallSpeedThreshold": 0.3,
+        "stallTimeLimit": 1.0
     },
 
     "visual": {

@@ -30,7 +30,7 @@ export class OrchestrationConsole {
 
         this._lines = [];
         this._lineId = 0;
-        this._collapsed = false;
+        this._collapsed = true;
         this._paused = false;
         this._unreadCount = 0;
         this._filter = 'all';         // 'all' | category key
@@ -47,7 +47,7 @@ export class OrchestrationConsole {
         this._dronePositions = {};     // {droneId: {x,y,z}}
 
         // Drag / resize state
-        this._isDocked = true;         // docked = attached to bottom edge
+        this._isDocked = true;         // docked = attached to top-center
         this._savedHeight = 220;       // px, persisted across collapse
 
         // Stats
@@ -78,38 +78,39 @@ export class OrchestrationConsole {
     /* ─────────────── DOM ─────────────── */
 
     _buildDOM() {
-        // Root container — docked bottom, draggable via title bar, resizable
+        // Root container — docked top-center, draggable via title bar, resizable
         this.root = document.createElement('div');
         this.root.id = 'orch-console';
         Object.assign(this.root.style, {
             position: 'fixed',
-            bottom: '0',
-            left: '0',
-            width: '100%',
-            height: '220px',
+            top: '0',
+            left: '22.5%',
+            width: '55%',
+            height: '32px',
             minHeight: '32px',
             maxHeight: '80vh',
             background: 'rgba(0, 8, 16, 0.94)',
-            borderTop: '2px solid #00AAFF',
+            borderBottom: '2px solid #00AAFF',
             fontFamily: "'JetBrains Mono', 'Fira Code', 'Consolas', monospace",
             fontSize: '11.5px',
             color: '#ccddee',
-            zIndex: '9999',
+            zIndex: '6000',
             display: 'flex',
             flexDirection: 'column',
             backdropFilter: 'blur(6px)',
             transition: 'none',
             overflow: 'hidden',
+            borderRadius: '0 0 8px 8px',
         });
 
         // ── Resize handle (top edge) ──
         const resizeHandle = document.createElement('div');
         Object.assign(resizeHandle.style, {
             position: 'absolute',
-            top: '0', left: '0', right: '0',
+            bottom: '0', left: '0', right: '0',
             height: '5px',
             cursor: 'ns-resize',
-            zIndex: '10001',
+            zIndex: '6001',
         });
         this.root.appendChild(resizeHandle);
         this._setupResize(resizeHandle);
@@ -130,7 +131,7 @@ export class OrchestrationConsole {
         this._setupDrag(titleBar);
 
         const title = document.createElement('span');
-        title.textContent = '📡 DIAMANTS Orchestration Console';
+        title.textContent = '📡 NextGEN Orchestration Console';
         title.style.fontWeight = '600';
         title.style.color = '#00CCFF';
         title.style.flex = '1';
@@ -168,7 +169,7 @@ export class OrchestrationConsole {
         // ── Filter bar ──
         this.filterBar = document.createElement('div');
         Object.assign(this.filterBar.style, {
-            display: 'flex',
+            display: 'none',
             alignItems: 'center',
             gap: '4px',
             padding: '3px 12px',
@@ -214,6 +215,7 @@ export class OrchestrationConsole {
             overflowY: 'auto',
             padding: '4px 0',
             scrollBehavior: 'smooth',
+            display: 'none',
         });
         // Custom scrollbar
         const scrollStyle = document.createElement('style');
@@ -341,11 +343,12 @@ export class OrchestrationConsole {
             this.root.style.height = this._savedHeight + 'px';
             this.root.style.minHeight = '32px';
             this.logBody.style.display = '';
-            this.filterBar.style.display = '';
+            this.filterBar.style.display = 'flex';
             this._unreadCount = 0;
             this.badge.style.display = 'none';
             this.logBody.scrollTop = this.logBody.scrollHeight;
         }
+        window.DIAMANTS?.viewPersistence?.scheduleSave();
     }
 
     _matchesFilter(lineData) {
@@ -396,12 +399,11 @@ export class OrchestrationConsole {
             const dx = e.clientX - startX;
             const dy = e.clientY - startY;
 
-            // Once moved >5px, undock from bottom
+            // Once moved >5px, undock from top-center
             if (this._isDocked && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
                 this._isDocked = false;
-                this.root.style.bottom = '';
                 this.root.style.width = Math.min(window.innerWidth, 900) + 'px';
-                this.root.style.borderRadius = '6px 6px 0 0';
+                this.root.style.borderRadius = '0 0 6px 6px';
                 this.root.style.boxShadow = '0 0 20px rgba(0,170,255,0.3)';
             }
 
@@ -414,15 +416,14 @@ export class OrchestrationConsole {
             dragging = false;
             titleBar.style.cursor = 'grab';
 
-            // Snap back to dock if near bottom edge
+            // Snap back to dock if near top edge
             const rect = this.root.getBoundingClientRect();
-            if (rect.bottom >= window.innerHeight - 10) {
+            if (rect.top <= 10) {
                 this._isDocked = true;
-                this.root.style.top = '';
-                this.root.style.left = '0';
-                this.root.style.bottom = '0';
-                this.root.style.width = '100%';
-                this.root.style.borderRadius = '0';
+                this.root.style.top = '0';
+                this.root.style.left = '22.5%';
+                this.root.style.width = '55%';
+                this.root.style.borderRadius = '0 0 8px 8px';
                 this.root.style.boxShadow = '';
             }
         };
@@ -446,8 +447,8 @@ export class OrchestrationConsole {
 
         const onMouseMove = (e) => {
             if (!resizing) return;
-            // Dragging up = larger, dragging down = smaller
-            const dy = startY - e.clientY;
+            // Dragging down = larger (top-docked), dragging up = smaller
+            const dy = e.clientY - startY;
             const newH = Math.max(32, Math.min(window.innerHeight * 0.8, startH + dy));
             this.root.style.height = newH + 'px';
         };
@@ -507,8 +508,9 @@ export class OrchestrationConsole {
             if (now - this._lastSlamLog > this._slamLogInterval) {
                 this._lastSlamLog = now;
                 const data = evt.detail;
-                const cells = data?.cells?.length || data?.grid?.length || '?';
-                this.log('slam', `Map updated — ${cells} cells (update #${this._stats.slamUpdates})`);
+                const cells = data?.cells?.length || '?';
+                const cov = data?.coverage !== undefined ? ` coverage=${Number(data.coverage).toFixed(1)}%` : '';
+                this.log('slam', `Map: ${cells} visited cells${cov} (update #${this._stats.slamUpdates})`);
                 this._updateStats();
             }
         });
@@ -517,7 +519,11 @@ export class OrchestrationConsole {
         window.addEventListener('diamants:mission-status', (evt) => {
             this._stats.missionEvents++;
             const d = evt.detail || {};
-            this.log('mission', `Mission ${d.phase || d.status || JSON.stringify(d)}`);
+            const phase = d.phase || 'UNKNOWN';
+            const flying = d.flyingDrones !== undefined ? ` ${d.flyingDrones}/${d.total || '?'} flying` : '';
+            const cov = d.coverage ? ` cov=${d.coverage}%` : '';
+            const suc = d.success ? ` success=${d.success}%` : '';
+            this.log('mission', `[${phase}]${flying}${cov}${suc}`);
             this._updateStats();
         });
 
@@ -525,7 +531,11 @@ export class OrchestrationConsole {
         window.addEventListener('diamants:swarm-update', (evt) => {
             const d = evt.detail || {};
             const formation = d.formation || d.type || '';
-            this.log('swarm', `Swarm update: ${formation} ${d.coherence ? `coherence=${d.coherence.toFixed(2)}` : ''}`);
+            const mode = d.mode ? `[${d.mode}]` : '';
+            const auto = d.autonomy !== undefined ? ` auto=${d.autonomy}%` : '';
+            const coh = d.coherence ? ` coherence=${d.coherence.toFixed(2)}` : '';
+            const emer = d.emergence ? ` emergence=${d.emergence.toFixed(2)}` : '';
+            this.log('swarm', `${mode} ${formation}${auto}${coh}${emer}`);
         });
 
         // ── System status ──
@@ -548,8 +558,21 @@ export class OrchestrationConsole {
         });
         window.addEventListener('diamants:ws-error', (evt) => {
             this._stats.errors++;
-            this.log('ws', 'Backend offline — running in autonomous mode');
+            this.log('ws', 'Backend offline — running in CAS 2 (autonomous engine). Start DiamantsBridge on :8765 to enable CAS 1.');
             this._updateStats();
+        });
+
+        // ── Drone decision logging (waypoint picks, phase transitions) ──
+        window.addEventListener('diamants:drone-decision', (evt) => {
+            const d = evt.detail || {};
+            const drone = d.droneId || '??';
+            const action = d.action || '';
+            const phase = d.phase || '';
+            const wp = d.waypointsVisited ?? '';
+            const autonomy = d.autonomy ?? '';
+            const doctrine = d.doctrine ? ` ${d.doctrine}` : '';
+            const coa = d.coa ? `/${d.coa}` : '';
+            this.log('drone', `${drone} → ${action}  [${phase}]  auto=${autonomy}%${doctrine}${coa}  WP#${wp}`);
         });
 
         // ── Propeller speeds (very low freq log) ──
@@ -585,7 +608,11 @@ export class OrchestrationConsole {
         console.error = (...args) => {
             origError.apply(console, args);
             this._stats.errors++;
-            const msg = args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' ');
+            const msg = args.map(a => {
+                if (typeof a === 'string') return a;
+                if (a instanceof Error) return `${a.message} (${a.stack?.split('\n')[1]?.trim() || ''})`;
+                try { return JSON.stringify(a); } catch { return String(a); }
+            }).join(' ');
             this.log('error', msg);
             this._updateStats();
         };

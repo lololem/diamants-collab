@@ -1,0 +1,67 @@
+{
+    "id": "X500",
+    "label": "Holybro X500 V2",
+    "manufacturer": "Holybro",
+    "category": "medium",
+
+    "physical": {
+        "mass": 2.0,
+        "armLength": 0.25,
+        "boundingRadius": 0.5,
+        "propCount": 4
+    },
+
+    "performance": {
+        "maxSpeed": 12.0,
+        "maxClimb": 5.0,
+        "cruiseAlt": 4.0,
+        "maxAlt": 20.0,
+        "agility": 0.8,
+        "explorationRadius": 200,
+        "endurance_min": 25
+    },
+
+    "pid": {
+        "pos":  { "kp": 0.95, "ki": 0.015, "kd": 0.35 },
+        "alt":  { "kp": 1.0,  "ki": 0.03,  "kd": 0.5  },
+        "yaw":  { "kp": 2.8,  "ki": 0.0,   "kd": 0.15 }
+    },
+
+    "sensors": {
+        "camera": "OAK-D Pro W",
+        "depthRange": [0.2, 35.0],
+        "hFov": 127,
+        "vFov": 80,
+        "imu": "BNO086",
+        "gps": true,
+        "lidar": false
+    },
+
+    "physics": {
+        "maxThrust": 47.1,
+        "dragCoeffH": 0.25,
+        "dragCoeffV": 0.35,
+        "maxTiltAngle": 0.35,
+        "maxAngularRate": 3.5,
+        "velKp": 1.8,
+        "velKi": 0.4,
+        "velKd": 0.2,
+        "velAltKp": 4.0,
+        "velAltKi": 2.0,
+        "velAltKd": 0.0,
+        "_comment": "PX4 defaults from 4019_x500_v2 + rc.mc_defaults: MPC_XY_P=0.95, MPC_Z_P=1.0, MPC_XY_VEL_P_ACC=1.8, MPC_Z_VEL_P_ACC=4.0, MPC_TILTMAX_AIR=45deg, TWR~2.4 (2216/1045 motors)"
+    },
+
+    "visual": {
+        "scale": 10,
+        "color": "0x222222",
+        "model": "x500"
+    },
+
+    "agent": {
+        "role": "cognitive",
+        "brainType": "cognitive",
+        "teamRole": "coordinator",
+        "description": "Heavy cognitive agent with OAK-D depth camera and Q-learning brain"
+    }
+}

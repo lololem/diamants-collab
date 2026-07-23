@@ -7,15 +7,23 @@
  * - DOCTRINE: Stratégie globale (comment l'essaim se comporte)
  * - COA (Course of Action): Tactique de déplacement/exploration
  * - MODE: Paramètres spécifiques du pattern
+ * 
+ * Bridge CoLab ↔ Autonome:
+ * - exportDoctrine() → JSON compatible DoctrineLoader (système autonome)
+ * - importDoctrine() → charge un JSON doctrine autonome dans le frontend
  */
+
+// Bridge imports (lazy — loaded only when export/import is called)
+let _exportModule = null;
+let _importModule = null;
 
 // Doctrines disponibles
 export const DOCTRINES = {
-    STIGMERGY: {
-        id: 'stigmergy',
-        name: 'Stigmergie',
-        icon: '🧠',
-        description: 'Coordination indirecte par phéromones numériques',
+    EXPLORATION: {
+        id: 'exploration',
+        name: 'Exploration',
+        icon: '🌿',
+        description: 'Exploration naturelle avec phéromones (évaporation, diffusion, dépôt)',
         params: {
             usePheromones: true,
             useGradients: true,
@@ -88,6 +96,19 @@ export const COURSES_OF_ACTION = {
             useContext: true,
             dynamicSpacing: true,
             velocityAdaptive: true
+        }
+    },
+    STIGMERGY: {
+        id: 'stigmergy',
+        name: 'Stigmergie',
+        icon: '🧠',
+        description: 'Navigation par phéromones — évite les zones déjà explorées',
+        waypointGenerator: 'pheromone_gradient',
+        params: {
+            usePheromones: true,
+            gradientWeight: 8.0,
+            repulsionFromExplored: true,
+            attractToFrontier: true
         }
     },
     GRID: {
@@ -169,7 +190,7 @@ export const FORMATION_TYPES = {
  */
 export class DoctrineManager {
     constructor() {
-        this.currentDoctrine = DOCTRINES.STIGMERGY;
+        this.currentDoctrine = DOCTRINES.EXPLORATION;
         this.currentCOA = COURSES_OF_ACTION.ADAPTIVE;
         this.currentFormation = FORMATION_TYPES.GRID;
         
@@ -185,8 +206,8 @@ export class DoctrineManager {
         this.zoneParams = {
             centerX: 0,
             centerZ: 0,
-            sizeX: 80,
-            sizeZ: 80,
+            sizeX: 120,
+            sizeZ: 120,
             altitude: 3.0,
             safetyDistance: 3.0
         };
@@ -195,11 +216,15 @@ export class DoctrineManager {
     }
     
     init() {
-        // Exposer globalement
-        window.DIAMANTS_DOCTRINE = this;
+        // Exposer globalement (browser only)
+        if (typeof window !== 'undefined') {
+            window.DIAMANTS_DOCTRINE = this;
+        }
         
         // Écouter les changements d'UI
-        this.bindUIElements();
+        if (typeof document !== 'undefined') {
+            this.bindUIElements();
+        }
         
         console.log('📋 DoctrineManager initialisé');
         console.log(`   Doctrine: ${this.currentDoctrine.name}`);
@@ -335,18 +360,35 @@ export class DoctrineManager {
         
         if (!controller) return;
         
-        // Activer/désactiver stigmergie
-        if (window.DIAMANTS_STIGMERGY_ENGINE && typeof window.DIAMANTS_STIGMERGY_ENGINE.setActive === 'function') {
-            window.DIAMANTS_STIGMERGY_ENGINE.setActive(params.usePheromones);
-        } else if (window.DIAMANTS_STIGMERGY_ENGINE) {
-            // Fallback si setActive n'existe pas mais l'engine existe
-            window.DIAMANTS_STIGMERGY_ENGINE.active = params.usePheromones;
+        // Activer/désactiver stigmergie (use INSTANCE not CLASS)
+        const stigInstance = window.DIAMANTS_STIGMERGY_INSTANCE;
+        // Pheromones needed if EITHER doctrine OR current COA requires them
+        const needsPheromones = params.usePheromones
+                             || this.currentCOA?.params?.usePheromones === true
+                             || this.currentCOA?.id === 'stigmergy';
+        if (stigInstance) {
+            if (typeof stigInstance.setActive === 'function') {
+                stigInstance.setActive(needsPheromones);
+            } else {
+                stigInstance.enabled = needsPheromones;
+            }
+            // Toggle lightweightMode: OFF when pheromones needed, ON otherwise
+            if (typeof stigInstance.setLightweightMode === 'function') {
+                stigInstance.setLightweightMode(!needsPheromones);
+            }
+            console.log(`🧠 Phéromones: ${needsPheromones ? 'ON (full)' : 'OFF (lightweight)'} (doctrine=${this.currentDoctrine?.name}, COA=${this.currentCOA?.name})`);
         }
         
         // Configurer le contrôleur
         if (controller.config) {
             controller.config.enableStigmergy = params.usePheromones;
             controller.config.enableGradients = params.useGradients;
+        }
+        
+        // Flush engine waypoints to force re-generation with new doctrine
+        const engine = controller.autonomousFlightEngine;
+        if (engine && typeof engine.flushDoctrineWaypoints === 'function') {
+            engine.flushDoctrineWaypoints();
         }
         
         // Mettre à jour les métriques UI
@@ -366,12 +408,31 @@ export class DoctrineManager {
         
         if (!controller) return;
         
+        // Store pattern on the engine for fallback waypoint generation
+        if (controller.autonomousFlightEngine) {
+            controller.autonomousFlightEngine.explorationPattern = coa.waypointGenerator;
+        }
+        
+        // Toggle lightweightMode based on COA OR doctorate pheromone requirement
+        // If EITHER the COA or the current doctrine needs pheromones → keep them active
+        const stigInstance = window.DIAMANTS_STIGMERGY_INSTANCE;
+        const needsPheromones = coa.params?.usePheromones === true
+                             || coa.id === 'stigmergy'
+                             || this.currentDoctrine?.params?.usePheromones === true;
+        if (stigInstance && typeof stigInstance.setLightweightMode === 'function') {
+            stigInstance.setLightweightMode(!needsPheromones);
+            console.log(`🎯 COA ${coa.name}: pheromones ${needsPheromones ? 'ACTIVE' : 'lightweight'} (doctrine=${this.currentDoctrine?.name})`);
+        }
+        
+        // Flush waypoints so drones pick up the new COA immediately
+        const engine = controller.autonomousFlightEngine;
+        if (engine && typeof engine.flushDoctrineWaypoints === 'function') {
+            engine.flushDoctrineWaypoints();
+        }
+        
         // Mettre à jour le générateur de waypoints
         if (controller.flightBehaviors && typeof controller.flightBehaviors.setExplorationPattern === 'function') {
             controller.flightBehaviors.setExplorationPattern(coa.waypointGenerator);
-        } else if (controller.autonomousFlightEngine) {
-            // Fallback: stocker le pattern dans l'engine
-            controller.autonomousFlightEngine.explorationPattern = coa.waypointGenerator;
         }
         
         // Mettre à jour l'affichage pattern
@@ -510,6 +571,69 @@ export class DoctrineManager {
             zone: this.zoneParams,
             mission: this.missionState
         };
+    }
+
+    // ─────────────────────────────────────────────
+    //  Bridge CoLab ↔ Autonome (Gap #1)
+    // ─────────────────────────────────────────────
+
+    /**
+     * Exporte la doctrine actuelle en JSON compatible DoctrineLoader (système autonome).
+     * @param {Object} [options] - { name, mode: 'SIM'|'REAL', platform, connection, ai, safety }
+     * @returns {Object} JSON doctrine autonome
+     */
+    async exportDoctrineJSON(options = {}) {
+        if (!_exportModule) {
+            _exportModule = await import('./doctrine-exporter.js');
+        }
+        return _exportModule.exportDoctrine(this, options);
+    }
+
+    /**
+     * Exporte et télécharge un fichier JSON doctrine.
+     * @param {string} [filename] - Nom du fichier (auto-généré si absent)
+     * @param {Object} [options] - Options d'export
+     */
+    async downloadDoctrineJSON(filename, options = {}) {
+        if (!_exportModule) {
+            _exportModule = await import('./doctrine-exporter.js');
+        }
+        return _exportModule.downloadDoctrineJSON(this, filename, options);
+    }
+
+    /**
+     * Importe un JSON doctrine autonome dans le frontend.
+     * @param {Object} json - Doctrine JSON autonome
+     * @returns {{ success, applied, warnings }}
+     */
+    async importDoctrineJSON(json) {
+        if (!_importModule) {
+            _importModule = await import('./doctrine-importer.js');
+        }
+        return _importModule.importDoctrineFromJSON(this, json);
+    }
+
+    /**
+     * Ouvre un file picker pour charger un fichier doctrine JSON.
+     * @returns {Promise<{ success, applied, warnings }>}
+     */
+    async importDoctrineFromFile() {
+        if (!_importModule) {
+            _importModule = await import('./doctrine-importer.js');
+        }
+        return _importModule.importDoctrineFromFile(this);
+    }
+
+    /**
+     * Importe depuis une URL (ex: API backend, GitHub raw, etc.).
+     * @param {string} url
+     * @returns {Promise<{ success, applied, warnings }>}
+     */
+    async importDoctrineFromURL(url) {
+        if (!_importModule) {
+            _importModule = await import('./doctrine-importer.js');
+        }
+        return _importModule.importDoctrineFromURL(this, url);
     }
     
     /**
@@ -710,11 +834,11 @@ export class DoctrineManager {
     }
     
     _generateAdaptiveWaypoints(droneId, pos) {
-        // Utiliser la stigmergie si disponible
-        if (window.DIAMANTS_STIGMERGY_ENGINE) {
-            const engine = window.DIAMANTS_STIGMERGY_ENGINE;
+        // Utiliser la stigmergie (INSTANCE, pas la classe)
+        const engine = window.DIAMANTS_STIGMERGY_INSTANCE;
+        if (engine && engine.enabled) {
             const wp = engine.computeNextWaypoint ? 
-                engine.computeNextWaypoint(droneId, pos) : null;
+                engine.computeNextWaypoint(droneId, { position: pos }) : null;
             if (wp) return [wp];
         }
         
@@ -747,8 +871,10 @@ let doctrineManager = null;
 export function initDoctrineManager() {
     if (!doctrineManager) {
         doctrineManager = new DoctrineManager();
-        // Exposer à window pour les tests
-        window.doctrineManager = doctrineManager;
+        // Exposer à window pour les tests (browser only)
+        if (typeof window !== 'undefined') {
+            window.doctrineManager = doctrineManager;
+        }
     }
     return doctrineManager;
 }
@@ -757,11 +883,13 @@ export function getDoctrineManager() {
     return doctrineManager || initDoctrineManager();
 }
 
-// Init au chargement du DOM
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initDoctrineManager);
-} else {
-    initDoctrineManager();
+// Init au chargement du DOM (browser only)
+if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDoctrineManager);
+    } else {
+        initDoctrineManager();
+    }
 }
 
 export default DoctrineManager;

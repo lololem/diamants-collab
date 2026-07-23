@@ -1,8 +1,9 @@
 /**
  * DIAMANTS - Contrôleur Principal Intégré
  * ==========================================
- * Simulation-only build (public vitrine).
- * Fallback: AutonomousFlightEngine → simple update.
+ * ⚠️  v0-origin  (commit 47cec8ee — tag v0-origin)
+ * Fallback 3-tier : Backend ROS2 → AutonomousFlightEngine → simple update.
+ * Restaurer : git checkout v0-origin -- tools/integrated-controller.js
  *
  * Système unifié intégrant toutes les fonctionnalités migrées
  */
@@ -18,8 +19,7 @@ if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
 // Note: tools/ is a sibling of core/, drones/, missions/, etc. Use ../ imports.
 import { logger } from '../core/logger.js';
-// Stub neutre (formulas module relocated to private repository)
-const _stubFormulas = { update: () => {}, psi_field: null, phi_field: null, sigma_field: null, gradient_field: null, harmonics: [], diamants_value: 0, emergence_factor: 0, coherence_level: 0, config: {} };
+import { DiamantFormulas } from '../core/diamants-formulas.js';
 import { AuthenticCrazyflie } from '../drones/authentic-crazyflie.js';
 import { MissionManager } from '../missions/mission-manager.js';
 import { TerrainEnvironment } from '../environment/terrain-environment.js';
@@ -30,7 +30,6 @@ import { FlightBehaviors } from '../behaviors/flight-behaviors.js';
 import { CollaborativeScouting } from '../behaviors/collaborative-scouting.js';
 import { AdvancedCollectiveIntelligence } from '../intelligence/advanced-collective-intelligence.js';
 import { CrazyflieRosController } from '../controllers/crazyflie-ros-controller.js';
-import { CrazyflieVisual } from '../drones/crazyflie-visual.js';
 import { CrazyflieVisualEnhancements } from '../visual/crazyflie-visual-enhancements.js';
 
 // Modules supplémentaires "morts"
@@ -43,6 +42,11 @@ import { DRONE_PROFILES, DronePhysicsRegistry } from '../physics/drone-physics-r
 import { loadStigmergyEngine, isStigmergyAvailable } from '../intelligence/stigmergy-loader.js';
 import { FieldVisualizer3D, HarmonicsHUD } from '../core/field-visualizer-3d.js';
 import { FlowParticles } from '../core/flow-particles.js';
+import { DroneIntelligenceManager } from '../intelligence/drone-intelligence.js';
+import { MultiAgentCoordinator } from '../agent/multi-agent-coordinator.js';
+import { DroneVisualFactory } from '../drones/drone-visual-factory.js';
+import { DepthCameraSimulator } from '../sensors/depth-camera-simulator.js';
+import { AgentDroneRegistry, AgentRole } from '../agent/agent-drone-registry.js';
 // SAMPLE_MODE import removed - sample files moved to DEMO/ directory
 
 export class IntegratedDiamantsController {
@@ -60,7 +64,7 @@ export class IntegratedDiamantsController {
         };
         
         // Systèmes principaux
-        this.diamantFormulas = _stubFormulas;
+        this.diamantFormulas = new DiamantFormulas(this.config);
         this.missionManager = new MissionManager(this.config);
         this.environment = null;
         this.ui = null;
@@ -94,6 +98,16 @@ export class IntegratedDiamantsController {
         this.drones = [];
         this.activeMissions = new Map();
 
+        // Autonomy level (0 = centralisé, 100 = distribué)
+        this.autonomyLevel = 100;
+
+        // NOUVEAU: Multi-agent trainable coordinator
+        this.multiAgentCoordinator = null;
+        this._stigmergyEngine = null;  // Keep reference for fallback
+
+        // NOUVEAU: LLM/Agent intelligence for drones
+        this.droneIntelligenceManager = null;
+
         // État système
         this.isInitialized = false;
         this.isRunning = false;
@@ -119,6 +133,14 @@ export class IntegratedDiamantsController {
         logger.info('Controller', '🚀 Initialisation système DIAMANTS intégré...');
 
         try {
+            // 0. Pre-load authentic 3D drone models (GLB) before anything else
+            try {
+                await DroneVisualFactory.preloadModels();
+                logger.info('Controller', '🎨 Authentic 3D drone models preloaded');
+            } catch (e) {
+                logger.warn('Controller', '⚠️ Model preload failed, using procedural fallback:', e.message);
+            }
+
             // 1. Créer environnement
             await this.initializeEnvironment();
 
@@ -143,8 +165,15 @@ export class IntegratedDiamantsController {
                 logger.info('Controller', '🔍 Système de scouting collaboratif initialisé');
             }
 
-            // 5. ROS controller disabled — simulation-only build
-            // (see diamants-private for full network integration)
+            // 5. Initialiser contrôleur ROS
+            if (this.config.enableRosController) {
+                this.rosController = new CrazyflieRosController({
+                    isActive: true,
+                    wsUrl: this.config.rosWsUrl || 'ws://localhost:8765',
+                    maxReconnectDelayMs: this.config.rosMaxReconnectDelayMs || 30000
+                });
+                logger.info('Controller', '🌐 Contrôleur ROS initialisé');
+            }
 
             // 6. Initialiser améliorations visuelles
             if (this.config.enableVisualEnhancements) {
@@ -188,6 +217,14 @@ export class IntegratedDiamantsController {
 
             // 7. Créer drones
             await this.createDroneFleet();
+
+            // 7.1. Injecter la scène dans l'AutonomousFlightEngine (Multi-Ranger + CommWaveRenderer)
+            // MUST happen here because the constructor's initializeSystem() is async but
+            // not awaited, so main.js setupVoxelizer() runs before createDroneFleet() finishes.
+            if (this.autonomousFlightEngine && this.scene) {
+                this.autonomousFlightEngine.setScene(this.scene);
+                logger.info('Controller', '📡 Scene injectée → Multi-Ranger + CommWaveRenderer initialisés');
+            }
 
             // 9. Initialiser interface avec tous les modules
             this.ui = new DiamantUI({
@@ -238,7 +275,7 @@ export class IntegratedDiamantsController {
                 });
                 this.fieldVisualizer.setVisible(false);  // Désactivé cosmétique
                 
-                // ✨ ESSAIM FLUIDE - Particules pour visualisation (désactivé cosmétique)
+                // ✨ ESSAIM FLUIDE - Particules qui suivent ∇ψ (désactivé cosmétique)
                 // Pour réactiver: window.diamantsSystem?.integratedController?.flowParticles?.setVisible(true)
                 this.flowParticles = new FlowParticles(this.scene, this.diamantFormulas, {
                     particleCount: 3000,
@@ -253,6 +290,7 @@ export class IntegratedDiamantsController {
                 this.flowParticles.setVisible(false); // Désactivé cosmétique
                 
                 this.harmonicsHUD = new HarmonicsHUD(this.diamantFormulas);
+                this.harmonicsHUD.setVisible(false); // Masqué au démarrage — activé via bouton ◆
                 logger.info('Controller', '🎨 Visualisation 3D DIAMANTS + FlowParticles initialisées');
             } catch (vizError) {
                 console.warn('⚠️ Visualisation 3D non disponible:', vizError.message);
@@ -291,7 +329,7 @@ export class IntegratedDiamantsController {
             terrainSize: { x: 200, y: 200 },
             structuredLayout: true,
             visibilityBubbles: true,
-            terrainAmplitude: 0.0,  // Flat terrain
+            terrainAmplitude: 0.0,  // Flat terrain to match Gazebo ground plane
             terrainDetail: 1.0,
             enableForest: false,    // Forest already created by main.js
             enableTerrain: false,   // Terrain already created by main.js
@@ -343,56 +381,409 @@ export class IntegratedDiamantsController {
         });
         if (stigmergyEngine) {
             this.autonomousFlightEngine.setSwarmIntelligence(stigmergyEngine);
+            this._stigmergyEngine = stigmergyEngine;
             logger.info('Controller', '🧠 Stigmergy engine loaded and attached');
         }
 
-        // ── Mixed drone type assignment ──
-        // First 4 = Crazyflie, next 2 = Mavic, last 2 = Phantom
-        const typeAssignment = [];
-        for (let i = 0; i < this.config.droneCount; i++) {
-            if (i < 4)       typeAssignment.push('CRAZYFLIE');
-            else if (i < 6)  typeAssignment.push('MAVIC');
-            else             typeAssignment.push('PHANTOM');
+        // ── Initialize Multi-Agent Trainable Coordinator ──
+        try {
+            this.multiAgentCoordinator = new MultiAgentCoordinator({
+                communicationRange: this.config.communicationRange || 15,
+                trainingEnabled: true,
+                cooperativeRatio: 0.5
+            });
+            logger.info('Controller', '🤖 Multi-agent trainable coordinator created');
+        } catch (e) {
+            logger.warn('Controller', `Multi-agent coordinator init failed: ${e.message}`);
         }
 
-        for (let i = 0; i < this.config.droneCount; i++) {
-            // 1-indexed, zero-padded to match backend IDs (crazyflie_01 .. crazyflie_08)
-            const droneId = `crazyflie_${String(i + 1).padStart(2, '0')}`;
-            const profileName = typeAssignment[i];
-            const profile = DRONE_PROFILES[profileName];
-
-            // Initial position — drones on the enlarged heliport (radius 5.5m)
-            const angle = (i / this.config.droneCount) * 2 * Math.PI;
-            const spawnRadius = 5.5; // Matches the drone markers on platform
-            const PLATFORM_SURFACE_Y = 0.15; // Platform top surface (PLATFORM_HEIGHT)
-            const startPosition = {
-                x: Math.cos(angle) * spawnRadius,
-                y: PLATFORM_SURFACE_Y,  // Bottom of drone sits on platform surface
-                z: Math.sin(angle) * spawnRadius
-            };
-
-            // Créer drone Crazyflie authentique
-            const drone = new AuthenticCrazyflie({
-                id: droneId,
-                position: startPosition,
-                type: 'SCOUT',
-                scene: this.scene,
-                enableAdvancedBehaviors: this.config.enableRealisticFlight,
-                collaborativeMode: this.config.enableCollaborativeScouting
+        // ── Initialize Drone Intelligence Manager (LLM brains) — non-blocking ──
+        try {
+            this.droneIntelligenceManager = new DroneIntelligenceManager();
+            // Don't await — Ollama ping can take 2s+ if not running
+            this.droneIntelligenceManager.init().then(() => {
+                this.autonomousFlightEngine?.setIntelligenceManager(this.droneIntelligenceManager);
+                logger.info('Controller', '🧠 Drone Intelligence Manager initialized (Ollama LLM)');
+            }).catch(e => {
+                console.warn('[Controller] DroneIntelligence init failed (Ollama may not be running):', e.message);
+                this.droneIntelligenceManager = null;
             });
+        } catch (e) {
+            console.warn('[Controller] DroneIntelligence creation failed:', e.message);
+            this.droneIntelligenceManager = null;
+        }
 
-            // Tag with drone profile for UI display
+        // ── Fleet config drone type mapping ──
+        // Map fleet_config.json types → DRONE_PROFILES keys
+        // All non-Crazyflie types use the authentic X500 DAE model
+        const FLEET_TYPE_TO_PROFILE = {
+            'crazyflie': 'CRAZYFLIE',
+            'scout': 'CRAZYFLIE',      // Scout uses Crazyflie physics profile
+            'heavy': 'X500',           // Heavy → authentic X500 DAE
+            'leader': 'X500',          // Leader → authentic X500 DAE
+            'x500': 'X500',            // X500 cognitive drone
+            's500': 'S500',            // S500 patrol drone (PX4 4014_s500)
+            'cognitive': 'X500',       // Alias for cognitive agents
+            'patrol': 'S500',          // Alias for patrol agents
+            'reactive': 'CRAZYFLIE',   // Alias for reactive agents
+        };
+
+        // Build type assignments from fleet config
+        // If no fleet config, use AgentDroneRegistry recommendation (mixed fleet)
+        const fleetDrones = window.FLEET_CONFIG?.drones || [];
+        const typeAssignment = [];
+
+        if (fleetDrones.length > 0) {
+            // Use explicit fleet config
+            for (let i = 0; i < this.config.droneCount; i++) {
+                const droneType = fleetDrones[i]?.type || 'crazyflie';
+                typeAssignment.push(FLEET_TYPE_TO_PROFILE[droneType] || 'CRAZYFLIE');
+            }
+        } else {
+            // Auto-compose mixed fleet: X500 cognitive + Crazyflie reactive
+            const composition = AgentDroneRegistry.recommendFleetComposition(
+                this.config.droneCount, 'balanced'
+            );
+            for (const { profileId, count } of composition) {
+                for (let i = 0; i < count; i++) {
+                    typeAssignment.push(profileId);
+                }
+            }
+            log(`🧬 Auto-composed fleet: ${composition.map(c => `${c.count}×${c.profileId}`).join(' + ')}`);
+        }
+
+        // ── Spawn positions: type-aware layout (CF inner, X500/S500 outer) ──
+        const cfIndices = [], x500Indices = [];
+        for (let i = 0; i < this.config.droneCount; i++) {
+            if (typeAssignment[i] === 'X500' || typeAssignment[i] === 'S500') x500Indices.push(i);
+            else cfIndices.push(i);
+        }
+
+        const cfCount = cfIndices.length;
+        const x500Count = x500Indices.length;
+        const x500Scale = DRONE_PROFILES['X500']?.scale || 10;
+
+        // Compute platform radius based on mixed fleet
+        let platformRadius;
+        if (x500Count === 0) {
+            platformRadius = this.config.droneCount <= 8 ? 8.0
+                : 8.0 * Math.sqrt(this.config.droneCount / 8);
+        } else {
+            // X500 outer ring needs spacing proportional to visual size
+            const x500Spacing = x500Scale * 0.5;  // ~5m at scale 10
+            const minRing = x500Count <= 4 ? 8 : 12;
+            const x500RingRadius = Math.max(minRing, (x500Count * x500Spacing) / (2 * Math.PI));
+            platformRadius = x500RingRadius + 3;
+        }
+
+        // Build per-drone positions: Crazyflies on inner rings, X500 on outer ring
+        const spawnPositions = new Array(this.config.droneCount);
+
+        // Inner rings for Crazyflies — wider ring for proper landing separation
+        if (cfCount > 0) {
+            const cfMaxR = Math.max(6, platformRadius * 0.55);
+            const cfPositions = this._computeRingPositions(cfCount, cfMaxR);
+            cfIndices.forEach((idx, i) => { spawnPositions[idx] = cfPositions[i]; });
+        }
+
+        // Outer ring(s) for X500
+        if (x500Count > 0) {
+            const x500R = platformRadius * 0.75;
+            const x500Positions = [];
+            for (let i = 0; i < x500Count; i++) {
+                const angle = (i / x500Count) * 2 * Math.PI;
+                x500Positions.push({ x: Math.cos(angle) * x500R, z: Math.sin(angle) * x500R });
+            }
+            x500Indices.forEach((idx, i) => { spawnPositions[idx] = x500Positions[i]; });
+        }
+
+        log(`🏗️ Platform: radius=${platformRadius.toFixed(1)}m, ${cfCount}×CF inner, ${x500Count}×X500/S500 outer`);
+
+        // ── PARALLEL DRONE CREATION — build all mesh promises at once ──
+        const droneSlots = [];
+        for (let i = 0; i < this.config.droneCount; i++) {
+            const profileName = typeAssignment[i];
+            const spec = AgentDroneRegistry.getSpec(profileName);
+            const prefix = profileName === 'X500' ? 'x500' : profileName === 'S500' ? 's500' : 'crazyflie';
+            const droneId = `${prefix}_${String(i + 1).padStart(2, '0')}`;
+            const profile = DRONE_PROFILES[profileName];
+            const PLATFORM_SURFACE_Y = 0.15;
+            const spawnY = (profileName === 'X500' || profileName === 'S500')
+                ? PLATFORM_SURFACE_Y + (profile.scale || 10) * 0.22
+                : PLATFORM_SURFACE_Y + 0.05;
+            const startPosition = { x: spawnPositions[i].x, y: spawnY, z: spawnPositions[i].z };
+            droneSlots.push({ i, profileName, spec, droneId, profile, startPosition });
+        }
+
+        // Fire all X500/S500 mesh creations in parallel
+        const meshPromises = droneSlots.map(slot => {
+            if (slot.profileName === 'CRAZYFLIE' || slot.profile.model === 'crazyflie') return Promise.resolve(null);
+            return DroneVisualFactory.createAsync(slot.profile, this.scene).catch(e => { console.error(`❌ Mesh ${slot.droneId}:`, e); return null; });
+        });
+        const meshResults = await Promise.all(meshPromises);
+
+        for (let si = 0; si < droneSlots.length; si++) {
+          const { profileName, spec, droneId, profile, startPosition } = droneSlots[si];
+          try {
+            let drone;
+            if (profileName === 'CRAZYFLIE' || profile.model === 'crazyflie') {
+                drone = new AuthenticCrazyflie({
+                    id: droneId,
+                    position: startPosition,
+                    type: spec.teamRole?.toUpperCase() || 'SCOUT',
+                    scene: this.scene,
+                    enableAdvancedBehaviors: this.config.enableRealisticFlight,
+                    collaborativeMode: this.config.enableCollaborativeScouting
+                });
+                if (drone.mesh) {
+                    try { drone.mesh.scale.setScalar(profile.scale); } catch(_) {}
+                }
+            } else {
+                const meshResult = meshResults[si];
+                if (!meshResult) { console.error(`❌ Drone ${droneId} mesh failed`); continue; }
+                const { mesh, fovCone } = meshResult;
+                mesh.position.set(startPosition.x, startPosition.y, startPosition.z);
+                this.scene.add(mesh);
+
+                drone = {
+                    id: droneId,
+                    mesh,
+                    position: new THREE.Vector3(startPosition.x, startPosition.y, startPosition.z),
+                    velocity: new THREE.Vector3(0, 0, 0),
+                    state: 'IDLE',
+                    type: spec.teamRole?.toUpperCase() || profileName,
+                    fovCone,
+                    update(dt) {
+                        // Update position
+                        if (this.mesh && this.position) this.mesh.position.copy(this.position);
+                        this._spinProps(dt);
+                    },
+                    updateVisuals(dt) {
+                        // Called by AutonomousFlightEngine path (CAS 2)
+                        this._spinProps(dt);
+                    },
+                    _spinProps(dt) {
+                        // Spin propellers — based on real motor specs:
+                        // X500: 2216 KV920 + 4S → hover ~10000 RPM ≈ 1047 rad/s, max ~15000 RPM ≈ 1570 rad/s
+                        // CF 2.1: 7×16mm coreless → hover ~16000 RPM ≈ 1675 rad/s, max ~21000 RPM ≈ 2200 rad/s
+                        const props = this.mesh?.userData?.propellers;
+                        const dirs = this.mesh?.userData?.propDirections;
+                        if (props) {
+                            const vy = this.velocity?.y || 0;
+                            const y = this.position?.y || 0;
+                            const hSpeed = Math.sqrt((this.velocity?.x || 0) ** 2 + (this.velocity?.z || 0) ** 2);
+                            let speed;
+                            if (y < 0.5) {
+                                speed = 200; // idle on ground — slow visible spin
+                            } else if (vy > 0.3) {
+                                speed = 1500 + vy * 100; // climbing / takeoff — near max power
+                            } else if (vy < -0.3) {
+                                speed = 800; // descending — reduced but still fast
+                            } else {
+                                speed = 1200 + hSpeed * 30; // hover / cruise — nominal RPM
+                            }
+                            for (let i = 0; i < props.length; i++) {
+                                const dir = dirs?.[i] ?? 1;
+                                props[i].rotation.y += dt * speed * dir;
+                            }
+                        }
+                    },
+                    getPosition() { return this.position; },
+                    destroy() { if (this.mesh?.parent) this.mesh.parent.remove(this.mesh); },
+
+                    // ── 3D status label (same API as AuthenticCrazyflie) ──
+                    _labelSprite: null,
+                    _labelCanvas: null,
+                    _labelLastDraw: 0,
+                    _initLabel() {
+                        if (!THREE || !this.mesh) return;
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 640; canvas.height = 520;
+                        const texture = new THREE.CanvasTexture(canvas);
+                        texture.minFilter = THREE.LinearFilter;
+                        const mat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+                        this._labelSprite = new THREE.Sprite(mat);
+                        const ps = this.mesh.scale?.x || 1;
+                        this._labelSprite.position.set(0, 4.2 / ps, 0);
+                        this._labelSprite.scale.set(6.0 / ps, 4.9 / ps, 1);
+                        this._labelSprite.renderOrder = 999;
+                        this.mesh.add(this._labelSprite);
+                        this._labelCanvas = canvas;
+                    },
+                    updateStatusText(status) {
+                        if (!this._labelSprite && this.mesh) this._initLabel();
+                        if (!this._labelSprite || !this._labelCanvas) return;
+                        const canvas = this._labelCanvas;
+                        const ctx = canvas.getContext('2d');
+                        const W = canvas.width, H = canvas.height;
+                        ctx.clearRect(0, 0, W, H);
+                        // Background
+                        const r = 14;
+                        ctx.fillStyle = 'rgba(8, 12, 20, 0.82)';
+                        ctx.strokeStyle = 'rgba(80, 200, 255, 0.45)';
+                        ctx.lineWidth = 3;
+                        ctx.beginPath();
+                        ctx.moveTo(r, 0); ctx.lineTo(W - r, 0);
+                        ctx.quadraticCurveTo(W, 0, W, r); ctx.lineTo(W, H - r);
+                        ctx.quadraticCurveTo(W, H, W - r, H); ctx.lineTo(r, H);
+                        ctx.quadraticCurveTo(0, H, 0, H - r); ctx.lineTo(0, r);
+                        ctx.quadraticCurveTo(0, 0, r, 0);
+                        ctx.fill(); ctx.stroke();
+                        ctx.textAlign = 'center';
+                        if (typeof status === 'string') {
+                            ctx.font = 'bold 30px monospace';
+                            ctx.fillStyle = '#ffaa00';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(`${this.id.toUpperCase()}: ${status}`, W / 2, H / 2);
+                        } else {
+                            const info = status;
+                            const pColors = { IDLE:'#888', TAKEOFF:'#22ccff', EXPLORE:'#00ff88', HOVER:'#ffcc00', LAND:'#ff6644', LANDED:'#777' };
+                            const pIcons  = { IDLE:'\u23F8', TAKEOFF:'\u2B06', EXPLORE:'\u2692', HOVER:'\u2B55', LAND:'\u2B07', LANDED:'\u2B1B' };
+                            const phase = info.phase || 'IDLE';
+                            const pC = pColors[phase] || '#fff';
+                            // Line 1 — ID + Phase + LLM brain indicator
+                            ctx.font = 'bold 38px monospace'; ctx.textBaseline = 'top'; ctx.fillStyle = pC;
+                            const brainIcon = info.reasoning ? ' \uD83E\uDDE0' : '';
+                            ctx.fillText(`${this.id.toUpperCase()}  ${pIcons[phase]||''} ${phase}${brainIcon}`, W/2, 12);
+                            ctx.fillStyle = pC; ctx.fillRect(W*0.15, 50, W*0.7, 3);
+                            // Line 2 — Doctrine / COA
+                            ctx.font = 'bold 28px monospace'; ctx.fillStyle = '#88ccff';
+                            ctx.fillText(`${info.doctrine||'\u2014'}  \u2502  ${info.coa||'\u2014'}`, W/2, 62);
+                            // Line 3 — Autonomy mode badge + action
+                            const a = info.autonomy ?? 100;
+                            const aMode = info.autonomyMode || (a>=90?'DISTRIBUÉ':a>=75?'SEMI-AUTO':a>=50?'HYBRIDE':a>=25?'GUIDÉ':'CENTRAL');
+                            const bY=102;
+                            const bColors={'CENTRAL':'#00BFFF','GUIDÉ':'#33bbdd','HYBRIDE':'#66DDAA','SEMI-AUTO':'#88dd88','AUTONOME':'#aaee66','DISTRIBUÉ':'#00FF88'};
+                            const bC=bColors[aMode]||'#00FF88';
+                            ctx.font='bold 22px monospace'; const bW2=ctx.measureText(aMode).width+16||80;
+                            ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.beginPath(); ctx.roundRect(24,bY-4,bW2+8,22,4); ctx.fill();
+                            ctx.fillStyle=bC; ctx.textAlign='left';
+                            ctx.fillText(aMode, 30, bY+12);
+                            if (info.action) {
+                                ctx.textAlign='right'; ctx.fillStyle='#ffdd66'; ctx.font='bold 24px monospace';
+                                const t = info.action.length>16 ? info.action.slice(0,16)+'\u2026' : info.action;
+                                ctx.fillText(t, W-20, bY+14);
+                            }
+                            // Line 4 — Decision + WP
+                            ctx.textAlign='center'; ctx.font='22px monospace'; ctx.fillStyle='#aac';
+                            const wp = info.waypointsVisited!==undefined ? `WP:${info.waypointsVisited}` : '';
+                            const dec = info.decision || '';
+                            const l4 = [dec, wp].filter(Boolean).join('  \u2502  ');
+                            if (l4) ctx.fillText(l4, W/2, 140);
+                            // Line 5 — LLM reasoning
+                            if (info.reasoning) {
+                                ctx.font='bold 18px monospace'; ctx.fillStyle='#dbf';
+                                const rt = info.reasoning.length>55 ? info.reasoning.slice(0,55)+'\u2026' : info.reasoning;
+                                ctx.fillText(rt, W/2, 168);
+                            }
+                            // Line 5b — Beacon field awareness
+                            const bZones = info.beaconZones || [];
+                            if (bZones.length > 0) {
+                                const bY5 = info.reasoning ? 190 : 168;
+                                ctx.font='bold 17px monospace'; ctx.fillStyle='#ff9933';
+                                ctx.fillText(`\uD83C\uDFAF ${bZones.length} zone${bZones.length>1?'s':''} balise${bZones.length>1?'s':''} connue${bZones.length>1?'s':''}`, W/2, bY5);
+                            }
+                            // Line 6+ — Rich Inter-drone COMMUNICATION panel
+                            const cd = info.commDetails;
+                            const commY = (bZones.length > 0 ? (info.reasoning ? 212 : 190) : (info.reasoning ? 196 : 168));
+                            if (cd && cd.active && cd.peers && cd.peers.length > 0) {
+                                // Bright border glow when actively communicating
+                                ctx.strokeStyle='rgba(0,255,200,0.55)'; ctx.lineWidth=2;
+                                ctx.beginPath();
+                                const r2=10;
+                                ctx.moveTo(r2,0); ctx.lineTo(W-r2,0);
+                                ctx.quadraticCurveTo(W,0,W,r2); ctx.lineTo(W,H-r2);
+                                ctx.quadraticCurveTo(W,H,W-r2,H); ctx.lineTo(r2,H);
+                                ctx.quadraticCurveTo(0,H,0,H-r2); ctx.lineTo(0,r2);
+                                ctx.quadraticCurveTo(0,0,r2,0);
+                                ctx.stroke();
+                                // Section header: COMM + own knowledge
+                                ctx.textAlign='left';
+                                ctx.font='bold 19px monospace'; ctx.fillStyle='#00ffcc';
+                                ctx.fillText(`\uD83D\uDCE1 COMM  [${cd.peers.length} peer${cd.peers.length>1?'s':''}]`, 14, commY+2);
+                                ctx.textAlign='right'; ctx.fillStyle='#557766'; ctx.font='15px monospace';
+                                ctx.fillText(`\uD83D\uDDFA ${cd.ownKnowledge||0} cells  flow:${Math.round((cd.infoFlow||0)*100)}%`, W-14, commY+2);
+                                // Peer rows (max 4 displayed)
+                                const maxPeers = Math.min(cd.peers.length, 4);
+                                for (let pi = 0; pi < maxPeers; pi++) {
+                                    const p = cd.peers[pi];
+                                    const rowY = commY + 22 + pi * 20;
+                                    // Type-based colors
+                                    const tColors = { MAP_SYNC:'#00ffd0', HEARTBEAT:'#4488aa', DIRECTIVE:'#ff8800' };
+                                    const tIcons  = { MAP_SYNC:'\u21C4', HEARTBEAT:'\uD83D\uDC93', DIRECTIVE:'\u26A1' };
+                                    const tC = tColors[p.type] || '#aaa';
+                                    const tI = tIcons[p.type] || '\u2022';
+                                    // Peer icon + shortId
+                                    ctx.textAlign='left'; ctx.font='bold 17px monospace'; ctx.fillStyle=tC;
+                                    ctx.fillText(`${p.icon||'\uD83D\uDC1C'} ${p.shortId}`, 14, rowY);
+                                    // Type badge
+                                    ctx.font='15px monospace';
+                                    const badge = p.type === 'MAP_SYNC' ? 'SYNC' : p.type === 'HEARTBEAT' ? 'HB' : 'DIR';
+                                    ctx.fillText(`${tI} ${badge}`, 130, rowY);
+                                    // Data exchanged
+                                    ctx.textAlign='center'; ctx.fillStyle='#8899aa'; ctx.font='15px monospace';
+                                    if (p.type === 'MAP_SYNC' && p.cells > 0) {
+                                        ctx.fillText(`${p.cells} cells`, W/2+30, rowY);
+                                    } else if (p.type === 'HEARTBEAT') {
+                                        ctx.fillText(`\u2208range`, W/2+30, rowY);
+                                    }
+                                    // Peer knowledge
+                                    ctx.textAlign='right'; ctx.fillStyle='#667788'; ctx.font='14px monospace';
+                                    if (p.peerKnowledge !== undefined) {
+                                        ctx.fillText(`peer:${p.peerKnowledge}`, W-14, rowY);
+                                    }
+                                }
+                                // Overflow indicator
+                                if (cd.peers.length > 4) {
+                                    ctx.textAlign='center'; ctx.font='14px monospace'; ctx.fillStyle='#556677';
+                                    ctx.fillText(`+${cd.peers.length - 4} more`, W/2, commY + 22 + maxPeers * 20);
+                                }
+                                // Directive line
+                                if (cd.directive) {
+                                    const dY = commY + 26 + maxPeers * 20;
+                                    ctx.textAlign='left'; ctx.font='bold 17px monospace'; ctx.fillStyle='#ff8800';
+                                    const dirStr = `${cd.directive.from||'?'}→${cd.directive.target||'?'}`;
+                                    const dTxt = dirStr.length > 40 ? dirStr.slice(0,40)+'\u2026' : dirStr;
+                                    ctx.fillText(`\u26A1 ${dTxt}`, 14, dY);
+                                }
+                            } else if (info.comm) {
+                                // Fallback: simple comm text when no commDetails available
+                                ctx.textAlign='center';
+                                ctx.font='bold 20px monospace';
+                                const typeIcon = info.droneType==='CRAZYFLIE' ? '\uD83D\uDC1C' : '\uD83E\uDDE0';
+                                ctx.fillStyle = info.commActive ? '#00ffcc' : '#66aa88';
+                                const cTxt = info.comm.length>42 ? info.comm.slice(0,42)+'\u2026' : info.comm;
+                                ctx.fillText(`${typeIcon} ${cTxt}`, W/2, commY);
+                                if (info.localKnowledge > 0) {
+                                    ctx.font='15px monospace';
+                                    // Knowledge delta: how much this drone DOESN'T know vs global truth
+                                    const delta = info.knowledgeDelta || 0;
+                                    const deltaColor = delta > 20 ? '#ff6644' : delta > 5 ? '#ffaa44' : '#44ff88';
+                                    ctx.fillStyle = deltaColor;
+                                    const neighbors = info.commNeighborCount || 0;
+                                    ctx.fillText(`🗺 ${info.localKnowledge}/${info.globalKnowledge||'?'} cells  Δ${delta}  📡${neighbors}`, W/2, commY+18);
+                                }
+                            }
+                        }
+                        this._labelSprite.material.map.needsUpdate = true;
+                    }
+                };
+            }
+
+            // Tag with profile + role metadata
             drone.droneProfile = profileName;
             drone.profileLabel = profile.label;
-
-            // Override visual scale based on drone type
-            if (drone.mesh) {
-                try { drone.mesh.scale.setScalar(profile.scale); } catch(_) {}
-            }
+            drone.agentRole = spec.role;
+            drone.brainType = spec.brainType;
 
             // Register with autonomous flight engine
             const startVec = new THREE.Vector3(startPosition.x, startPosition.y, startPosition.z);
             this.autonomousFlightEngine.registerDrone(droneId, profileName, startVec);
+
+            // Register with LLM Intelligence Manager
+            if (this.droneIntelligenceManager) {
+                this.droneIntelligenceManager.registerDrone(droneId, profileName);
+            }
 
             // Initialiser physique de vol si activée (ancienne méthode)
             if (this.flightBehaviors) {
@@ -401,10 +792,25 @@ export class IntegratedDiamantsController {
 
             this.drones.push(drone);
             logger.debug('Controller', `✅ Drone ${droneId} [${profile.label}] créé à (${startPosition.x.toFixed(1)}, ${startPosition.z.toFixed(1)})`);
+          } catch (droneErr) {
+            console.error(`❌ Drone #${si} creation failed:`, droneErr);
+          }
         }
 
-        // Register trees from the environment
-        this._registerEnvironmentTrees();
+        // ── FLEET CREATION DIAGNOSTIC ──
+        const cfCreated = this.drones.filter(d => d.id?.startsWith('crazyflie')).length;
+        const x500Created = this.drones.filter(d => d.id?.startsWith('x500') || d.id?.startsWith('s500')).length;
+        const inScene = this.drones.filter(d => d.mesh?.parent).length;
+        console.log(`🚁 FLEET DIAGNOSTIC: ${this.drones.length} drones (${cfCreated}×CF + ${x500Created}×X500/S500), ${inScene} in scene`);
+        if (inScene < this.drones.length) {
+            console.warn(`⚠️ ${this.drones.length - inScene} drones NOT in scene!`);
+            this.drones.forEach(d => {
+                if (!d.mesh?.parent) console.warn(`  ❌ ${d.id}: mesh.parent=${d.mesh?.parent}`);
+            });
+        }
+
+        // Register trees from the environment (async — waits for env.ready)
+        await this._registerEnvironmentTrees();
 
         // Connecter les drones aux systèmes avancés
         this.connectDronesToSystems();
@@ -420,36 +826,155 @@ export class IntegratedDiamantsController {
     }
 
     /**
+     * Distribute n drones across concentric rings on a platform
+     * Returns array of {x, z} positions
+     */
+    _computeRingPositions(n, platformRadius) {
+        const positions = [];
+        if (n <= 8) {
+            // Single ring at 85% radius — wider spread for proper landing separation
+            const r = platformRadius * 0.85;
+            for (let i = 0; i < n; i++) {
+                const angle = (i / n) * 2 * Math.PI;
+                positions.push({ x: Math.cos(angle) * r, z: Math.sin(angle) * r });
+            }
+            return positions;
+        }
+        // Multiple concentric rings
+        const numRings = n <= 16 ? 2 : n <= 32 ? 3 : Math.min(5, Math.ceil(n / 10));
+        const minR = platformRadius * 0.22;
+        const maxR = platformRadius * 0.75;
+        // Compute ring radii and distribute proportionally to circumference
+        const rings = [];
+        let totalCirc = 0;
+        for (let r = 0; r < numRings; r++) {
+            const radius = numRings === 1 ? maxR : minR + (maxR - minR) * r / (numRings - 1);
+            const circ = 2 * Math.PI * radius;
+            rings.push({ radius, circ });
+            totalCirc += circ;
+        }
+        let assigned = 0;
+        for (let r = 0; r < numRings; r++) {
+            const count = r === numRings - 1
+                ? n - assigned
+                : Math.max(3, Math.round(n * rings[r].circ / totalCirc));
+            const angleOffset = r * 0.3; // Stagger rings for visual clarity
+            for (let i = 0; i < count; i++) {
+                const angle = (i / count) * 2 * Math.PI + angleOffset;
+                positions.push({
+                    x: Math.cos(angle) * rings[r].radius,
+                    z: Math.sin(angle) * rings[r].radius
+                });
+            }
+            assigned += count;
+        }
+        return positions;
+    }
+
+    /**
      * Register trees from the environment as collision obstacles
      */
-    _registerEnvironmentTrees() {
-        // Look for trees in the scene
+    async _registerEnvironmentTrees() {
         const env = window.environment || this.environment;
         if (!env) return;
 
+        // Wait for environment to finish generating all trees
+        if (env.ready) {
+            try { await env.ready; } catch(e) { console.warn('[Trees] env.ready rejected:', e); }
+        }
+
         let treeCount = 0;
-        // Search for tree objects in the scene
-        this.scene.traverse((obj) => {
-            if (obj.name && (obj.name.includes('tree') || obj.name.includes('Tree') ||
-                obj.name.includes('arbre') || obj.name.includes('Arbre') ||
-                obj.name.includes('Pin') || obj.name.includes('Ch') ||
-                obj.name.includes('Olivier'))) {
-                const pos = new THREE.Vector3();
-                obj.getWorldPosition(pos);
-                // Estimate trunk radius from bounding box or default
-                let radius = 2.0; // default trunk exclusion
+
+        // ─── METHOD 1: Use environment.trees[] directly (best source of truth) ───
+        // TerrainEnvironment stores all EZ-Tree Group objects in this.trees[]
+        // Each tree is a THREE.Group with .branchesMesh and .leavesMesh children
+        if (env.trees && env.trees.length > 0) {
+            for (const treeObj of env.trees) {
                 try {
+                    // Force world matrix update so bounding box is accurate
+                    treeObj.updateWorldMatrix(true, true);
+                    
+                    const pos = new THREE.Vector3();
+                    treeObj.getWorldPosition(pos);
+                    
+                    // Compute bounding box from the full tree (branches + leaves)
+                    const box = new THREE.Box3().setFromObject(treeObj);
+                    const size = new THREE.Vector3();
+                    box.getSize(size);
+                    
+                    // Canopy radius = half the max horizontal extent
+                    let radius = Math.max(size.x, size.z) * 0.5;
+                    radius = Math.max(2.0, Math.min(radius, 15.0)); // clamp 2-15m
+                    
+                    let height = size.y;
+                    height = Math.max(3.0, Math.min(height, 30.0)); // clamp 3-30m
+                    
+                    // Use the base position (ground level), not center of bounding box
+                    const basePos = new THREE.Vector3(pos.x, box.min.y, pos.z);
+                    
+                    this.autonomousFlightEngine.registerTree(basePos, radius, height);
+                    treeCount++;
+                    if (treeCount <= 3) {
+                        log(`   🌳 Sample tree ${treeObj.name}: pos=(${basePos.x.toFixed(1)},${basePos.z.toFixed(1)}) r=${radius.toFixed(1)}m h=${height.toFixed(1)}m`);
+                    }
+                } catch(e) {
+                    console.warn(`[Trees] Failed to register tree:`, e.message);
+                }
+            }
+            log(`🌲 Registered ${treeCount} trees from environment.trees[] (direct)`);
+            return;
+        }
+
+        // ─── METHOD 2: Fallback — scene traverse by name ───
+        // Match ALL possible tree names (French species, English, EZ-Tree names)
+        const TREE_NAME_PATTERNS = [
+            'tree', 'Tree', 'arbre', 'Arbre',
+            'Pin', 'Chêne', 'Chene', 'Ch',       // French species
+            'Olivier', 'Cyprès', 'Cypres',         // French species
+            'Oak', 'Pine', 'Cypress', 'Olive',     // English
+            'Forest'                       // Forest group fallback
+        ];
+        
+        const registered = new Set(); // prevent double-registration
+        
+        this.scene.traverse((obj) => {
+            // Skip if already registered (parent group vs child mesh)
+            if (registered.has(obj.uuid)) return;
+            
+            if (obj.name && TREE_NAME_PATTERNS.some(p => obj.name.includes(p))) {
+                // If this is the forest GROUP, register its direct children instead
+                if (obj.name === 'Forest') {
+                    return; // children will be visited by traverse
+                }
+                
+                // Skip internal mesh children (branchesMesh, leavesMesh)
+                // We want the parent Group that IS the tree
+                if (obj.parent && registered.has(obj.parent.uuid)) return;
+                
+                try {
+                    obj.updateWorldMatrix(true, true);
+                    const pos = new THREE.Vector3();
+                    obj.getWorldPosition(pos);
+                    
                     const box = new THREE.Box3().setFromObject(obj);
                     const size = new THREE.Vector3();
                     box.getSize(size);
-                    radius = Math.max(size.x, size.z) * 0.5; // horizontal extent
-                    radius = Math.max(1.5, Math.min(radius, 5.0)); // clamp 1.5-5m
+                    
+                    let radius = Math.max(size.x, size.z) * 0.5;
+                    radius = Math.max(2.0, Math.min(radius, 15.0));
+                    
+                    let height = size.y;
+                    height = Math.max(3.0, Math.min(height, 30.0));
+                    
+                    const basePos = new THREE.Vector3(pos.x, box.min.y, pos.z);
+                    
+                    this.autonomousFlightEngine.registerTree(basePos, radius, height);
+                    registered.add(obj.uuid);
+                    treeCount++;
                 } catch(_) {}
-                this.autonomousFlightEngine.registerTree(pos, radius);
-                treeCount++;
             }
         });
-        log(`🌲 Registered ${treeCount} trees as collision obstacles`);
+        log(`🌲 Registered ${treeCount} trees via scene traverse (fallback)`);
     }
 
     /**
@@ -470,6 +995,235 @@ export class IntegratedDiamantsController {
         // Pas besoin d'enregistrement explicite - il reçoit les drones en paramètre
 
         log(`🔗 ${this.drones.length} drones connectés aux systèmes avancés`);
+
+        // ── Initialize Multi-Agent Coordinator with known drones ──
+        if (this.multiAgentCoordinator && this.autonomousFlightEngine) {
+            try {
+                this.multiAgentCoordinator.initialize(
+                    this.autonomousFlightEngine.drones,
+                    this.autonomousFlightEngine.treeBounds || []
+                );
+                log(`🤖 Multi-agent coordinator: ${this.multiAgentCoordinator.agents.size} agents initialized`);
+            } catch (e) {
+                console.warn('[Controller] Multi-agent coordinator init failed:', e.message);
+            }
+        }
+    }
+
+    // ────────────────────────────────────────────────────────────────
+    // HOT DRONE INJECTION / REMOVAL (Digital Twin Management)
+    // ────────────────────────────────────────────────────────────────
+
+    /**
+     * Spawn a new drone into the scene at runtime.
+     * Creates the 3D mesh (profile-appropriate), registers with the flight engine,
+     * creates the RL agent, and optionally attaches a depth camera.
+     *
+     * @param {Object} options
+     * @param {string} options.droneId - Unique ID (e.g. 'x500_01')
+     * @param {string} options.profileId - Physics profile ID ('CRAZYFLIE','X500','MAVIC','PHANTOM')
+     * @param {Object} options.position - {x, y, z} spawn position
+     * @param {Object} [options.agentWeights] - Pre-trained RL weights to import
+     * @param {boolean} [options.enableDepthCamera=false] - Attach OAK-D simulator
+     * @returns {Object} { drone, agent, depthCamera } or null on failure
+     */
+    async spawnDrone(options = {}) {
+        const {
+            droneId,
+            profileId = 'CRAZYFLIE',
+            position = { x: 0, y: 0.15, z: 0 },
+            agentWeights = null,
+            enableDepthCamera = false
+        } = options;
+
+        if (!droneId) {
+            console.warn('[Controller] spawnDrone: droneId required');
+            return null;
+        }
+
+        // Check for duplicate
+        if (this.drones.find(d => d.id === droneId)) {
+            console.warn(`[Controller] Drone ${droneId} already exists`);
+            return null;
+        }
+
+        const profile = DRONE_PROFILES[profileId] || DRONE_PROFILES['CRAZYFLIE'];
+        const modelId = profile.model || 'generic';
+
+        // 1. Create 3D mesh via factory
+        let drone;
+        if (modelId === 'crazyflie') {
+            // Use existing AuthenticCrazyflie for backwards compatibility
+            drone = new AuthenticCrazyflie({
+                id: droneId,
+                position,
+                type: 'SCOUT',
+                scene: this.scene,
+                enableAdvancedBehaviors: this.config.enableRealisticFlight,
+                collaborativeMode: this.config.enableCollaborativeScouting
+            });
+        } else {
+            // Use the visual factory for non-Crazyflie types
+            const { mesh, fovCone } = await DroneVisualFactory.createAsync(profile, this.scene);
+            mesh.position.set(position.x, position.y, position.z);
+
+            // Wrap in a compatible drone-like object
+            drone = {
+                id: droneId,
+                mesh,
+                position: new THREE.Vector3(position.x, position.y, position.z),
+                velocity: new THREE.Vector3(0, 0, 0),
+                type: profileId,
+                droneProfile: profileId,
+                profileLabel: profile.label,
+                fovCone,
+                update(dt) {
+                    if (this.mesh && this.position) {
+                        this.mesh.position.copy(this.position);
+                    }
+                    this._spinProps(dt);
+                },
+                updateVisuals(dt) {
+                    this._spinProps(dt);
+                },
+                _spinProps(dt) {
+                    // Spin propellers — based on real motor specs:
+                    // X500: 2216 KV920 + 4S → hover ~10000 RPM ≈ 1047 rad/s, max ~15000 RPM ≈ 1570 rad/s
+                    // CF 2.1: 7×16mm coreless → hover ~16000 RPM ≈ 1675 rad/s, max ~21000 RPM ≈ 2200 rad/s
+                    const props = this.mesh?.userData?.propellers;
+                    const dirs = this.mesh?.userData?.propDirections;
+                    if (props) {
+                        const vy = this.velocity?.y || 0;
+                        const y = this.position?.y || 0;
+                        const hSpeed = Math.sqrt((this.velocity?.x || 0) ** 2 + (this.velocity?.z || 0) ** 2);
+                        let speed;
+                        if (y < 0.5) {
+                            speed = 200; // idle on ground — slow visible spin
+                        } else if (vy > 0.3) {
+                            speed = 1500 + vy * 100; // climbing / takeoff — near max power
+                        } else if (vy < -0.3) {
+                            speed = 800; // descending — reduced but still fast
+                        } else {
+                            speed = 1200 + hSpeed * 30; // hover / cruise — nominal RPM
+                        }
+                        for (let i = 0; i < props.length; i++) {
+                            const dir = dirs?.[i] ?? 1;
+                            props[i].rotation.y += dt * speed * dir;
+                        }
+                    }
+                },
+                getPosition() { return this.position; },
+                destroy() {
+                    if (this.mesh?.parent) this.mesh.parent.remove(this.mesh);
+                }
+            };
+
+            // Add to scene
+            this.scene.add(mesh);
+        }
+
+        drone.droneProfile = profileId;
+        drone.profileLabel = profile.label;
+
+        // 2. Register with the flight engine (physics)
+        if (this.autonomousFlightEngine) {
+            const startVec = new THREE.Vector3(position.x, position.y, position.z);
+            this.autonomousFlightEngine.registerDrone(droneId, profileId, startVec);
+        }
+
+        // 3. Create RL agent with profile-appropriate brain
+        let agent = null;
+        if (this.multiAgentCoordinator) {
+            agent = this.multiAgentCoordinator.addAgent(droneId, {
+                profileId  // Pass profile so coordinator assigns right brain
+            }, agentWeights);
+        }
+
+        // Tag drone with agent metadata
+        const spec = AgentDroneRegistry.getSpec(profileId);
+        drone.agentRole = spec.role;
+        drone.brainType = spec.brainType;
+
+        // 4. Optionally attach depth camera (OAK-D)
+        let depthCamera = null;
+        const rawProfile = profile._raw;
+        if (enableDepthCamera || AgentDroneRegistry.hasDepthCamera(profileId) || rawProfile?.sensors?.camera) {
+            depthCamera = new DepthCameraSimulator(droneId, {
+                hFov: rawProfile?.sensors?.hFov || 127,
+                vFov: rawProfile?.sensors?.vFov || 80,
+                maxDepth: rawProfile?.sensors?.depthRange?.[1] || 35,
+                rayCount: 64
+            });
+            drone.depthCamera = depthCamera;
+        }
+
+        // Add to drones array
+        this.drones.push(drone);
+
+        log(`✅ Drone ${droneId} [${profile.label}] spawned at (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)}) — ${modelId} mesh, depth=${!!depthCamera}`);
+
+        return { drone, agent, depthCamera };
+    }
+
+    /**
+     * Remove a drone from the scene at runtime.
+     * Cleans up 3D mesh, flight engine registration, and RL agent.
+     *
+     * @param {string} droneId
+     * @returns {Object|null} Exported agent weights, or null if not found
+     */
+    despawnDrone(droneId) {
+        const idx = this.drones.findIndex(d => d.id === droneId);
+        if (idx === -1) {
+            console.warn(`[Controller] Drone ${droneId} not found`);
+            return null;
+        }
+
+        const drone = this.drones[idx];
+
+        // 1. Remove from RL coordinator (exports weights before removal)
+        let weights = null;
+        if (this.multiAgentCoordinator) {
+            weights = this.multiAgentCoordinator.removeAgent(droneId);
+        }
+
+        // 2. Remove from flight engine
+        if (this.autonomousFlightEngine?.drones) {
+            this.autonomousFlightEngine.drones.delete(droneId);
+        }
+
+        // 3. Remove 3D mesh from scene
+        if (drone.destroy) {
+            drone.destroy();
+        } else if (drone.mesh?.parent) {
+            drone.mesh.parent.remove(drone.mesh);
+        }
+
+        // 4. Remove from drones array
+        this.drones.splice(idx, 1);
+
+        log(`❌ Drone ${droneId} despawned (${this.drones.length} remaining)`);
+        return weights;
+    }
+
+    /**
+     * List available drone profiles for injection.
+     * @returns {Array<{id, label, category, mass, maxSpeed}>}
+     */
+    listDroneProfiles() {
+        const registry = DronePhysicsRegistry.getInstance();
+        return registry.listProfiles().map(id => {
+            const p = registry.getProfile(id);
+            return {
+                id: p.id,
+                label: p.label,
+                category: p.category,
+                mass: p.mass,
+                maxSpeed: p.maxSpeed,
+                model: p.model,
+                hasSensors: !!p._raw?.sensors
+            };
+        });
     }
 
     /**
@@ -506,101 +1260,109 @@ export class IntegratedDiamantsController {
 
     /**
      * Boucle de mise à jour principale
+     * Physics/AI subsystems run at max 30Hz; visuals run every frame.
      */
     update(deltaTime) {
         if (!this.isRunning) return;
 
+        // ══════════════════════════════════════════════════════════════════
+        // PERFORMANCE-CRITICAL: Only essential systems run in the loop.
+        // Everything else is DISABLED to prevent main-thread freeze.
+        //
+        // ACTIVE:  AutonomousFlightEngine (10Hz), drone sync, metrics (0.5Hz)
+        // DISABLED: MARL, DIAMANTS PDE, realisticFlightDynamics, flightBehaviors,
+        //           collaborativeScouting, advancedIntelligence, missionManager,
+        //           fieldVisualizer, flowParticles, harmonicsHUD
+        // ══════════════════════════════════════════════════════════════════
+
+        // ── Physics at 10 Hz (was 30Hz — ÷3 CPU) ──
+        this._physicsAccum = (this._physicsAccum || 0) + deltaTime;
+        const PHYSICS_STEP = 0.1; // 10 Hz
+        if (this._physicsAccum < PHYSICS_STEP) {
+            // Between physics ticks: only sync mesh positions (visual smoothness)
+            this.updateDronesBehaviors(deltaTime);
+            return;
+        }
+        const physicsDt = this._physicsAccum;
+        this._physicsAccum = 0;
+
         try {
-            // 1. Update AutonomousFlightEngine (PID + collision avoidance)
+            // 1. AutonomousFlightEngine — the ONLY physics system
             if (this.autonomousFlightEngine) {
-                this.autonomousFlightEngine.update(deltaTime);
+                this.autonomousFlightEngine.update(physicsDt);
             }
 
-            // 1b. Legacy realistic flight dynamics (disabled)
-            if (this.realisticFlightDynamics) {
-                this.realisticFlightDynamics.update(deltaTime);
+            // 2. Sync drone visuals (mesh position, propellers, labels)
+            this.updateDronesBehaviors(deltaTime);
+
+            // 3. Metrics — ultra rare (0.5 Hz = every 2 seconds)
+            this._metricsFrame = (this._metricsFrame || 0) + 1;
+            if (this._metricsFrame % 20 === 0) {
+                this.updateMetrics();
             }
 
-            // ── Determine if drones are exploring (engine phase = EXPLORE) ──
-            let anyExploring = false;
-            if (this.autonomousFlightEngine) {
-                for (const [, st] of this.autonomousFlightEngine.drones) {
-                    if (st.phase === 'EXPLORE') { anyExploring = true; break; }
-                }
+            // 3b. MARL Coordinator — federated learning at 1 Hz
+            if (this.multiAgentCoordinator && this._metricsFrame % 10 === 0) {
+                try {
+                    this.multiAgentCoordinator.tick(physicsDt * 10);
+                } catch (_) {}
             }
 
-            // DEBUG: Log engine phases every ~2 seconds
-            if (this._debugFrame === undefined) this._debugFrame = 0;
-            this._debugFrame++;
-            if (this._debugFrame % 120 === 0 && this.autonomousFlightEngine) {
+            // 3c. Broadcast drone-positions for minimaps (1 Hz fallback if coordinator missed it)
+            if (this._metricsFrame % 10 === 0 && this.autonomousFlightEngine) {
+                try {
+                    const positions = {};
+                    for (const [id, st] of this.autonomousFlightEngine.drones) {
+                        if (st.position) {
+                            positions[id] = {
+                                position: { x: st.position.x, y: st.position.y, z: st.position.z },
+                                type: st.profileId || 'crazyflie',
+                                source: 'engine',
+                            };
+                        }
+                    }
+                    window.dispatchEvent(new CustomEvent('diamants:drone-positions', { detail: positions }));
+                } catch (_) {}
+            }
+
+            // 4. Debug log — every 30 seconds
+            if (this._metricsFrame % 300 === 0 && this.autonomousFlightEngine) {
                 const phases = [];
                 for (const [id, st] of this.autonomousFlightEngine.drones) {
                     phases.push(`${id}:${st.phase}`);
                 }
-                console.log(`[STATE-MACHINE] ${phases.join(', ')}`);
+                console.log(`[STATE] ${phases.join(', ')}`);
             }
-
-            // 2. Mise à jour systèmes de base (UNIQUEMENT si exploration active)
-            this.diamantFormulas.update && this.diamantFormulas.update(deltaTime);
-            // missionManager déplace les drones via applyDirectMovement → désactivé sauf EXPLORE
-            if (anyExploring && this.missionManager.update) {
-                this.missionManager.update(deltaTime, this.drones, this.environment);
-            }
-
-            // 3. Mise à jour systèmes avancés (metrics seulement, pas de mouvement)
-            if (this.advancedIntelligence) {
-                this.advancedIntelligence.update(deltaTime, this.drones, this.environment);
-            }
-
-            // flightBehaviors a sa propre physique qui bypasserait l'engine → désactivé sauf EXPLORE
-            if (this.flightBehaviors && anyExploring) {
-                const activeDroneIds = this.drones.filter(drone => drone.state !== 'IDLE').map(drone => drone.id);
-                if (activeDroneIds.length > 0) {
-                    this.flightBehaviors.update(deltaTime, activeDroneIds);
-                }
-            }
-
-            // collaborativeScouting déplace les drones directement → désactivé sauf EXPLORE
-            if (this.collaborativeScouting && anyExploring) {
-                this.collaborativeScouting.update(deltaTime);
-            }
-
-            // 4. Mise à jour drones avec dynamique réaliste
-            this.updateDronesBehaviors(deltaTime);
-
-            // 5. Mise à jour interface
-            if (this.ui && this.ui.update) {
-                this.ui.update(deltaTime);
-            }
-
-            // 5b. NOUVEAU: Mise à jour visualisation 3D des champs
-            const elapsed = performance.now();
-            if (this.fieldVisualizer) {
-                this.fieldVisualizer.update(elapsed);
-            }
-            if (this.flowParticles) {
-                this.flowParticles.update(deltaTime);  // ← Essaim fluide
-            }
-            if (this.harmonicsHUD) {
-                this.harmonicsHUD.update(elapsed);
-            }
-
-            // 6. Mise à jour métriques
-            this.updateMetrics();
 
         } catch (error) {
-            console.error('❌ Erreur lors de la mise à jour:', error);
+            console.error('❌ Update error:', error.message);
         }
     }
 
     /**
      * Mise à jour comportements des drones — AutonomousFlightEngine prioritaire
+     * autonomyLevel est propagé à l'engine qui gère formation/hybride/distribué
      */
     updateDronesBehaviors(deltaTime) {
         // Ground level = platform surface height (PLATFORM_HEIGHT = 0.15)
         const GROUND_LEVEL = 0.15;
+
+        // ── Sync autonomy from UI slider (window global) → controller → engine ──
+        // DiamantsUIController writes to window.DIAMANTS_AUTONOMY_LEVEL on slider change.
+        // We read it here so the integrated controller stays in sync.
+        if (typeof window !== 'undefined' && window.DIAMANTS_AUTONOMY_LEVEL !== undefined) {
+            const uiLevel = Math.max(0, Math.min(100, window.DIAMANTS_AUTONOMY_LEVEL));
+            if (uiLevel !== this.autonomyLevel) {
+                this.autonomyLevel = uiLevel;
+            }
+        }
+
+        // Propagate autonomy to flight engine (the engine handles waypoint strategy)
+        if (this.autonomousFlightEngine && this.autonomousFlightEngine.autonomyLevel !== this.autonomyLevel) {
+            this.autonomousFlightEngine.setAutonomyLevel(this.autonomyLevel);
+        }
         
-        this.drones.forEach(drone => {
+        this.drones.forEach((drone) => {
             // Déterminer si le drone est piloté par le backend (position vient du ROS)
             const isBackendDriven = drone.rosData && drone.rosData.position
                 && (Date.now() - (drone.rosData.lastUpdate || 0)) < 5000;
@@ -646,13 +1408,19 @@ export class IntegratedDiamantsController {
             }
 
             // ──────────────────────────────────────────────────
-            // CAS 2: Autonomous flight via AutonomousFlightEngine
-            // Fast, fluid, dynamic exploration with PID + collision avoidance
+            // CAS 2: AutonomousFlightEngine
+            // L'engine gère internement l'autonomyLevel:
+            //   0%  → formation serrée (waypoints coordonnés)
+            //   50% → sous-groupes hybrides
+            //  100% → exploration individuelle distribuée
             // ──────────────────────────────────────────────────
             if (this.autonomousFlightEngine) {
                 const flightState = this.autonomousFlightEngine.getDroneState(drone.id);
                 if (flightState) {
                     this.autonomousFlightEngine.applyToDrone(drone, flightState);
+                    // Flag so AuthenticCrazyflie.updateVisuals() skips overwriting
+                    // the rotation/position that applyToDrone just set
+                    drone._engineControlled = true;
                     if (drone.updateVisuals) drone.updateVisuals(deltaTime);
                     return;
                 }
@@ -675,22 +1443,66 @@ export class IntegratedDiamantsController {
             this.metrics.totalFlightTime = flightMetrics.totalFlightTime;
         }
 
-        // Métriques de scouting
-        if (this.collaborativeScouting) {
+        // Métriques de scouting — primary source: flight engine visitedCells
+        if (this.autonomousFlightEngine) {
+            const visited = this.autonomousFlightEngine.visitedCells?.size || 0;
+            const bounds = this.autonomousFlightEngine.explorationBounds || 60;
+            const cs = this.autonomousFlightEngine.cellSize || 3;
+            const totalCells = Math.pow(2 * bounds / cs, 2);
+            this.metrics.coveragePercentage = Math.min(100, (visited / totalCells) * 100);
+        } else if (this.collaborativeScouting) {
             const scoutingStatus = this.collaborativeScouting.getMissionStatus();
             this.metrics.coveragePercentage = scoutingStatus.progress * 100;
             this.metrics.collaborationEfficiency = scoutingStatus.collaborationMetrics.coordinationIndex;
         }
 
-        // Métriques d'intelligence avancée
+        // Métriques d'intelligence avancée (wahoo uniquement, PAS d'émergence)
         if (this.advancedIntelligence) {
             const advancedState = this.advancedIntelligence.getAdvancedState();
             this.metrics.wahooEffectLevel = advancedState.metrics.wahooEffectiveness;
-            this.metrics.emergenceLevel = advancedState.metrics.emergenceLevel;
+            // emergenceLevel N'EST PLUS lu depuis advancedIntelligence
         }
 
         // Métriques de mission
         this.metrics.missionSuccess = this.calculateMissionSuccess();
+
+        // Métriques DIAMANTS — SEULE source de vérité pour émergence/cohérence
+        // (EI + TE scientifique, Klein & Hoel 2020 / Schreiber 2000)
+        //
+        // NOTE: diamantFormulas.update() (PDE fields) est désactivé du loop principal
+        // pour performance. Mais les swarmMetrics (Vicsek, Reynolds, EI+TE) sont
+        // légers et doivent tourner pour alimenter le panneau Intelligence Collective.
+        if (this.diamantFormulas) {
+            // Mettre à jour _activeAgentCount (normalement fait par update())
+            const drones = this.drones || [];
+            this.diamantFormulas._activeAgentCount = drones.filter(a => {
+                const s = (a.state || 'IDLE').toUpperCase();
+                return s !== 'IDLE' && s !== 'LANDED';
+            }).length;
+
+            // Calcul léger des métriques scientifiques d'essaim
+            // (Vicsek alignment, Reynolds cohesion/separation, EI+TE emergence)
+            try {
+                this.diamantFormulas.updateSwarmMetrics(drones);
+            } catch (e) {
+                if (!this._swarmMetricsErrorLogged) {
+                    console.warn('⚠️ updateSwarmMetrics error (safe):', e.message);
+                    this._swarmMetricsErrorLogged = true;
+                }
+            }
+
+            // Synchroniser emergence_factor et coherence_level depuis swarmMetrics
+            this.diamantFormulas.emergence_factor = this.diamantFormulas._activeAgentCount > 0
+                ? this.diamantFormulas.swarmMetrics.emergence : 0;
+            this.diamantFormulas.coherence_level = this.diamantFormulas._activeAgentCount > 0
+                ? this.diamantFormulas.swarmMetrics.alignment : 0;
+
+            this.metrics.diamantsValue = this.diamantFormulas.diamants_value || 0;
+            this.metrics.emergenceLevel = this.diamantFormulas.emergence_factor ?? 0;
+            this.metrics.coherenceLevel = this.diamantFormulas.coherence_level ?? 0;
+        } else {
+            this.metrics.emergenceLevel = 0;
+        }
     }
 
     /**
@@ -724,6 +1536,102 @@ export class IntegratedDiamantsController {
     }
 
     /**
+     * Emit custom events consumed by OrchestrationConsole tabs.
+     * Called every ~2Hz from update() alongside updateMetrics().
+     * THROTTLED: drone-positions uses change detection to avoid log saturation.
+     */
+    _emitOrchestrationEvents() {
+        if (typeof window === 'undefined') return;
+        const engine = this.autonomousFlightEngine;
+
+        // ── DRONES: position summary for "Drones" tab ──
+        // Only emit when a drone phase changed OR position moved >1m (avoids flooding)
+        if (this.drones.length > 0) {
+            const positions = {};
+            let changed = false;
+            if (!this._lastDronePhases) this._lastDronePhases = {};
+            if (!this._lastDronePositions) this._lastDronePositions = {};
+            this.drones.forEach(drone => {
+                const p = drone.mesh?.position || drone.position || { x: 0, y: 0, z: 0 };
+                const engineState = engine?.getDroneState(drone.id);
+                const phase = engineState?.phase || drone.state || 'UNKNOWN';
+                positions[drone.id] = {
+                    position: { x: p.x, y: p.y, z: p.z },
+                    state: phase,
+                    source: 'engine',   // Tag so backend listener in main.js ignores these
+                };
+                // Detect meaningful changes
+                const prevPhase = this._lastDronePhases[drone.id];
+                const prevPos = this._lastDronePositions[drone.id];
+                if (prevPhase !== phase) {
+                    changed = true;
+                } else if (prevPos) {
+                    const dx = p.x - prevPos.x, dz = p.z - prevPos.z;
+                    if (dx * dx + dz * dz > 1.0) changed = true; // >1m movement
+                } else {
+                    changed = true; // first time
+                }
+                this._lastDronePhases[drone.id] = phase;
+                this._lastDronePositions[drone.id] = { x: p.x, y: p.y, z: p.z };
+            });
+            if (changed) {
+                window.dispatchEvent(new CustomEvent('diamants:drone-positions', { detail: positions }));
+            }
+        }
+
+        // ── SLAM: coverage/visited cells update for "SLAM" tab ──
+        if (engine) {
+            const visited = engine.visitedCells?.size || 0;
+            const prevVisited = this._lastVisitedCount || 0;
+            if (visited !== prevVisited) {
+                this._lastVisitedCount = visited;
+                window.dispatchEvent(new CustomEvent('diamants:slam-map', {
+                    detail: { cells: { length: visited }, coverage: this.metrics.coveragePercentage || 0 }
+                }));
+            }
+        }
+
+        // ── MISSION: mission state for "Mission" tab ──
+        {
+            const flyingCount = this.drones.filter(d => {
+                const st = engine?.getDroneState(d.id);
+                return st?.phase === 'EXPLORE' || st?.phase === 'TAKEOFF' || st?.phase === 'HOVER';
+            }).length;
+            const coverage = this.metrics.coveragePercentage || 0;
+            const success = this.metrics.missionSuccess || 0;
+            const phase = flyingCount === 0 ? 'IDLE' : (this.missionStarted ? 'ACTIVE' : 'STANDBY');
+
+            // Only emit when something changed
+            const mKey = `${phase}:${flyingCount}:${coverage.toFixed(0)}`;
+            if (mKey !== this._lastMissionKey) {
+                this._lastMissionKey = mKey;
+                window.dispatchEvent(new CustomEvent('diamants:mission-status', {
+                    detail: { phase, flyingDrones: flyingCount, total: this.drones.length, coverage: coverage.toFixed(1), success: (success * 100).toFixed(0) }
+                }));
+            }
+        }
+
+        // ── SWARM: intelligence metrics for "Swarm" tab ──
+        if (engine) {
+            const dm = engine.doctrineManager || window.DIAMANTS_DOCTRINE;
+            const doctrine = dm?.currentDoctrine?.name || 'N/A';
+            const coa = dm?.currentCOA?.name || 'N/A';
+            const autonomy = engine.autonomyLevel;
+            const mode = engine.useOrganicMode ? 'Organic' : 'Swarm Intelligence';
+            const emergence = this.metrics.emergenceLevel || 0;
+            const coherence = this.metrics.coherenceLevel || 0;
+
+            const sKey = `${doctrine}:${coa}:${autonomy}:${mode}:${emergence.toFixed(2)}`;
+            if (sKey !== this._lastSwarmKey) {
+                this._lastSwarmKey = sKey;
+                window.dispatchEvent(new CustomEvent('diamants:swarm-update', {
+                    detail: { formation: `${doctrine} / ${coa}`, mode, autonomy, coherence, emergence }
+                }));
+            }
+        }
+    }
+
+    /**
      * Commandes de contrôle
      */
     
@@ -747,15 +1655,15 @@ export class IntegratedDiamantsController {
             }
             
             if (needsTakeoff) {
-                const altitude = 3.0;
+                // Use each drone profile's native cruiseAlt (Crazyflie=3m, X500=10m)
                 this.drones.forEach((drone) => {
-                    this.autonomousFlightEngine.takeoff(drone.id, altitude);
+                    this.autonomousFlightEngine.takeoff(drone.id);
                 });
-                // Après takeoff, passer directement en EXPLORE (pas HOVER)
-                // On attend un court délai puis on lance l'exploration
+                // Wait for drones to reach cruise altitude before exploring
+                // X500 needs ~4s to climb 10m at 3m/s, Crazyflie ~2s for 3m
                 setTimeout(() => {
                     this.autonomousFlightEngine.startExploration();
-                }, 100);
+                }, 4000);
             } else {
                 // Drones déjà en l'air (HOVER/TAKEOFF) → lancer l'exploration
                 this.autonomousFlightEngine.startExploration();
@@ -764,13 +1672,20 @@ export class IntegratedDiamantsController {
         
         this.missionStarted = true;
         log('✅ Mission démarrée manuellement');
+
+        // Notify orchestration console
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('diamants:mission-status', {
+                detail: { phase: 'LAUNCH', status: 'Takeoff initiated', total: this.drones.length }
+            }));
+        }
     }
 
     async takeoffAllDrones() {
         log('🚁 Décollage de tous les drones...');
 
         const takeoffPromises = this.drones.map(async (drone, index) => {
-            // Drones fly at ~0.5m — no elevated platform
+            // Gazebo drones fly at ~0.5m — no elevated platform
             const altitude = 0.5 + (index * 0.1); // Slight stagger
 
             if (this.flightBehaviors) {
@@ -805,29 +1720,53 @@ export class IntegratedDiamantsController {
     emergencyStop() {
         log('🚨 ARRÊT D\'URGENCE');
 
-        this.isRunning = false;
+        // Keep isRunning = true so the physics loop continues to animate the landing
+        // S-curve. The drones need active physics ticks to descend smoothly.
+        this.isRunning = true;
         this.missionStarted = false; // Permettre un re-Launch
 
-        // NOUVEAU: Synchroniser avec AutonomousFlightEngine
+        // Notify orchestration console
+        if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('diamants:mission-status', {
+                detail: { phase: 'EMERGENCY_STOP', status: 'All drones landing' }
+            }));
+        }
+
+        // Synchroniser avec AutonomousFlightEngine
         this.drones.forEach((drone, idx) => {
             const droneId = drone.id || `crazyflie_${String(idx + 1).padStart(2, '0')}`;
             
-            // Mettre l'engine en mode LAND
+            // Mettre l'engine en mode LAND — the physics loop drives the S-curve descent
             if (this.autonomousFlightEngine) {
                 this.autonomousFlightEngine.land(droneId);
             }
-            
-            // Correction altitude d'urgence avec physique réaliste
-            if (this.realisticFlightDynamics) {
-                this.realisticFlightDynamics.emergencyAltitudeCorrection(droneId);
-            }
-            
-            if (this.flightBehaviors) {
-                this.flightBehaviors.emergencyLanding(droneId);
-            } else if (drone.emergencyStop) {
-                drone.emergencyStop();
-            }
+            // Note: realisticFlightDynamics and flightBehaviors operate on separate
+            // state Maps that don't drive rendering. Removed to prevent confusion.
         });
+
+        // Clean per-drone stale state so re-Launch starts fresh
+        // (visitedCells + pheromones preserved — drones don't re-explore known areas)
+        if (this.autonomousFlightEngine) {
+            const engine = this.autonomousFlightEngine;
+            // Clear formation drift, waypoint caches, per-drone memory
+            engine._formationCenter.set(0, 0, 0);
+            engine._formationPhase = 0;
+            engine._formationAdvanceTimer = 0;
+            engine._formationDirty = true;
+            engine._doctrineWaypoints.clear();
+            engine._pathWaypoints.clear();
+            for (const [id, state] of engine.drones) {
+                state._recentCells = [];
+                state._recentCellSet.clear();
+                state._stallTimer = 0;
+                state._escaleCount = 0;
+                state._oscillationCount = 0;
+                state._oscillationTimer = 0;
+                state._lastVelSign = null;
+                state._wpInitialDist = null;
+                // Territory preserved (don't force re-dispersion on resume)
+            }
+        }
 
         // Arrêt des systèmes
         if (this.collaborativeScouting) {
@@ -1001,7 +1940,18 @@ export class IntegratedDiamantsController {
 
                 case 'rosController':
                 case 'rosIntegrator':
-                    // Network bridge disabled — simulation-only build
+                    if (enabled && !this.rosController) {
+                        this.rosController = new CrazyflieRosController({
+                            isActive: true,
+                            wsUrl: this.config.rosWsUrl || 'ws://localhost:8765',
+                            maxReconnectDelayMs: this.config.rosMaxReconnectDelayMs || 30000
+                        });
+                        if (this.rosController.isActive !== undefined) this.rosController.isActive = true;
+                    } else if (!enabled && this.rosController) {
+                        if (this.rosController.isActive !== undefined) this.rosController.isActive = false;
+                        if (this.rosController.disconnect) this.rosController.disconnect();
+                        this.rosController = null;
+                    }
                     break;
 
                 case 'visualEnhancements':

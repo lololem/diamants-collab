@@ -7,6 +7,8 @@
 // Mode silencieux global - utilisation de window pour éviter les conflits
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
+import { makeDraggable } from '../ui/panel-utils.js';
+
 export class DiamantLogger {
     static instance = null;
 
@@ -85,7 +87,7 @@ export class DiamantLogger {
             border-radius: 5px;
             font-family: monospace;
             font-size: 12px;
-            z-index: 10000;
+            z-index: 5000;
             min-width: 200px;
             display: none; /* hidden by default */
         `;
@@ -131,6 +133,10 @@ export class DiamantLogger {
         logControl.appendChild(this.counters);
 
         document.body.appendChild(logControl);
+
+        // ── Drag support ──
+        makeDraggable(logControl, title);
+
         this.updateCounters();
     }
 
