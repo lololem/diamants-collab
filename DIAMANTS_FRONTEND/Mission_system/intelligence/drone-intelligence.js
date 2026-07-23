@@ -11,7 +11,7 @@
  * ========================================
  * Le pont vers les modèles de langage locaux (construction de prompt,
  * analyse de décision, mémoire par drone, garde-fous d'action) vit dans le
- * dépôt privé.
+ * private repository.
  *
  * Ce stub expose la même surface, désactivée. Il est importé statiquement
  * par tools/integrated-controller.js.

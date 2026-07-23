@@ -10,10 +10,10 @@
  * Recherche optimisée — Stub public
  * ===================================
  * L'implémentation réelle (partitionnement, pivots, découpage par blocs)
- * vit dans le dépôt privé.
+ * is not part of this distribution.
  *
  * `computeOptimalParams` est conservée à l'identique : c'est une formule
- * fermée, dérivée d'un résultat publié, sans valeur propriétaire. Elle est
+ * fermée, based on a published result. Elle est
  * importée statiquement par ui/optimal-search-ui.js.
  */
 

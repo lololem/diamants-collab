@@ -9,8 +9,7 @@
 /**
  * ScenarioEngine — Stub public
  * ==============================
- * Le catalogue de scénarios PoC et leur logique d'exécution (déclenchement,
- * vérification de preuve, observation de l'essaim) vivent dans le dépôt privé.
+ * The concrete implementation is not part of this distribution.
  *
  * Ce stub expose la même surface avec un catalogue VIDE. Il est importé
  * statiquement par ui/panel-controller.js : sans lui, la compilation échoue.
