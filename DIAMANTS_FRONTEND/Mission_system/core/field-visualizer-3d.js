@@ -1,7 +1,7 @@
 /**
  * DIAMANTS 3D Field Visualizer
  * ============================
- * Visualisation volumétrique des champs ψ, ∇ψ et harmoniques
+ * Visualisation volumétrique des champs de l'essaim
  * Utilise InstancedMesh pour performance optimale
  */
 
@@ -425,7 +425,7 @@ function computeHonestI(H, alpha) {
 }
 
 /**
- * Trend arrow from rate of change (H7 = dI/dt)
+ * Trend arrow from rate of change
  */
 function trendArrow(dI) {
     if (dI > 1)    return { arrow: '↑', color: '#00ff88', label: 'croissant' };

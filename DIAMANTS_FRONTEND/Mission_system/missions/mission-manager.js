@@ -699,10 +699,10 @@ export class MissionManager {
         drones.forEach(drone => {
             const localGradient = this.getMissionGradient(missionField, drone.position);
 
-            // Force d'exploration (φ)
+            // Force d'exploration
             const explorationForce = localGradient.phi.multiplyScalar(0.3);
 
-            // Force de cohésion/répulsion (σ)
+            // Force de cohésion/répulsion
             const cohesionForce = this.calculateCohesionForce(drone, drones);
 
             // Application combinée
@@ -720,7 +720,7 @@ export class MissionManager {
             sigma: new Map() // Champ de répulsion/exploration
         };
 
-        // Objectifs attirent (φ) — supporte liste ou unique
+        // Objectifs attirent — supporte liste ou unique
         if (Array.isArray(mission.objectives)) {
             mission.objectives.forEach(objective => {
                 if (!objective || !objective.position) return;

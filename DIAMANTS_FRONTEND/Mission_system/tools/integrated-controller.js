@@ -275,7 +275,7 @@ export class IntegratedDiamantsController {
                 });
                 this.fieldVisualizer.setVisible(false);  // Désactivé cosmétique
                 
-                // ✨ ESSAIM FLUIDE - Particules qui suivent ∇ψ (désactivé cosmétique)
+                // ✨ ESSAIM FLUIDE - Particules de flux (désactivé cosmétique)
                 // Pour réactiver: window.diamantsSystem?.integratedController?.flowParticles?.setVisible(true)
                 this.flowParticles = new FlowParticles(this.scene, this.diamantFormulas, {
                     particleCount: 3000,

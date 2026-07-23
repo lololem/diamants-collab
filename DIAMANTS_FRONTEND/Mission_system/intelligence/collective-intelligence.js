@@ -478,7 +478,7 @@ export class CollectiveIntelligence {
             this.behaviorMemory.socialInteractions.push(memoryEntry);
         }
 
-        // Application de l'harmonique d'apprentissage DIAMANTS
+        // Application du facteur d'apprentissage collectif
         const learningField = this.diamantFormulas.calculateHarmonique(9, { // H9 - Apprentissage
             situation,
             decision,
@@ -560,7 +560,7 @@ export class CollectiveIntelligence {
             this.collectiveState.leadershipStructure.set(agent.id, currentInfluence);
         }
 
-        // Application de l'harmonique de leadership DIAMANTS
+        // Application du facteur de leadership collectif
         const leadershipField = this.diamantFormulas.calculateHarmonique(11, { // H11 - Leadership
             agents,
             leadershipStructure: this.collectiveState.leadershipStructure,
