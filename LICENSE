@@ -133,10 +133,6 @@ Ce dépôt embarque des logiciels tiers qui restent sous leur propre licence.
 Les termes ci-dessus ne s'y appliquent **pas** :
 
 - `DIAMANTS_FRONTEND/Mission_system/third-party/ez-tree/` — EZ-Tree
-- `DIAMANTS_BACKEND/slam_collaboratif/ros2_ws/src/crazyswarm2/` — Crazyswarm2
-  (TU Berlin / Bitcraze)
-- `DIAMANTS_BACKEND/slam_collaboratif/ros2_ws/src/crazyflie_ros2_multiranger/`
-  — Bitcraze
 - dépendances installées via `npm` — voir la licence de chaque paquet
 
 Se reporter au fichier LICENSE de chaque composant pour ses conditions.
