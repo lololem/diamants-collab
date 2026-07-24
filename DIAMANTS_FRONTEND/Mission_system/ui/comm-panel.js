@@ -459,10 +459,10 @@ export class CommPanel {
         ctx.font = '7px monospace';
         ctx.fillStyle = '#445566';
         ctx.textAlign = 'right';
-        ctx.fillText('RÉSEAU', W - pad, 10);
+        ctx.fillText('NETWORK', W - pad, 10);
         ctx.font = '5px monospace';
         ctx.fillStyle = '#334455';
-        ctx.fillText('clic-droit: LOG', W - pad, 18);
+        ctx.fillText('right-click: LOG', W - pad, 18);
     }
 
     // =========================================================================
@@ -484,7 +484,7 @@ export class CommPanel {
         ctx.font = '7px monospace';
         ctx.fillStyle = '#334455';
         ctx.textAlign = 'right';
-        ctx.fillText('clic-droit: RÉSEAU', W - pad, pad + 8);
+        ctx.fillText('right-click: NETWORK', W - pad, pad + 8);
 
         // Divider
         ctx.strokeStyle = 'rgba(0, 255, 208, 0.2)';
@@ -500,7 +500,7 @@ export class CommPanel {
         ctx.textAlign = 'left';
         ctx.fillText('TYPE', pad, y + 6);
         ctx.fillText('FROM → TO', pad + 50, y + 6);
-        ctx.fillText('DÉTAIL', pad + 150, y + 6);
+        ctx.fillText('DETAIL', pad + 150, y + 6);
         ctx.fillText('AGE', W - pad - 20, y + 6);
         y += lineH;
 

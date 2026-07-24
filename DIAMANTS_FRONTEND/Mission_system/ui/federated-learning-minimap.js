@@ -369,7 +369,7 @@ export class FederatedLearningMinimap {
         ctx.fillStyle = '#d4d4d8';
         ctx.font = 'bold 10px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('Convergence Fédérée', w / 2, 14);
+        ctx.fillText('Federated Convergence', w / 2, 14);
 
         // Axes
         ctx.strokeStyle = '#333';
@@ -399,7 +399,7 @@ export class FederatedLearningMinimap {
             ctx.fillStyle = '#555';
             ctx.font = '10px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText('En attente de données...', w / 2, h / 2);
+            ctx.fillText('Waiting for data...', w / 2, h / 2);
             ctx.fillText('▸ clic: heatmap', w / 2, h - 8);
             return;
         }
