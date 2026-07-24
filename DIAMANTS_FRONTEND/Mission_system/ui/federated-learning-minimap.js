@@ -352,7 +352,7 @@ export class FederatedLearningMinimap {
         ctx.fillStyle = '#555';
         ctx.font = '8px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('▸ clic: convergence', w / 2, h - 4);
+        ctx.fillText('▸ click: convergence', w / 2, h - 4);
     }
 
     // ── Convergence Mode ──
@@ -400,7 +400,7 @@ export class FederatedLearningMinimap {
             ctx.font = '10px monospace';
             ctx.textAlign = 'center';
             ctx.fillText('Waiting for data...', w / 2, h / 2);
-            ctx.fillText('▸ clic: heatmap', w / 2, h - 8);
+            ctx.fillText('▸ click: heatmap', w / 2, h - 8);
             return;
         }
 
@@ -462,7 +462,7 @@ export class FederatedLearningMinimap {
         ctx.fillStyle = '#555';
         ctx.font = '8px monospace';
         ctx.textAlign = 'center';
-        ctx.fillText('▸ clic: heatmap', w / 2, h - 4);
+        ctx.fillText('▸ click: heatmap', w / 2, h - 4);
     }
 
     // =========================================================================
