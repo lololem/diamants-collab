@@ -10,8 +10,8 @@
  * DIAMANTS - Exploration Minimap (Stigmergy Pheromone Field)
  * 
  * Vraie visualisation stigmergique avec :
- *   - Grille de phéromones persistante (dépôt + diffusion + évaporation)
- *   - Effet glow radial comme des vrais phéromones de fourmis
+ *   - Grid de pheromones persistante (dépôt + diffusion + évaporation)
+ *   - Effet glow radial comme des vrais pheromones de fourmis
  *   - Dégradé vert→jaune→blanc selon l'intensité
  *   - Positions des drones avec heading + ID
  *   - Waypoints cibles
