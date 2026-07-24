@@ -15,9 +15,9 @@
  */
 
 const CAS_LABELS = {
-    1: { short: 'CAS-1', title: 'Backend ROS2', color: '#22c55e', hint: 'Positions Gazebo via WebSocket' },
-    2: { short: 'CAS-2', title: 'Autonome', color: '#38bdf8', hint: 'Moteur PID local (démo standalone)' },
-    3: { short: 'CAS-3', title: 'Minimal', color: '#f97316', hint: 'Fallback sans moteur PID' },
+    1: { short: 'CAS-1', title: 'Backend ROS2', color: '#22c55e', hint: 'Gazebo positions via WebSocket' },
+    2: { short: 'CAS-2', title: 'Autonomous', color: '#38bdf8', hint: 'Local PID engine (standalone demo)' },
+    3: { short: 'CAS-3', title: 'Minimal', color: '#f97316', hint: 'Fallback without PID engine' },
 };
 
 export class CasController {

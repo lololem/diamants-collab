@@ -185,7 +185,7 @@ export class FollowDroneFab {
         const fab = document.createElement('button');
         fab.id = 'follow-drone-fab';
         fab.innerHTML = '🎯';
-        fab.title = 'Suivre un drone';
+        fab.title = 'Follow a drone';
         document.body.appendChild(fab);
         this._els.fab = fab;
 
@@ -193,11 +193,11 @@ export class FollowDroneFab {
         const hud = document.createElement('div');
         hud.id = 'follow-drone-hud';
         hud.innerHTML = `
-            <div class="follow-title">🎯 <span>Suivi drone</span></div>
+            <div class="follow-title">🎯 <span>Following drone</span></div>
             <div class="follow-drone-id" id="follow-hud-drone-id">—</div>
             <div class="follow-actions">
-                <button class="follow-btn" id="follow-btn-next">Suivant ▶</button>
-                <button class="follow-btn exit" id="follow-btn-exit">✕ Quitter</button>
+                <button class="follow-btn" id="follow-btn-next">Next ▶</button>
+                <button class="follow-btn exit" id="follow-btn-exit">✕ Exit</button>
             </div>
         `;
         document.body.appendChild(hud);

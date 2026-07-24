@@ -604,7 +604,7 @@
             max-height: 40vh;
             overflow: hidden;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 768px) and (pointer: coarse) {
             #llm-decision-toasts {
                 top: 46px;
                 left: 6px;
@@ -648,7 +648,7 @@
         #beacon-placement-hud .bph-cancel:hover {
             background: rgba(239, 68, 68, 0.35);
         }
-        @media (max-width: 768px) {
+        @media (max-width: 768px) and (pointer: coarse) {
             #beacon-placement-hud {
                 top: auto; bottom: 80px; left: 10px; right: 10px;
                 transform: none; padding: 16px 18px;
@@ -892,7 +892,7 @@
         #desktop-maps-fab:active {
             transform: scale(0.97);
         }
-        @media (max-width: 768px), (max-height: 500px) and (max-width: 960px) {
+        @media (max-width: 768px) and (pointer: coarse), (max-height: 500px) and (max-width: 960px) and (pointer: coarse) {
             #desktop-maps-fab { display: none !important; }
         }
 
@@ -1111,7 +1111,7 @@
             padding: 16px 12px 24px;
             overflow-y: auto;
         }
-        @media (max-width: 768px) {
+        @media (max-width: 768px) and (pointer: coarse) {
             #minimap-picker-sheet {
                 max-width: 100%;
                 padding-bottom: calc(var(--mobile-bar, 62px) + 12px);
@@ -1367,7 +1367,7 @@
            Also covers landscape phones (short + narrow screens)
            Full ergonomic redesign for smartphone use
            ══════════════════════════════════════════════════════════════ */
-        @media (max-width: 768px), (max-height: 500px) and (max-width: 960px) {
+        @media (max-width: 768px) and (pointer: coarse), (max-height: 500px) and (max-width: 960px) and (pointer: coarse) {
             /* ── Variables ── */
             :root {
                 --sidebar-width: 88vw !important;
@@ -1678,7 +1678,7 @@
         /* ══════════════════════════════════════════════════════════════
            LANDSCAPE PHONE (short screens)
            ══════════════════════════════════════════════════════════════ */
-        @media (max-height: 500px) and (max-width: 960px) {
+        @media (max-height: 500px) and (max-width: 960px) and (pointer: coarse) {
             :root { --mobile-bar: 0px !important; }
             #ros_interface {
                 width: 60vw !important;
@@ -2305,13 +2305,13 @@
     </div>
 
     <!-- ═══ Desktop "Cartes" floating button ═══ -->
-    <button id="desktop-maps-fab" onclick="minimapManager.openPicker()" title="Voir les cartes">🗺 Cartes</button>
+    <button id="desktop-maps-fab" onclick="minimapManager.openPicker()" title="View maps">🗺 Maps</button>
 
     <!-- ═══ Minimap Picker (bottom sheet — all platforms) ═══ -->
     <div id="minimap-picker-overlay" style="display:none;" onclick="minimapManager.closePicker()">
         <div id="minimap-picker-sheet" onclick="event.stopPropagation()">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px 12px;">
-                <span style="font-size:15px;font-weight:600;color:#0af;flex:1;text-align:center;">Cartes &amp; Minimaps</span>
+                <span style="font-size:15px;font-weight:600;color:#0af;flex:1;text-align:center;">Maps &amp; Minimaps</span>
                 <button onclick="minimapManager.closePicker()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff6b6b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Fermer">✕</button>
             </div>
             <div class="minimap-pick-item" onclick="minimapManager.openViewer('sitac-map')">🎯 SITAC — Detection</div>
@@ -2513,7 +2513,7 @@
     <!-- ═══ MOBILE INIT: toolbar, auto-hide labels, toggle helpers ═══ -->
     <script>
     (function() {
-        const isMobile = () => window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960);
+        const isMobile = () => window.matchMedia('(pointer: coarse)').matches && (window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960));
 
         // Show/hide toolbar on resize
         function updateToolbar() {
@@ -2616,7 +2616,7 @@
             const canvas = document.getElementById('canvas_container');
             const button = document.getElementById('toggle_panel');
             const backdrop = document.getElementById('mobile-sidebar-backdrop');
-            const mobile = window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960);
+            const mobile = window.matchMedia('(pointer: coarse)').matches && (window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960));
 
             if (!panel || !canvas || !button) return;
 

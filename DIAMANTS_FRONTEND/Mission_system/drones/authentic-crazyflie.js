@@ -506,6 +506,14 @@ export class AuthenticCrazyflie {
     updateStatusText(status) {
         if (!this._labelSprite || !this._labelCanvas) return;
 
+        // Declutter: hide the status card while parked on the pad; show once airborne.
+        // Drones cluster on the helipad, so their labels would otherwise overlap.
+        {
+            const _y = this.mesh?.position?.y;
+            const _air = (_y === undefined) ? true : (_y > 1.0 || this.flightState?.isFlying === true);
+            this._labelSprite.visible = _air && !window._mobileLabelsHidden;
+        }
+
         const canvas = this._labelCanvas;
         const ctx = canvas.getContext('2d');
         const W = canvas.width, H = canvas.height;
