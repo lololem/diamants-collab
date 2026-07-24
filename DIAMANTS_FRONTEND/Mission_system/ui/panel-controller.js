@@ -283,7 +283,7 @@ export class PanelController {
                 } else {
                     bs.enterPlacementMode();
                     document.getElementById('beacon-placement-hud')?.classList.add('active');
-                    // Fermer le panneau LLM pour permettre l'interaction avec la scène 3D
+                    // Close le panneau LLM pour permettre l'interaction avec la scène 3D
                     document.getElementById('llm-chat-panel')?.style.setProperty('display', 'none');
                 }
             });
@@ -362,7 +362,7 @@ export class PanelController {
         // Populate dropdown from JSON config — grouped by category (M2MC champs)
         const CATEGORY_LABELS = {
             informationnel: '── Champ Informationnel ──',
-            cognitif:       '── Champ Cognitif ──',
+            cognitif:       '── Champ Cognitive ──',
             physique:       '── Champ Physique ──',
             transverse:     '── Transverse ──',
         };
@@ -2156,7 +2156,7 @@ export class PanelController {
                         `Diagnostic système: batterie —%, moteurs OK, liaison radio — dBm`,
                         `Mode standby — doctrine «${doctrine}» / COA «${coa}» chargées, prêt au takeoff`,
                         `Standby ordre de mission — algorithme Voronoï pré-calculé, ${drones.length} drones dans l'essaim`,
-                        `Check pre-flight: température moteurs nominale, estimation vent —m/s`,
+                        `Pre-flight check: nominal motor temperature, wind estimate —m/s`,
                     ];
                     if (activeScen) {
                         idleVariants.push(`Scénario «${activeScen.name}» actif — configuration en cours, attente synchronisation essaim`);
@@ -2178,7 +2178,7 @@ export class PanelController {
                     `Au sol pos [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — moteurs arrêtés, télémétrie active`,
                     `Stationnaire on ground — vérification liens essaim, latency —ms`,
                     `Slot base [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — prêt takeoff, batt —%`,
-                    `Position initiale — GPS 3D fix, HDOP —, compression données ok`,
+                    `Initial position — 3D GPS fix, HDOP —, data compression ok`,
                 ];
                 actionText = idleActions[Math.floor(Math.random() * idleActions.length)];
             } else if (alerts.critical?.length > 0) {
@@ -2221,7 +2221,7 @@ export class PanelController {
             else if (phase === 'LAND') confidence = 0.70;
             else if (phase === 'IDLE') confidence = 0.92;   // pre-flight = high confidence
             else if (phase === 'LANDED') confidence = 0.85;
-            // Confiance déterministe (jitter aléatoire retiré — mode démo/offline)
+            // Confidence déterministe (jitter aléatoire retiré — mode démo/offline)
 
             // Determine direction from actual heading, not position
             const direction = compass;
@@ -2315,7 +2315,7 @@ export class PanelController {
                 ];
                 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
                 const reasoning = `📡 ${pick(perceptions)} → 🧠 ${pick(decisions)} → ⚡ ${pick(actionDescs)}`;
-                // Confiance déterministe neutre (pas de Math.random) — mode démo/offline
+                // Confidence déterministe neutre (pas de Math.random) — mode démo/offline
                 const confidence = 0.65;
                 result = { phase, feedAction, direction, reasoning, confidence };
             }
@@ -2500,7 +2500,7 @@ export class PanelController {
                     <div style="color: #ff0; font-size: ${fs}px; font-weight: bold; margin-top: 3px;">${d.direction || '—'}</div>
                 </div>
                 <div style="background: rgba(100,100,255,0.1); border-radius: 8px; padding: ${isLandscape ? '6px' : '8px'}; text-align: center; min-width: 0;">
-                    <div style="color: #888; font-size: ${fs - 4}px; text-transform: uppercase;">Confiance</div>
+                    <div style="color: #888; font-size: ${fs - 4}px; text-transform: uppercase;">Confidence</div>
                     <div style="color: ${confColor}; font-size: ${fs}px; font-weight: bold; margin-top: 3px;">${conf}%</div>
                     <div style="background: #1a1a2e; height: 4px; border-radius: 2px; margin-top: 3px;">
                         <div style="width: ${conf}%; background: ${confColor}; height: 4px; border-radius: 2px;"></div>
@@ -2508,20 +2508,20 @@ export class PanelController {
                 </div>
             </div>
             <div style="margin-bottom: 10px;">
-                <div style="color: #88aacc; font-size: ${fs - 3}px; text-transform: uppercase; margin-bottom: 3px;">🧠 Raisonnement complet</div>
-                <div style="background: rgba(0,0,0,0.4); border: 1px solid #333; border-radius: 8px; padding: 10px; color: #ddd; font-size: ${fs - 1}px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${d.reasoning || 'Pas de raisonnement disponible.'}</div>
+                <div style="color: #88aacc; font-size: ${fs - 3}px; text-transform: uppercase; margin-bottom: 3px;">🧠 Full reasoning</div>
+                <div style="background: rgba(0,0,0,0.4); border: 1px solid #333; border-radius: 8px; padding: 10px; color: #ddd; font-size: ${fs - 1}px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; overflow-wrap: break-word;">${d.reasoning || 'No reasoning available.'}</div>
             </div>
             <div style="display: flex; gap: 6px; color: #667; flex-wrap: wrap; margin-bottom: 8px;">
-                <span style="font-size: ${fs - 4}px;">Modèle: ${d.model || 'mistral-nemo'}</span>
+                <span style="font-size: ${fs - 4}px;">Model: ${d.model || 'mistral-nemo'}</span>
                 <span style="font-size: ${fs - 4}px;">·</span>
-                <span style="font-size: ${fs - 4}px;">${d.droneId?.includes('x500') ? 'Cognitif X500' : d.droneId?.includes('s500') ? 'Cognitif S500' : 'Réactif Crazyflie'}</span>
+                <span style="font-size: ${fs - 4}px;">${d.droneId?.includes('x500') ? 'Cognitive X500' : d.droneId?.includes('s500') ? 'Cognitive S500' : 'Reactive Crazyflie'}</span>
             </div>
             <button style="
                 width: 100%; padding: 11px;
                 background: linear-gradient(45deg, #2a3a5a, #3a5a8a); border: none; border-radius: 8px;
                 color: #fff; font-size: ${fs + 1}px; cursor: pointer; touch-action: manipulation;
                 -webkit-tap-highlight-color: rgba(100,200,255,0.2);
-            " onclick="this.closest('#llm-decision-overlay').remove()">✕ Fermer</button>
+            " onclick="this.closest('#llm-decision-overlay').remove()">✕ Close</button>
         `;
 
         overlay.appendChild(card);
