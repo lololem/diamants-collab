@@ -929,7 +929,7 @@ export class PanelController {
         
         const system = window.diamantsSystem;
         if (!system?.integratedController?.autonomousFlightEngine) {
-            this.showFeedback('Système non prêt pour le décollage', 'warning');
+            this.showFeedback('Système non prêt pour le takeoff', 'warning');
             return false;
         }
         
@@ -964,16 +964,16 @@ export class PanelController {
         
         const system = window.diamantsSystem;
         if (!system?.integratedController?.autonomousFlightEngine) {
-            this.showFeedback('Système non prêt pour l\'atterrissage', 'warning');
+            this.showFeedback('Système non prêt pour l\'landing', 'warning');
             return false;
         }
         
         const controller = system.integratedController;
         const engine = controller.autonomousFlightEngine;
         
-        // S'assurer que le controller tourne pour que l'atterrissage s'anime
+        // S'assurer que le controller tourne pour que l'landing s'anime
         controller.isRunning = true;
-        // Permettre un re-Launch après atterrissage
+        // Permettre un re-Launch après landing
         controller.missionStarted = false;
         
         let count = 0;
@@ -2135,7 +2135,7 @@ export class PanelController {
                     break;
                 }
                 case 'LAND':
-                    decisionText = `Atterrissage en cours — alt ${alt}m, descente contrôlée`;
+                    decisionText = `Atterrissage en cours — alt ${alt}m, descent contrôlée`;
                     break;
                 case 'LANDED':
                     decisionText = `Au sol — moteurs coupés, ${waypointsVisited} waypoints complétés`;
@@ -2154,9 +2154,9 @@ export class PanelController {
                         `Pré-vol: calibration IMU + magnétomètre, attente GPS fix (— sat)`,
                         `Initialisation capteurs ToF + barométrique, auto-check ESC —/4`,
                         `Diagnostic système: batterie —%, moteurs OK, liaison radio — dBm`,
-                        `Mode standby — doctrine «${doctrine}» / COA «${coa}» chargées, prêt au décollage`,
-                        `Attente ordre de mission — algorithme Voronoï pré-calculé, ${drones.length} drones dans l'essaim`,
-                        `Check pré-vol: température moteurs nominale, estimation vent —m/s`,
+                        `Mode standby — doctrine «${doctrine}» / COA «${coa}» chargées, prêt au takeoff`,
+                        `Standby ordre de mission — algorithme Voronoï pré-calculé, ${drones.length} drones dans l'essaim`,
+                        `Check pre-flight: température moteurs nominale, estimation vent —m/s`,
                     ];
                     if (activeScen) {
                         idleVariants.push(`Scénario «${activeScen.name}» actif — configuration en cours, attente synchronisation essaim`);
@@ -2176,8 +2176,8 @@ export class PanelController {
             if (phase === 'IDLE' || phase === 'LANDED') {
                 const idleActions = [
                     `Au sol pos [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — moteurs arrêtés, télémétrie active`,
-                    `Stationnaire au sol — vérification liens essaim, latence —ms`,
-                    `Slot base [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — prêt décollage, batt —%`,
+                    `Stationnaire on ground — vérification liens essaim, latency —ms`,
+                    `Slot base [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — prêt takeoff, batt —%`,
                     `Position initiale — GPS 3D fix, HDOP —, compression données ok`,
                 ];
                 actionText = idleActions[Math.floor(Math.random() * idleActions.length)];
@@ -2196,11 +2196,11 @@ export class PanelController {
 
             // Determine actual action keyword for feed display
             const PHASE_ACTIONS = {
-                IDLE: ['pré-vol', 'calibration', 'diagnostic', 'standby', 'init capteurs'],
-                LANDED: ['au sol', 'post-mission', 'bilan'],
-                TAKEOFF: ['montée', 'décollage'],
-                HOVER: ['hover', 'maintien pos'],
-                LAND: ['atterrissage', 'descente'],
+                IDLE: ['pre-flight', 'calibration', 'diagnostics', 'standby', 'sensor init'],
+                LANDED: ['on ground', 'post-mission', 'report'],
+                TAKEOFF: ['climb', 'takeoff'],
+                HOVER: ['hover', 'hold pos'],
+                LAND: ['landing', 'descent'],
             };
             let feedAction;
             if (PHASE_ACTIONS[phase]) {
@@ -2286,20 +2286,20 @@ export class PanelController {
                 const compassDirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
                 const direction = compassDirs[Math.floor(Math.random() * 8)];
                 const fallbackActions = {
-                    IDLE: ['pré-vol', 'calibration', 'diagnostic système', 'init capteurs'],
-                    LANDED: ['au sol', 'post-mission', 'bilan capteurs', 'check moteurs'],
-                    HOVER: ['hover', 'maintien position', 'scan zone'],
-                    TAKEOFF: ['montée progressive', 'décollage', 'vérif altitude'],
-                    EXPLORE: ['exploration', 'scan corridor', 'navigation autonome', 'évitement']
+                    IDLE: ['pre-flight', 'calibration', 'system diagnosticss', 'sensor init'],
+                    LANDED: ['on ground', 'post-mission', 'sensor report', 'motor check'],
+                    HOVER: ['hover', 'hold position', 'area scan'],
+                    TAKEOFF: ['gradual climb', 'takeoff', 'altitude check'],
+                    EXPLORE: ['exploration', 'corridor scan', 'autonomous navigation', 'avoidance']
                 };
                 const actions = fallbackActions[phase] || fallbackActions.LANDED;
                 const feedAction = actions[Math.floor(Math.random() * actions.length)];
                 const perceptions = [
-                    `Alt ${alt}m, capteurs nominaux, vent faible`,
-                    `Scan 360°: aucun obstacle proche, visibilité bonne`,
-                    `Batterie OK, GPS fix 3D, — satellites`,
-                    `Zone libre, distance flotte —m`,
-                    `Télémétrie stable, latence —ms`
+                    `Alt ${alt}m, nominal sensors, light wind`,
+                    `360° scan: no nearby obstacle, good visibility`,
+                    `Battery OK, GPS fix 3D, — satellites`,
+                    `Clear zone, fleet distance —m`,
+                    `Stable telemetry, latency —ms`
                 ];
                 const decisions = [
                     `Maintien position sûre, monitoring continu`,

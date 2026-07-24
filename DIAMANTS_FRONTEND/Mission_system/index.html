@@ -1878,7 +1878,7 @@
             <span class="mtb-icon">▶</span><span class="mtb-label">Mission</span>
         </button>
         <button class="mtb-btn" id="mobile-btn-maps" onclick="_mobileToggleMaps()">
-            <span class="mtb-icon">🗺</span><span class="mtb-label">Cartes</span>
+            <span class="mtb-icon">🗺</span><span class="mtb-label">Maps</span>
         </button>
         <button class="mtb-btn" onclick="if(typeof topView==='function')topView()">
             <span class="mtb-icon">⬆</span><span class="mtb-label">Vue top</span>
@@ -2181,19 +2181,19 @@
             <div class="mission_control">
                 <button class="btn_ros" onclick="resetCamera()">🔄 Reset</button>
                 <button class="btn_ros" onclick="topView()">⬆️ Top View</button>
-                <button class="btn_ros" onclick="zoomToSwarm()">🎯 Vue All</button>
+                <button class="btn_ros" onclick="zoomToSwarm()">🎯 View All</button>
                 <button class="btn_ros" onclick="toggleFollowMode()">👁 Follow</button>
             </div>
             <div style="margin-top: 8px;">
                 <button class="btn_ros" onclick="togglePanel()" style="width: 100%; background: linear-gradient(45deg, #6366f1, #8b5cf6);">
-                    🖼️ Plein Écran
+                    🖼️ Fullscreen
                 </button>
             </div>
             <div class="mission_control" style="margin-top: 6px;">
                 <button class="btn_ros" onclick="toggleMinimap()">🗺️ Minimap</button>
 
                 <button class="btn_ros" onclick="toggleDroneLabels()" id="btn-toggle-labels" style="background: linear-gradient(45deg, #2a4a6a, #3a6a9a);" title="Afficher/masquer les labels 3D">🏷️ Labels</button>
-                <button class="btn_ros" onclick="toggleCommWaves()" id="btn-toggle-comm" style="background: linear-gradient(45deg, #005566, #00aabb);" title="Afficher/masquer les ondes de communication 3D">📡 Ondes</button>
+                <button class="btn_ros" onclick="toggleCommWaves()" id="btn-toggle-comm" style="background: linear-gradient(45deg, #005566, #00aabb);" title="Afficher/masquer les ondes de communication 3D">📡 Waves</button>
             </div>
         </div>
     </div>
@@ -2223,7 +2223,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         SECTION 6: BENCHMARK — Recherche (collapsible)
+         SECTION 6: BENCHMARK — Search (collapsible)
          ═══════════════════════════════════════════════════════════════════ -->
     <div class="ros_panel">
         <h3 onclick="toggleSection('benchmark-content')" style="cursor: pointer;">🧪 Benchmark ▶</h3>
@@ -2375,7 +2375,7 @@
     </script>
     
     <!-- 🚨 DIAGNOSTIC RENDU ET MESHES URGENCE -->
-    <script src="./tools/development/diagnostic-rendu-urgence.js"></script>
+    <script src="./tools/development/diagnostics-rendu-urgence.js"></script>
 
     <!-- Fix scripts moved under module entry if needed (Vite) -->
     
@@ -2389,7 +2389,7 @@
     <script src="./tools/diamants-initializer.js"></script>
     
     <!-- Diagnostics and repair -->
-    <script src="./scripts/diagnostic-repair.js"></script>
+    <script src="./scripts/diagnostics-repair.js"></script>
 
     <!-- Main entry point for Vite -->
     <!-- Re-enabled main.js for proper GitHub functioning -->
