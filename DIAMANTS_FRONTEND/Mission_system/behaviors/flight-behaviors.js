@@ -114,7 +114,7 @@ export class FlightBehaviors {
     }
 
     /**
-     * Séquence de décollage réaliste
+     * Séquence de takeoff réaliste
      */
     async performTakeoff(droneId, targetAltitude = 2.0) {
         const physics = this.dronePhysics.get(droneId);
@@ -125,16 +125,16 @@ export class FlightBehaviors {
 
         physics.flightState = this.flightStates.TAKEOFF;
         if (!window.SILENT_MODE) {
-            console.log(`🚁 Drone ${droneId}: Démarrage séquence de décollage...`);
+            console.log(`🚁 Drone ${droneId}: Démarrage séquence de takeoff...`);
         }
 
-        // Vérifications pré-vol
+        // Vérifications pre-flight
         if (!this.preFlightChecks(droneId)) {
-            console.error(`❌ Drone ${droneId}: Échec des vérifications pré-vol`);
+            console.error(`❌ Drone ${droneId}: Échec des vérifications pre-flight`);
             return false;
         }
 
-        // Séquence de décollage progressive
+        // Séquence de takeoff progressive
         // Cibler un plafond sécurisé et éviter une cible en dessous du min configuré
         const maxAllowed = this.config.altitudeRange.max;
         const minOperational = Math.max(0.5, this.config.altitudeRange.min * 0.7);
@@ -171,7 +171,7 @@ export class FlightBehaviors {
     }
 
     /**
-     * Vérifications pré-vol Crazyflie
+     * Vérifications pre-flight Crazyflie
      */
     preFlightChecks(droneId) {
         const physics = this.dronePhysics.get(droneId);
@@ -190,7 +190,7 @@ export class FlightBehaviors {
 
         // Vérification espace libre
         if (!this.checkTakeoffClearance(droneId)) {
-            console.error(`🚧 Drone ${droneId}: Zone de décollage obstruée`);
+            console.error(`🚧 Drone ${droneId}: Zone de takeoff obstruée`);
             return false;
         }
 
@@ -198,7 +198,7 @@ export class FlightBehaviors {
     }
 
     /**
-     * Vérification de l'espace libre pour décollage
+     * Vérification de l'espace libre pour takeoff
      */
     checkTakeoffClearance(droneId) {
         const physics = this.dronePhysics.get(droneId);
@@ -276,7 +276,7 @@ export class FlightBehaviors {
         }
 
         // Vérification altitude dans les limites
-        // Pendant le décollage/atterrissage, autoriser une altitude minimale plus basse pour éviter des faux positifs
+        // Pendant le takeoff/landing, autoriser une altitude minimale plus basse pour éviter des faux positifs
         const isTransitional = physics.flightState === this.flightStates.TAKEOFF || physics.flightState === this.flightStates.LANDING;
         const minAllowed = isTransitional ? 0.0 : this.config.altitudeRange.min;
         if (physics.position.y > this.config.altitudeRange.max ||
@@ -337,7 +337,7 @@ export class FlightBehaviors {
 
         // Consommation supplémentaire selon l'activité
         if (physics.flightState === this.flightStates.TAKEOFF) {
-            consumptionRate *= 1.5; // +50% pendant décollage
+            consumptionRate *= 1.5; // +50% pendant takeoff
         }
 
         const speed = Math.sqrt(physics.velocity.x ** 2 + physics.velocity.z ** 2);
@@ -389,7 +389,7 @@ export class FlightBehaviors {
     }
 
     /**
-     * Manœuvre d'évitement automatique
+     * Manœuvre d'avoidance automatique
      */
     executeAvoidanceManeuver(droneId1, droneId2, distance) {
         const physics1 = this.dronePhysics.get(droneId1);
@@ -410,7 +410,7 @@ export class FlightBehaviors {
         separationVector.y /= magnitude;
         separationVector.z /= magnitude;
 
-        // Force d'évitement proportionnelle à la proximité
+        // Force d'avoidance proportionnelle à la proximité
         const avoidanceForce = (this.config.safetyDistance - distance) / this.config.safetyDistance;
         const forceMultiplier = 0.5; // m/s
 
