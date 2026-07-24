@@ -1587,17 +1587,17 @@ export class AutonomousFlightEngine {
                     } else if (!this.intelligenceManager?.connector?.isAvailable) {
                         // ── DEMO MODE: generate simulated LLM reasoning when Ollama is offline ──
                         const demoReasons = [
-                            'Analyse thermique → zone prioritaire N-E',
+                            'Thermal analysis → priority sector N-E',
                             'Optimal sector coverage detected',
                             'Obstacle avoidance + replanning',
                             'Swarm coordination → reduce redundancy',
                             'Motion detected → investigation',
-                            'Signal faible → approche prudente',
+                            'Weak signal → cautious approach',
                             'Favorable topology → speed up',
                             'Unvisited neighbor cells → expansion',
                             'Headwind → +2m altitude recommended',
-                            'Coverage locale 87% → transition secteur',
-                            'Analyse terrain → contournement colline',
+                            'Local coverage 87% → sector handover',
+                            'Terrain analysis → hill avoidance',
                             'Peer #' + ((parseInt(state.id) + 3) % this.drones.size) + ' already covered → deviation',
                         ];
                         state._lastReasoning = demoReasons[Math.floor(Math.random() * demoReasons.length)];

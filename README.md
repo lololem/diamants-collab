@@ -21,6 +21,18 @@ micro-drones fly side by side, each with its own physics profile.*
 action on the fly, drop beacons, or slide the autonomy from centrally guided to
 fully distributed — where the agents coordinate with no central control.*
 
+![The whole fleet lifting off the helipad, each drone carrying its own live panel: exploration phase, autonomy mode, current waypoint and a short rationale for its next move](docs/images/swarm.jpg)
+
+*Launch, and the fleet fans out on its own. Every drone carries its own panel —
+phase, waypoint, autonomy mode and a live rationale — so you can watch eleven
+agents decide in parallel. Wire in your own algorithm and this is where it shows.*
+
+![Follow-camera locked on one Crazyflie mid-flight, with its telemetry panel and a fleet cycler to jump between drones](docs/images/flight.jpg)
+
+*Lock the camera onto any drone and ride along. The follow view cycles through
+the whole fleet (1/11, 2/11 …) — handy for debugging a single agent's behaviour
+while the rest keep exploring.*
+
 ---
 
 ## Getting started
