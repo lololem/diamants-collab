@@ -82,7 +82,7 @@ export class PanelController {
         setTimeout(() => { if (!this._llmStatsInterval) this.startLLMStatsUpdater(); }, 5000);
 
         // Feedback visuel
-        this.showFeedback('Système prêt', 'success');
+        this.showFeedback('System ready', 'success');
 
         // Sidebar resize handle
         this._initSidebarResize();
@@ -262,7 +262,7 @@ export class PanelController {
                 if (active) {
                     btnClick.style.background = 'linear-gradient(45deg, #10b981, #34d399)';
                     btnClick.style.boxShadow = '0 0 8px #10b981';
-                    btnClick.textContent = '📌 Placer… (clic scène)';
+                    btnClick.textContent = '📌 Place… (click scene)';
                 } else {
                     btnClick.style.background = 'linear-gradient(45deg, #065f46, #10b981)';
                     btnClick.style.boxShadow = 'none';
@@ -409,7 +409,7 @@ export class PanelController {
             launchBtn.style.background = `linear-gradient(45deg, ${grad[0]}, ${grad[1]})`;
 
             if (scenario.toggle && isActive) {
-                launchBtn.textContent = `■ Arrêter: ${scenario.name}`;
+                launchBtn.textContent = `■ Stop: ${scenario.name}`;
                 launchBtn.style.boxShadow = `0 0 8px ${scenario.color.glow || grad[1]}`;
             } else {
                 launchBtn.textContent = `▶ Lancer: ${scenario.name}`;
@@ -468,7 +468,7 @@ export class PanelController {
                 launchBtn.style.background = `linear-gradient(45deg, ${grad[0]}, ${grad[1]})`;
 
                 if (isNowActive) {
-                    launchBtn.textContent = `■ Arrêter: ${scenario.name}`;
+                    launchBtn.textContent = `■ Stop: ${scenario.name}`;
                     launchBtn.style.boxShadow = `0 0 8px ${scenario.color.glow || grad[1]}`;
                     // Show restore info
                     if (scenario.restore && descEl) {
@@ -560,7 +560,7 @@ export class PanelController {
 
             const isActive = this.scenarioEngine.isActive(scenario.id);
             mobileLaunch.textContent = (scenario.toggle && isActive)
-                ? `■ Arrêter: ${scenario.name}`
+                ? `■ Stop: ${scenario.name}`
                 : `▶ Lancer: ${scenario.name}`;
 
             // Also sync sidebar dropdown
@@ -587,7 +587,7 @@ export class PanelController {
                 this.showFeedback(result.message, 'success');
                 const isNowActive = result.active;
                 mobileLaunch.textContent = (scenario.toggle && isNowActive)
-                    ? `■ Arrêter: ${scenario.name}`
+                    ? `■ Stop: ${scenario.name}`
                     : `▶ Lancer: ${scenario.name}`;
             } else {
                 this.showFeedback(result.message, 'error');
@@ -852,7 +852,7 @@ export class PanelController {
         if (!system?.integratedController) {
             console.warn('[BTN-TEST] handleLaunch: système non prêt');
 
-            this.showFeedback('Système non initialisé — patientez', 'warning');
+            this.showFeedback('System not initialized — please wait', 'warning');
             return false;
         }
 
@@ -883,7 +883,7 @@ export class PanelController {
         // WebSocket command
         this.sendWebSocketCommand('mission_command', { action: 'start', mission_type: 'exploration' });
         
-        this.showFeedback('Mission lancée', 'success');
+        this.showFeedback('Mission launched', 'success');
         return true;
     }
     
@@ -894,7 +894,7 @@ export class PanelController {
         const system = window.diamantsSystem;
         if (!system?.integratedController) {
             console.warn('[BTN-TEST] handleStop: système non prêt');
-            this.showFeedback('Système non initialisé — patientez', 'warning');
+            this.showFeedback('System not initialized — please wait', 'warning');
             return false;
         }
         
@@ -919,7 +919,7 @@ export class PanelController {
         // WebSocket
         this.sendWebSocketCommand('mission_command', { action: 'emergency_land' });
         
-        this.showFeedback('Arrêt d\'urgence', 'warning');
+        this.showFeedback('Emergency stop', 'warning');
         return true;
     }
     
@@ -929,7 +929,7 @@ export class PanelController {
         
         const system = window.diamantsSystem;
         if (!system?.integratedController?.autonomousFlightEngine) {
-            this.showFeedback('Système non prêt pour le takeoff', 'warning');
+            this.showFeedback('System not ready for takeoff', 'warning');
             return false;
         }
         
@@ -953,7 +953,7 @@ export class PanelController {
             }
         });
         
-        this.showFeedback(`Décollage ${count} drones à ${altitude}m`, 'success');
+        this.showFeedback(`Takeoff ${count} drones at ${altitude}m`, 'success');
         this.sendWebSocketCommand('mission_command', { action: 'takeoff_all' });
         return true;
     }
@@ -964,7 +964,7 @@ export class PanelController {
         
         const system = window.diamantsSystem;
         if (!system?.integratedController?.autonomousFlightEngine) {
-            this.showFeedback('Système non prêt pour l\'landing', 'warning');
+            this.showFeedback('System not ready for landing', 'warning');
             return false;
         }
         
@@ -999,7 +999,7 @@ export class PanelController {
 
         const system = window.diamantsSystem;
         if (!system?.integratedController?.autonomousFlightEngine) {
-            this.showFeedback('Système non prêt', 'warning');
+            this.showFeedback('System not ready', 'warning');
             return false;
         }
 
@@ -1017,7 +1017,7 @@ export class PanelController {
             }
         });
 
-        this.showFeedback(`RTH: ${count} drones retournent à la base`, 'info');
+        this.showFeedback(`RTH: ${count} drones returning to base`, 'info');
         this.sendWebSocketCommand('mission_command', { action: 'return_home' });
         return true;
     }
@@ -1153,7 +1153,7 @@ export class PanelController {
         this.handleResetCamera();
 
         this.sendWebSocketCommand('mission_command', { action: 'return_home' });
-        this.showFeedback('Essaim réinitialisé', 'info');
+        this.showFeedback('Swarm reset', 'info');
         return true;
     }
 
@@ -1264,9 +1264,9 @@ export class PanelController {
             system.controls.autoRotate = false;
             system.controls.autoRotateSpeed = 0;
             system.controls.update();
-            this.showFeedback('Caméra réinitialisée', 'info');
+            this.showFeedback('Camera reset', 'info');
         } else {
-            this.showFeedback('Caméra non prête', 'warning');
+            this.showFeedback('Camera not ready', 'warning');
             return false;
         }
         return true;
@@ -1290,7 +1290,7 @@ export class PanelController {
             system.controls.update();
             this.showFeedback('Vue de dessus', 'info');
         } else {
-            this.showFeedback('Caméra non prête', 'warning');
+            this.showFeedback('Camera not ready', 'warning');
             return false;
         }
         return true;
@@ -1320,10 +1320,10 @@ export class PanelController {
             system.controls?.update();
             this.showFeedback('Vue essaim', 'info');
         } else if (!system?.camera || !system?.controls) {
-            this.showFeedback('Caméra non disponible', 'warning');
+            this.showFeedback('Camera unavailable', 'warning');
             return false;
         } else {
-            this.showFeedback('Aucun drone détecté', 'warning');
+            this.showFeedback('No drone detected', 'warning');
             return false;
         }
         return true;
@@ -1333,7 +1333,7 @@ export class PanelController {
         console.log('[BTN-TEST] handleToggleFollow() called');
         const system = window.diamantsSystem;
         if (!system) {
-            this.showFeedback('Système non prêt', 'warning');
+            this.showFeedback('System not ready', 'warning');
             return true;
         }
         
@@ -1384,7 +1384,7 @@ export class PanelController {
             system.controls.update();
         } catch (_) { /* noop */ }
 
-        this.showFeedback('Follow: OFF — Caméra libre', 'info');
+        this.showFeedback('Follow: OFF — Free camera', 'info');
     }
 
     /**
@@ -1460,7 +1460,7 @@ export class PanelController {
         const system = window.diamantsSystem;
         const controller = system?.integratedController;
         if (!controller) {
-            this.showFeedback('Contrôleur non disponible', 'warning');
+            this.showFeedback('Controller unavailable', 'warning');
             return true;
         }
         // Toggle visibility on all drones' _labelSprite
@@ -1695,7 +1695,7 @@ export class PanelController {
         if (!this._lastWsNoopToast || now - this._lastWsNoopToast > 8000) {
             this._lastWsNoopToast = now;
             if (casLevel >= 2) {
-                this.showFeedback('Mode autonome (CAS-2) — exécution locale, backend offline', 'info');
+                this.showFeedback('Autonomous mode (CAS-2) — local execution, backend offline', 'info');
             } else {
                 this.showFeedback(`Backend indisponible — ${type} non transmis`, 'warning');
             }
@@ -1977,7 +1977,7 @@ export class PanelController {
                 btn.textContent = '✅ Ollama OK';
                 btn.style.background = 'linear-gradient(45deg, #0a4a0a, #1a8a1a)';
             } else if (isDemoMode) {
-                btn.textContent = '🟡 Mode Démo';
+                btn.textContent = '🟡 Demo Mode';
                 btn.style.background = 'linear-gradient(45deg, #4a3a0a, #8a6a1a)';
             } else if (isDown) {
                 btn.textContent = '❌ Offline';
