@@ -532,7 +532,7 @@ export class SitacMinimap {
         ctx.arc(8, ly, 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#88BBFF';
-        ctx.fillText('AMI', 14, ly + 3);
+        ctx.fillText('FRIEND', 14, ly + 3);
 
         // Hostile (red diamond) — obstacles/dangers
         ctx.fillStyle = '#DD3030';
@@ -542,7 +542,7 @@ export class SitacMinimap {
         ctx.fillRect(-3, -3, 6, 6);
         ctx.restore();
         ctx.fillStyle = '#FF6644';
-        ctx.fillText('OBS', 53, ly + 3);
+        ctx.fillText('HAZARD', 53, ly + 3);
 
         // Unknown (yellow)
         ctx.fillStyle = '#E0C830';
@@ -550,7 +550,7 @@ export class SitacMinimap {
         ctx.arc(82, ly, 3, 0, Math.PI * 2);
         ctx.fill();
         ctx.fillStyle = '#DDC840';
-        ctx.fillText('INC', 88, ly + 3);
+        ctx.fillText('UNKNOWN', 88, ly + 3);
 
         // === BORDER (NATO blue canvas border) ===
         ctx.strokeStyle = '#4477CC';

@@ -35,6 +35,30 @@ while the rest keep exploring.*
 
 ---
 
+## Live maps
+
+The **Maps** button (bottom-right) opens a picker of six live views. Every one
+is fed in real time by the drones themselves — open one, launch a mission, and
+watch it fill in. No backend required.
+
+![The Maps picker: a list of six views — SITAC detection, Exploration stigmergy, SLAM reconstruction, Discovery pixels, Federated RL and P2P communication](docs/images/maps-picker.jpg)
+
+![Four maps side by side: a green stigmergy heat-trail of where the fleet has flown, a SLAM terrain reconstruction with a coverage percentage, a blue occupancy grid shaded by coverage, and a tactical radar with range rings and friend markers](docs/images/maps.jpg)
+
+| View | What it shows |
+|---|---|
+| **Exploration — Stigmergy** | A pheromone-style heat-trail of everywhere the fleet has flown — the swarm's shared memory of the terrain. |
+| **SLAM — Reconstruction** | The forest rebuilt from the drones' sensors, canopy and obstacles filling in with a live coverage %. |
+| **Discovery — Pixels** | An occupancy grid, each cell shaded from *Low* to *Full* as the area gets covered. |
+| **SITAC — Detection** | A tactical radar: range rings, headings, and friend / hazard / unknown markers. |
+| **Federated — RL** | Model-sharing and convergence between the agents. |
+| **Communication — P2P** | The peer-to-peer link graph as drones come in and out of range. |
+
+Each view opens fullscreen, or docks as a small draggable, resizable minimap so
+you can keep several on screen while a mission runs.
+
+---
+
 ## Getting started
 
 Node.js 20 or newer, and a browser with WebGL 2.

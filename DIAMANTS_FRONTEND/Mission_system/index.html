@@ -2263,32 +2263,32 @@
     <div id="minimaps-container">
         <!-- SITAC Minimap (tactical situation + object detection) -->
         <div id="sitac-map" class="minimap-panel">
-            <div class="minimap-header">🎯 SITAC — Object Detection <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('sitac-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
+            <div class="minimap-header">🎯 SITAC — Object Detection <button class="minimap-close-btn" title="Close" onclick="minimapManager.close('sitac-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="sitac_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Exploration Minimap (stigmergy / coordination) -->
         <div id="minimap" class="minimap-panel">
-            <div class="minimap-header">🗺️ Exploration — Stigmergy <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('minimap')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
+            <div class="minimap-header">🗺️ Exploration — Stigmergy <button class="minimap-close-btn" title="Close" onclick="minimapManager.close('minimap')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="minimap_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Perception / SLAM Minimap (scene reconstruction) -->
         <div id="perception-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">🌲 SLAM — Forest Reconstruction <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('perception-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
+            <div class="minimap-header">🌲 SLAM — Forest Reconstruction <button class="minimap-close-btn" title="Close" onclick="minimapManager.close('perception-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="perception_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Discovery Minimap (pixel fog-of-war coverage) -->
         <div id="discovery-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">🟩 Discovery — Pixels <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('discovery-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
+            <div class="minimap-header">🟩 Discovery — Pixels <button class="minimap-close-btn" title="Close" onclick="minimapManager.close('discovery-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="discovery_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Federated Learning Minimap (RL coordination heatmap + convergence) -->
         <div id="federated-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">🧠 Federated — RL Coordination <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('federated-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
+            <div class="minimap-header">🧠 Federated — RL Coordination <button class="minimap-close-btn" title="Close" onclick="minimapManager.close('federated-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="federated_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Communication Panel (P2P network + comm links) -->
         <div id="comm-panel-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">📡 Communication — P2P Network <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('comm-panel-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
+            <div class="minimap-header">📡 Communication — P2P Network <button class="minimap-close-btn" title="Close" onclick="minimapManager.close('comm-panel-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="comm_canvas" width="280" height="200"></canvas>
         </div>
     </div>
@@ -2299,7 +2299,7 @@
     <!-- Minimap lightbox (large view overlay) -->
     <div id="minimap-lightbox">
         <div id="minimap-lightbox-inner">
-            <div id="minimap-lightbox-header"><span id="minimap-lightbox-title"></span><button id="minimap-lightbox-close" onclick="if(window._closeLightbox)window._closeLightbox();else this.closest('#minimap-lightbox').classList.remove('active')" title="Fermer">✕</button></div>
+            <div id="minimap-lightbox-header"><span id="minimap-lightbox-title"></span><button id="minimap-lightbox-close" onclick="if(window._closeLightbox)window._closeLightbox();else this.closest('#minimap-lightbox').classList.remove('active')" title="Close">✕</button></div>
             <canvas id="minimap-lightbox-canvas" width="800" height="560"></canvas>
         </div>
     </div>
@@ -2312,7 +2312,7 @@
         <div id="minimap-picker-sheet" onclick="event.stopPropagation()">
             <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 4px 12px;">
                 <span style="font-size:15px;font-weight:600;color:#0af;flex:1;text-align:center;">Maps &amp; Minimaps</span>
-                <button onclick="minimapManager.closePicker()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff6b6b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Fermer">✕</button>
+                <button onclick="minimapManager.closePicker()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff6b6b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Close">✕</button>
             </div>
             <div class="minimap-pick-item" onclick="minimapManager.openViewer('sitac-map')">🎯 SITAC — Detection</div>
             <div class="minimap-pick-item" onclick="minimapManager.openViewer('minimap')">🗺️ Exploration — Stigmergy</div>

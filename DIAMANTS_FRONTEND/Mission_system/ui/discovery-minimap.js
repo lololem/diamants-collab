@@ -482,15 +482,15 @@ export class DiscoveryMinimap {
         this.ctx.fillStyle = 'rgba(20, 60, 140, 0.9)';
         this.ctx.fillRect(4, legendY - 4, 8, 8);
         this.ctx.fillStyle = '#4488cc';
-        this.ctx.fillText('Faible', 15, legendY + 2);
+        this.ctx.fillText('Low', 15, legendY + 2);
         this.ctx.fillStyle = 'rgba(60, 170, 220, 0.9)';
         this.ctx.fillRect(55, legendY - 4, 8, 8);
         this.ctx.fillStyle = '#55aadd';
-        this.ctx.fillText('Moyen', 66, legendY + 2);
+        this.ctx.fillText('Med', 66, legendY + 2);
         this.ctx.fillStyle = 'rgba(140, 230, 255, 0.9)';
         this.ctx.fillRect(106, legendY - 4, 8, 8);
         this.ctx.fillStyle = '#8ce6ff';
-        this.ctx.fillText('Complet', 117, legendY + 2);
+        this.ctx.fillText('Full', 117, legendY + 2);
 
         // ── Border (blue theme) ───────────────────────────────────
         this.ctx.strokeStyle = '#4488cc';
