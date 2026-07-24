@@ -21,7 +21,7 @@
         // Mode silencieux et fonctions de logging — SINGLE SOURCE OF TRUTH
         window.SILENT_MODE = true;
         
-        // Logging globales : log() supprimé en SILENT, warn()/error() toujours actifs
+        // Global logging: log() dropped in SILENT mode, warn()/error() always active
         window.log = (...args) => { if (!window.SILENT_MODE) console.log(...args); };
         window.warn = (...args) => { 
             const msgStr = args.join(' ').toLowerCase();
@@ -31,7 +31,7 @@
         }; 
         window.error = (...args) => console.error(...args);
         
-        console.log('✅ Fonctions de logging globales initialisées');
+        console.log('✅ Global logging functions ready');
     </script>
 
     <!-- Import map MUST come before any module/preload scripts -->
@@ -59,7 +59,7 @@
         }
         
         (function() {
-            window.log('🔍 Vérification WebGL...');
+            window.log('🔍 Checking WebGL...');
             
             // Test basic WebGL availability
             const canvas = document.createElement('canvas');
@@ -75,13 +75,13 @@
                             <h2>🛑 WebGL Indisponible</h2>
                             <p>Solutions :</p>
                             <ul style="text-align: left; margin: 10px 0;">
-                                <li>Redémarrez votre navigateur</li>
+                                <li>Restart your browser</li>
                                 <li>Activez WebGL dans chrome://flags/</li>
                                 <li>Essayez un autre navigateur (Chrome, Firefox)</li>
                                 <li>Videz le cache (Ctrl+Shift+R)</li>
                             </ul>
                             <button onclick="location.reload()" style="margin-top: 10px; padding: 10px; background: #00CCFF; color: #1a1a2e; border: none; border-radius: 5px; cursor: pointer;">
-                                🔄 Réessayer
+                                🔄 Retry
                             </button>
                         </div>
                     `;
@@ -98,7 +98,7 @@
         })();
     </script>
 
-    <!-- CSS Anti-Split Forcé -->
+    <!-- Forced anti-split CSS -->
     <style>
         /* FORCER PLEIN ECRAN - ANTI SPLIT RADICAL */
         html {
@@ -120,7 +120,7 @@
             z-index: -1000 !important;
         }
 
-        /* Masquer toute interface système */
+        /* Hide any system interface */
         ::-webkit-scrollbar {
             display: none !important;
         }
@@ -247,7 +247,7 @@
             margin: calc(5px * var(--sidebar-scale)) 0;
         }
 
-        /* Force pour empêcher tout recouvrement du panneau */
+        /* Force to prevent any panel overlap */
         #ros_interface {
             isolation: isolate; /* Creates a stacking context without z-index arms race */
         }
@@ -270,14 +270,14 @@
             z-index: 50 !important;
         }
 
-        /* Masquer spécifiquement les bandeaux de statut qui interfèrent */
+        /* Hide status bars that would interfere */
         [class*="status"]:not(#ros_interface *):not(#marl-training-panel *):not(#swarm-rl-panel *):not(#orch-console *):not(#optimal-search-ui *):not(#advanced-panel *):not(#diamant-log-control *):not(#diamants-harmonics-hud *):not(#quality-control-panel *),
         [id*="status"]:not(#ros_interface *):not(#marl-training-panel *):not(#swarm-rl-panel *):not(#orch-console *):not(#optimal-search-ui *):not(#advanced-panel *):not(#diamant-log-control *):not(#diamants-harmonics-hud *):not(#quality-control-panel *) {
             top: 60px !important;
             left: 240px !important;
         }
 
-        /* Désactiver l'overlay UI externe si présent (on a notre panneau intégré) */
+        /* Disable any external UI overlay (we use our own panel) */
         #diamants-ui-overlay {
             display: none !important;
         }
@@ -286,7 +286,7 @@
             display: none !important;
         }
 
-        /* ✅ MASQUAGE PAR DÉFAUT - Interface pure au démarrage */
+        /* ✅ HIDDEN BY DEFAULT - clean interface at startup */
         #debug-logs-ui,
         #controle-rapide,
         #sar-overlay,
@@ -296,7 +296,7 @@
             display: none !important;
         }
 
-        /* ✅ MASQUER LE PANNEAU DE CONTRÔLE AU DÉMARRAGE (laisser le toggle le réafficher) */
+        /* ✅ HIDE THE CONTROL PANEL AT STARTUP (the toggle brings it back) */
         #ros_interface {
             display: none;
         }
@@ -305,7 +305,7 @@
         #loading_screen {
             display: none !important;
         }
-        /* Minimap masquée par défaut (toggle JS via style.display) */
+        /* Minimap hidden by default (JS toggle via style.display) */
         #tactical-minimap {
             display: none;
         }
@@ -347,7 +347,7 @@
         .autonomy-ticks span:hover { color: #aaddff; }
         .autonomy-ticks span.active { color: #ffffff; font-weight: bold; }
 
-        /* Contrôle strict de la mini-carte tactique créée par l'UI */
+        /* Strict control of the tactical minimap created by the UI */
         #tactical-minimap {
             position: fixed !important;
             top: 12px !important;
@@ -356,7 +356,7 @@
             height: auto !important;
             z-index: 120 !important;
             cursor: pointer;
-            display: none !important; /* ✅ Masqué par défaut au démarrage */
+            display: none !important; /* ✅ Hidden by default at startup */
         }
 
         #tactical-minimap.collapsed {
@@ -549,13 +549,13 @@
         }
 
         .topic_monitor.collapsed::after {
-            content: ' ▼ Cliquer pour développer';
+            content: ' ▼ Click to expand';
             color: #FFD700;
             font-style: italic;
         }
 
         .topic_monitor:not(.collapsed)::after {
-            content: ' ▲ Cliquer pour réduire';
+            content: ' ▲ Click to collapse';
             color: #FFD700;
             font-style: italic;
             display: block;
@@ -777,7 +777,7 @@
             border: 1px solid rgba(0, 170, 255, 0.3);
         }
 
-        /* Masquer le vieux bandeau de statut pour éviter tout recouvrement */
+        /* Hide the old status bar to avoid overlap */
         #status_display {
             display: none !important;
         }
@@ -1805,9 +1805,9 @@
     <!-- ═══ BEACON PLACEMENT HUD ═══ -->
     <div id="beacon-placement-hud">
         <div class="bph-icon">📌</div>
-        <div class="bph-title">Mode placement de balise</div>
-        <div class="bph-hint">Touchez la carte 3D pour placer une balise.<br>La balise sera détectée par les drones à proximité.</div>
-        <button class="bph-cancel" onclick="window.DIAMANTS?.beacons?.exitPlacementMode();document.getElementById('beacon-placement-hud').classList.remove('active')">✕ Annuler</button>
+        <div class="bph-title">Beacon placement mode</div>
+        <div class="bph-hint">Tap the 3D map to place a beacon.<br>Nearby drones will detect it.</div>
+        <button class="bph-cancel" onclick="window.DIAMANTS?.beacons?.exitPlacementMode();document.getElementById('beacon-placement-hud').classList.remove('active')">✕ Cancel</button>
     </div>
 
     <!-- ═══ MOBILE MISSION QUICK SHEET ═══ -->
@@ -1817,54 +1817,54 @@
             <button class="mms-close" onclick="document.getElementById('mobile-mission-sheet').classList.remove('active')">✕</button>
         </div>
         <div class="mms-actions">
-            <button class="mms-btn launch" onclick="if(typeof launchMission==='function')launchMission();document.getElementById('mobile-mission-sheet').classList.remove('active')">▶ Lancer Mission</button>
-            <button class="mms-btn stop" onclick="if(typeof emergencyLand==='function')emergencyLand();document.getElementById('mobile-mission-sheet').classList.remove('active')">⏹ Arrêt Urgence</button>
-            <button class="mms-btn" onclick="if(typeof takeoffAllDrones==='function')takeoffAllDrones()">🛫 Décollage</button>
-            <button class="mms-btn" onclick="if(typeof landAllDrones==='function')landAllDrones()">🛬 Atterrir</button>
+            <button class="mms-btn launch" onclick="if(typeof launchMission==='function')launchMission();document.getElementById('mobile-mission-sheet').classList.remove('active')">▶ Launch Mission</button>
+            <button class="mms-btn stop" onclick="if(typeof emergencyLand==='function')emergencyLand();document.getElementById('mobile-mission-sheet').classList.remove('active')">⏹ Emergency Stop</button>
+            <button class="mms-btn" onclick="if(typeof takeoffAllDrones==='function')takeoffAllDrones()">🛫 Takeoff</button>
+            <button class="mms-btn" onclick="if(typeof landAllDrones==='function')landAllDrones()">🛬 Land</button>
             <button class="mms-btn" onclick="if(typeof returnToHome==='function')returnToHome()" style="border-color:rgba(59,130,246,0.4);">🏠 RTH</button>
             <button class="mms-btn" onclick="if(typeof resetMission==='function')resetMission()" style="border-color:rgba(245,158,11,0.4);">🔄 Reset</button>
-            <button class="mms-btn" onclick="if(typeof topView==='function')topView()">⬆ Vue Top</button>
+            <button class="mms-btn" onclick="if(typeof topView==='function')topView()">⬆ Top View</button>
         </div>
-        <label>Doctrine de vol :</label>
+        <label>Flight doctrine:</label>
         <select class="mms-select" id="mobile-mission-type" onchange="document.getElementById('mission_type').value=this.value;document.getElementById('mission_type').dispatchEvent(new Event('change'))">
             <option value="exploration" selected>🌿 Exploration</option>
-            <option value="swarm">🐝 Essaim</option>
-            <option value="coverage">📐 Couverture</option>
+            <option value="swarm">🐝 Swarm</option>
+            <option value="coverage">📐 Coverage</option>
             <option value="formation">🔢 Formation</option>
-            <option value="search">🔍 Recherche</option>
+            <option value="search">🔍 Search</option>
         </select>
         <label>Course of Action :</label>
         <select class="mms-select" id="mobile-mode-select" onchange="document.getElementById('mode_select').value=this.value;document.getElementById('mode_select').dispatchEvent(new Event('change'))">
-            <option value="adaptive" selected>🌟 Adaptatif</option>
-            <option value="stigmergy">🧠 Stigmergie</option>
-            <option value="grid">⊞ Grille</option>
+            <option value="adaptive" selected>🌟 Adaptive</option>
+            <option value="stigmergy">🧠 Stigmergy</option>
+            <option value="grid">⊞ Grid</option>
             <option value="boustrophedon">↔ Boustrophedon</option>
-            <option value="spiral">🌀 Spirale</option>
+            <option value="spiral">🌀 Spiral</option>
             <option value="radial">☀ Radial</option>
-            <option value="perimeter">⬜ Périmètre</option>
+            <option value="perimeter">⬜ Perimeter</option>
         </select>
 
         <!-- ── Scenario Section ── -->
         <div style="margin-top:14px; padding-top:12px; border-top: 1px solid rgba(255,100,50,0.25);">
-            <label style="color: #ff6644;">🎬 Scénario PoC :</label>
+            <label style="color: #ff6644;">🎬 PoC scenario:</label>
             <select class="mms-select" id="mobile-scenario-select" style="border-color:rgba(255,100,50,0.4); color:#ff9966;">
-                <option value="" disabled selected>— Choisir un scénario —</option>
+                <option value="" disabled selected>— Choose a scenario —</option>
             </select>
             <div id="mobile-scenario-info" style="display:none; font-size:11px; color:#ccc; margin:6px 0; line-height:1.4; padding:6px 8px; background:rgba(0,0,0,0.3); border-radius:6px;"></div>
-            <button class="mms-btn" id="mobile-btn-scenario-launch" disabled style="width:100%; margin-top:6px; background:linear-gradient(135deg,#374151,#4b5563); opacity:0.5; cursor:not-allowed;">▶ Sélectionner un scénario</button>
+            <button class="mms-btn" id="mobile-btn-scenario-launch" disabled style="width:100%; margin-top:6px; background:linear-gradient(135deg,#374151,#4b5563); opacity:0.5; cursor:not-allowed;">▶ Select a scenario</button>
         </div>
 
         <!-- ── Beacon Section ── -->
         <div style="margin-top:14px; padding-top:12px; border-top: 1px solid rgba(251,191,36,0.25);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                <label style="color: #fbbf24;">📍 Balises</label>
+                <label style="color: #fbbf24;">📍 Beacons</label>
                 <span id="mobile-beacon-count" style="font-size:11px; color:#a78bfa; font-weight:bold;">0</span>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-                <button class="mms-btn" id="mobile-btn-place-beacon" style="border-color:rgba(16,185,129,0.4);">📌 Placer sur la carte</button>
-                <button class="mms-btn" id="mobile-btn-beacon-random" onclick="if(window.DIAMANTS?.placeRandomBeacons)window.DIAMANTS.placeRandomBeacons(1)" style="border-color:rgba(245,158,11,0.4);">📍 Aléatoire</button>
-                <button class="mms-btn" id="mobile-btn-beacon-x3" onclick="if(window.DIAMANTS?.placeRandomBeacons)window.DIAMANTS.placeRandomBeacons(3)" style="border-color:rgba(217,119,6,0.4);">📍 ×3 Aléatoire</button>
-                <button class="mms-btn" id="mobile-btn-beacon-clear" onclick="if(window.DIAMANTS?.clearBeacons)window.DIAMANTS.clearBeacons()" style="border-color:rgba(239,68,68,0.4);">🗑️ Reset balises</button>
+                <button class="mms-btn" id="mobile-btn-place-beacon" style="border-color:rgba(16,185,129,0.4);">📌 Place on map</button>
+                <button class="mms-btn" id="mobile-btn-beacon-random" onclick="if(window.DIAMANTS?.placeRandomBeacons)window.DIAMANTS.placeRandomBeacons(1)" style="border-color:rgba(245,158,11,0.4);">📍 Random</button>
+                <button class="mms-btn" id="mobile-btn-beacon-x3" onclick="if(window.DIAMANTS?.placeRandomBeacons)window.DIAMANTS.placeRandomBeacons(3)" style="border-color:rgba(217,119,6,0.4);">📍 ×3 Random</button>
+                <button class="mms-btn" id="mobile-btn-beacon-clear" onclick="if(window.DIAMANTS?.clearBeacons)window.DIAMANTS.clearBeacons()" style="border-color:rgba(239,68,68,0.4);">🗑️ Clear beacons</button>
             </div>
         </div>
     </div>
@@ -1953,49 +1953,49 @@
             <label style="font-size: 10px; color: #00CCFF;">Doctrine:</label>
             <select id="mission_type" style="width: 100%; padding: 6px; margin: 4px 0; background: #1a1a2e; color: #00FFFF; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;">
                 <option value="exploration" selected>🌿 Exploration</option>
-                <option value="swarm">🐝 Essaim</option>
-                <option value="coverage">📐 Couverture</option>
+                <option value="swarm">🐝 Swarm</option>
+                <option value="coverage">📐 Coverage</option>
                 <option value="formation">🔢 Formation</option>
-                <option value="search">🔍 Recherche</option>
+                <option value="search">🔍 Search</option>
             </select>
         </div>
         <div style="margin-top: 4px;">
             <label style="font-size: 10px; color: #00CCFF;">Course of Action:</label>
             <select id="mode_select" style="width: 100%; padding: 6px; margin: 4px 0; background: #1a1a2e; color: #00FFFF; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;">
-                <option value="adaptive" selected>🌟 Adaptatif</option>
-                <option value="stigmergy">🧠 Stigmergie</option>
-                <option value="grid">⊞ Grille</option>
+                <option value="adaptive" selected>🌟 Adaptive</option>
+                <option value="stigmergy">🧠 Stigmergy</option>
+                <option value="grid">⊞ Grid</option>
                 <option value="boustrophedon">↔ Boustrophedon</option>
-                <option value="spiral">🌀 Spirale</option>
+                <option value="spiral">🌀 Spiral</option>
                 <option value="radial">☀ Radial</option>
-                <option value="perimeter">⬜ Périmètre</option>
+                <option value="perimeter">⬜ Perimeter</option>
             </select>
         </div>
 
         <!-- ── Balises (Beacons) ── -->
         <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(251,191,36,0.25);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label style="font-size: 10px; color: #fbbf24; font-weight: bold;">📍 Balises</label>
+                <label style="font-size: 10px; color: #fbbf24; font-weight: bold;">📍 Beacons</label>
                 <span id="beacon-count-badge" style="font-size: 10px; color: #a78bfa; font-weight: bold;">0</span>
             </div>
             <div class="mission_control" style="gap: 4px;">
-                <button class="btn_ros" id="btn-place-beacon-click" style="background: linear-gradient(45deg, #065f46, #10b981); font-size: 10px; padding: 4px 6px; transition: all .2s;" title="Cliquer sur la scène 3D pour placer une balise">📌 Placer</button>
-                <button class="btn_ros" id="btn-place-beacon-random" style="background: linear-gradient(45deg, #b45309, #f59e0b); font-size: 10px; padding: 4px 6px;">📍 Aléatoire</button>
+                <button class="btn_ros" id="btn-place-beacon-click" style="background: linear-gradient(45deg, #065f46, #10b981); font-size: 10px; padding: 4px 6px; transition: all .2s;" title="Click the 3D scene to place a beacon">📌 Place</button>
+                <button class="btn_ros" id="btn-place-beacon-random" style="background: linear-gradient(45deg, #b45309, #f59e0b); font-size: 10px; padding: 4px 6px;">📍 Random</button>
                 <button class="btn_ros" id="btn-place-beacon-3" style="background: linear-gradient(45deg, #92400e, #d97706); font-size: 10px; padding: 4px 6px;">📍 ×3</button>
                 <button class="btn_ros" id="btn-clear-beacons" style="background: linear-gradient(45deg, #7c2d12, #dc2626); font-size: 10px; padding: 4px 6px;">🗑️ Reset</button>
             </div>
         </div>
 
-        <!-- ── Scénarios PoC Multi-Agents ── -->
+        <!-- ── PoC Scenarios Multi-Agents ── -->
         <div style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.25); border-radius: 6px; border: 1px solid rgba(255,100,50,0.35);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                <label style="font-size: 10px; color: #ff6644; font-weight: bold;">Scénarios PoC</label>
+                <label style="font-size: 10px; color: #ff6644; font-weight: bold;">PoC Scenarios</label>
                 <span id="scenario-status" style="font-size: 9px; color: #888;">—</span>
             </div>
 
             <!-- Scenario selector -->
             <select id="scenario-select" style="width: 100%; padding: 4px 6px; font-size: 10px; background: rgba(0,0,0,0.5); color: #e0e0e0; border: 1px solid rgba(255,100,50,0.3); border-radius: 4px; margin-bottom: 6px; cursor: pointer; outline: none;">
-                <option value="" disabled selected>— Choisir un scénario —</option>
+                <option value="" disabled selected>— Choose a scenario —</option>
             </select>
 
             <!-- Scenario info (hidden until selection) -->
@@ -2008,7 +2008,7 @@
             <!-- Launch button (independent from mission control) -->
             <button class="btn_ros" id="btn-scenario-launch" disabled
                     style="width: 100%; background: linear-gradient(45deg, #374151, #4b5563); font-size: 10px; padding: 5px 8px; opacity: 0.5; cursor: not-allowed; transition: all 0.3s;">
-                ▶ Sélectionner un scénario
+                ▶ Select a scenario
             </button>
         </div>
 
@@ -2022,25 +2022,25 @@
                 <input type="range" class="autonomy-slider" id="autonomy-slider"
                        min="0" max="5" step="1" value="5">
                 <div class="autonomy-ticks" id="autonomy-ticks">
-                    <span data-step="0">Centralisé</span>
-                    <span data-step="1">Guidé</span>
+                    <span data-step="0">Centralized</span>
+                    <span data-step="1">Guided</span>
                     <span data-step="2">Hybride</span>
                     <span data-step="3">Semi-auto</span>
                     <span data-step="4">Autonome</span>
-                    <span data-step="5" class="active">Distribué</span>
+                    <span data-step="5" class="active">Distributed</span>
                 </div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; margin-top: 5px;">
-                <span id="autonomy-mode" style="font-size: 11px; color: #00FF88; font-weight: bold;">⚡ Distribué total</span>
+                <span id="autonomy-mode" style="font-size: 11px; color: #00FF88; font-weight: bold;">⚡ Distributed total</span>
             </div>
             <div id="autonomy-description" style="font-size: 9px; color: #667; margin-top: 2px; line-height: 1.3;">
-                Agents 100% autonomes — décisions individuelles, aucun contrôle central.
+                Fully autonomous agents — individual decisions, no central control.
             </div>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         SECTION 3: INTELLIGENCE COLLECTIVE — Métriques clés
+         SECTION 3: COLLECTIVE INTELLIGENCE — key metrics
          ═══════════════════════════════════════════════════════════════════ -->
     <div class="ros_panel">
         <h3 onclick="toggleSection('metrics-content')" style="cursor: pointer;">📊 Intelligence Collective ▼</h3>
@@ -2050,7 +2050,7 @@
                     <div style="font-size: 9px;">Stigmergie</div>
                     <div class="metric_value" id="stigmergy_value">0%</div>
                 </div>
-                <div class="metric_item metric_item--expandable" id="emergence_toggle" title="Cliquer pour détails">
+                <div class="metric_item metric_item--expandable" id="emergence_toggle" title="Click for details">
                     <div style="font-size: 9px;">Émergence <span id="emergence_chevron" style="font-size:7px;">▶</span></div>
                     <div class="metric_value" id="emergence_level">0%</div>
                     <!-- Expandable sub-metrics panel -->
@@ -2060,7 +2060,7 @@
                             <span class="emergence-sub__val" id="em_m1">0%</span>
                         </div>
                         <div class="emergence-sub__row">
-                            <span class="emergence-sub__label">M2 Diversité</span>
+                            <span class="emergence-sub__label">M2 Diversity</span>
                             <span class="emergence-sub__val" id="em_m2">0%</span>
                         </div>
                         <div class="emergence-sub__row">
@@ -2070,7 +2070,7 @@
                     </div>
                 </div>
                 <div class="metric_item">
-                    <div style="font-size: 9px;">Cohésion</div>
+                    <div style="font-size: 9px;">Cohesion</div>
                     <div class="metric_value" id="cohesion_index">0%</div>
                 </div>
                 <div class="metric_item">
@@ -2079,10 +2079,10 @@
                 </div>
             </div>
             <div style="margin-top: 10px; padding: 6px; background: rgba(0,0,0,0.3); border-radius: 4px;">
-                <div style="font-size: 9px; color: #888; margin-bottom: 4px;">Phéromones actives:</div>
+                <div style="font-size: 9px; color: #888; margin-bottom: 4px;">Pheromones actives:</div>
                 <div style="display: flex; gap: 8px; font-size: 10px;">
                     <span style="color: #00FF88;">🟢 Exploration</span>
-                    <span style="color: #FFD700;">🟡 Intérêt</span>
+                    <span style="color: #FFD700;">🟡 Interest</span>
                     <span style="color: #FF4444;">🔴 Danger</span>
                 </div>
             </div>
@@ -2110,7 +2110,7 @@
                 <div style="display: flex; align-items: center; gap: 4px; margin-bottom: 3px;">
                     <span style="color: #0af; width: 40px;">X500:</span>
                     <select id="llm-model-x500" onchange="setLLMModel('X500', this.value)" style="flex: 1; background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 3px; font-size: 9px; padding: 2px;">
-                        <option value="qwen_drone_v7:latest" selected>qwen_drone_v7 (fine-tuné)</option>
+                        <option value="qwen_drone_v7:latest" selected>qwen_drone_v7 (fine-tuned)</option>
                         <option value="qwen2.5-coder:7b">qwen2.5-coder:7b</option>
                         <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
                         <option value="qwen2.5:1.5b">qwen2.5:1.5b</option>
@@ -2122,7 +2122,7 @@
                     <span style="color: #f80; width: 40px;">S500:</span>
                     <select id="llm-model-s500" onchange="setLLMModel('S500', this.value)" style="flex: 1; background: #1a1a2e; color: #fff; border: 1px solid #444; border-radius: 3px; font-size: 9px; padding: 2px;">
                         <option value="qwen2.5-coder:7b" selected>qwen2.5-coder:7b</option>
-                        <option value="qwen_drone_v7:latest">qwen_drone_v7 (fine-tuné)</option>
+                        <option value="qwen_drone_v7:latest">qwen_drone_v7 (fine-tuned)</option>
                         <option value="qwen2.5-coder:1.5b">qwen2.5-coder:1.5b</option>
                         <option value="llama3.2:1b">llama3.2:1b</option>
                     </select>
@@ -2144,7 +2144,7 @@
             </div>
             <!-- Stats -->
             <div id="llm-stats" style="font-size: 9px; color: #888; margin-top: 4px;">
-                <div>Requêtes: <span id="llm-stat-requests">0</span> | Cache: <span id="llm-stat-cache">0</span></div>
+                <div>Requests: <span id="llm-stat-requests">0</span> | Cache: <span id="llm-stat-cache">0</span></div>
                 <div>Échecs: <span id="llm-stat-failures">0</span> | Latence: <span id="llm-stat-latency">-</span></div>
             </div>
             <!-- Actions -->
@@ -2156,10 +2156,10 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         SECTION 3c: LLM DECISIONS — Feed temps réel des cerveaux IA
+         SECTION 3c: LLM DECISIONS — real-time feed of AI brains
          ═══════════════════════════════════════════════════════════════════ -->
     <div class="ros_panel">
-        <h3 id="ai-panel-header" onclick="toggleSection('llm-decisions-content')" style="cursor: pointer;">🧠 LLM Décisions <span id="llm-decisions-arrow">▼</span></h3>
+        <h3 id="ai-panel-header" onclick="toggleSection('llm-decisions-content')" style="cursor: pointer;">🧠 LLM Decisions <span id="llm-decisions-arrow">▼</span></h3>
         <div id="llm-decisions-content">
             <!-- Brain status summary -->
             <div id="llm-brains-summary" style="font-size: 9px; color: #888; padding: 4px 0; border-bottom: 1px solid #333; margin-bottom: 4px;">
@@ -2167,13 +2167,13 @@
             </div>
             <!-- Live decision feed -->
             <div id="llm-decision-feed" style="max-height: 220px; overflow-y: auto; font-size: 9px; font-family: monospace;">
-                <div style="color: #555; text-align: center; padding: 12px;">En attente de décisions LLM…</div>
+                <div style="color: #555; text-align: center; padding: 12px;">Waiting for LLM decisions…</div>
             </div>
         </div>
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         SECTION 4: VISUALISATION — Caméra et affichage
+         SECTION 4: VISUALIZATION — camera and display
          ═══════════════════════════════════════════════════════════════════ -->
     <div class="ros_panel">
         <h3 onclick="toggleSection('camera-content')" style="cursor: pointer;">📹 Visualisation ▼</h3>
@@ -2199,7 +2199,7 @@
     </div>
 
     <!-- ═══════════════════════════════════════════════════════════════════
-         SECTION 5: CONFIGURATION — Paramètres avancés (collapsible)
+         SECTION 5: CONFIGURATION — advanced settings (collapsible)
          ═══════════════════════════════════════════════════════════════════ -->
     <div class="ros_panel">
         <h3 onclick="toggleSection('config-content')" style="cursor: pointer;">⚙️ Configuration ▶</h3>
@@ -2209,7 +2209,7 @@
                 <input type="range" id="altitude_slider" min="1.0" max="8.0" step="0.5" value="3.0" style="width: 100%;">
             </div>
             <div style="margin: 8px 0;">
-                <label style="font-size: 10px;">Distance sécurité (m): <span id="safety_distance_value" style="color: #FFAA00;">3.0m</span></label>
+                <label style="font-size: 10px;">Safety distance (m): <span id="safety_distance_value" style="color: #FFAA00;">3.0m</span></label>
                 <input type="range" id="safety_distance" min="1" max="8" value="3" style="width: 100%;">
             </div>
             <div style="margin: 8px 0;">
@@ -2229,7 +2229,7 @@
         <h3 onclick="toggleSection('benchmark-content')" style="cursor: pointer;">🧪 Benchmark ▶</h3>
         <div id="benchmark-content" style="display: none;">
             <div id="benchmark_status" style="font-size: 10px; color: #888; margin-bottom: 8px;">
-                Prêt pour analyse scaling
+                Ready for scaling analysis
             </div>
             <div class="mission_control">
                 <button class="btn_ros" onclick="window.runQuickBenchmark?.([1,2,4,8], 30)" style="font-size: 10px;">⚡ Quick 30s</button>
@@ -2263,32 +2263,32 @@
     <div id="minimaps-container">
         <!-- SITAC Minimap (tactical situation + object detection) -->
         <div id="sitac-map" class="minimap-panel">
-            <div class="minimap-header">🎯 SITAC — Détection Objets <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('sitac-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <div class="minimap-header">🎯 SITAC — Object Detection <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('sitac-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="sitac_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Exploration Minimap (stigmergy / coordination) -->
         <div id="minimap" class="minimap-panel">
-            <div class="minimap-header">🗺️ Exploration — Stigmergy <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('minimap')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <div class="minimap-header">🗺️ Exploration — Stigmergy <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('minimap')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="minimap_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Perception / SLAM Minimap (scene reconstruction) -->
         <div id="perception-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">🌲 SLAM — Reconstruction Forêt <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('perception-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <div class="minimap-header">🌲 SLAM — Forest Reconstruction <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('perception-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="perception_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Discovery Minimap (pixel fog-of-war coverage) -->
         <div id="discovery-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">🟩 Découverte — Pixels <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('discovery-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <div class="minimap-header">🟩 Discovery — Pixels <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('discovery-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="discovery_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Federated Learning Minimap (RL coordination heatmap + convergence) -->
         <div id="federated-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">🧠 Fédéré — RL Coordination <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('federated-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <div class="minimap-header">🧠 Federated — RL Coordination <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('federated-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="federated_canvas" width="280" height="200"></canvas>
         </div>
         <!-- Communication Panel (P2P network + comm links) -->
         <div id="comm-panel-map" class="minimap-panel minimap-hidden">
-            <div class="minimap-header">📡 Communication — Réseau P2P <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('comm-panel-map')">✕</button><button class="minimap-detach-btn" title="Détacher">⇱</button></div>
+            <div class="minimap-header">📡 Communication — P2P Network <button class="minimap-close-btn" title="Fermer" onclick="minimapManager.close('comm-panel-map')">✕</button><button class="minimap-detach-btn" title="Detach">⇱</button></div>
             <canvas id="comm_canvas" width="280" height="200"></canvas>
         </div>
     </div>
@@ -2314,11 +2314,11 @@
                 <span style="font-size:15px;font-weight:600;color:#0af;flex:1;text-align:center;">Cartes &amp; Minimaps</span>
                 <button onclick="minimapManager.closePicker()" style="width:34px;height:34px;border-radius:50%;background:rgba(255,80,80,0.15);border:1px solid rgba(255,80,80,0.4);color:#ff6b6b;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Fermer">✕</button>
             </div>
-            <div class="minimap-pick-item" onclick="minimapManager.openViewer('sitac-map')">🎯 SITAC — Détection</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('sitac-map')">🎯 SITAC — Detection</div>
             <div class="minimap-pick-item" onclick="minimapManager.openViewer('minimap')">🗺️ Exploration — Stigmergy</div>
             <div class="minimap-pick-item" onclick="minimapManager.openViewer('perception-map')">🌲 SLAM — Reconstruction</div>
-            <div class="minimap-pick-item" onclick="minimapManager.openViewer('discovery-map')">🟩 Découverte — Pixels</div>
-            <div class="minimap-pick-item" onclick="minimapManager.openViewer('federated-map')">🧠 Fédéré — RL</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('discovery-map')">🟩 Discovery — Pixels</div>
+            <div class="minimap-pick-item" onclick="minimapManager.openViewer('federated-map')">🧠 Federated — RL</div>
             <div class="minimap-pick-item" onclick="minimapManager.openViewer('comm-panel-map')">📡 Communication — P2P</div>
         </div>
     </div>
@@ -2348,29 +2348,29 @@
     <!-- 🛠️ OUTILS DEBUG VS CODE - DÉSACTIVÉS pour interface propre -->
     <!-- <script src="./tools/debug/debug-vscode-tools.js"></script> -->
     
-    <!-- (debug) test-controls supprimé pour interface propre -->
+    <!-- (debug) test-controls removed for a clean interface -->
     
     <!-- Validation finale des fonctions de logging avant chargement des scripts -->
     <script>
-        // Vérification et restauration des fonctions de logging si nécessaire
+        // Check and restore logging functions if needed
         if (typeof log === 'undefined' || typeof warn === 'undefined' || typeof error === 'undefined') {
             console.warn('⚠️ Fonctions globales manquantes, restauration...');
             window.log = window.log || ((...args) => { if (!window.SILENT_MODE) console.log(...args); });
             window.warn = window.warn || ((...args) => { if (!window.SILENT_MODE) console.warn(...args); });
             window.error = window.error || ((...args) => { if (!window.SILENT_MODE) console.error(...args); });
             
-            // Force la création des variables globales
+            // Force creation of global variables
             try {
-                // SÉCURISÉ: Créer des variables globales sans eval
+                // SAFE: create global variables without eval
                 window.log = window.log;
                 window.warn = window.warn; 
                 window.error = window.error;
-                console.log('✅ Fonctions de logging restaurées');
+                console.log('✅ Logging functions restored');
             } catch (e) {
-                console.error('❌ Impossible de créer les variables globales:', e);
+                console.error('❌ Could not create global variables:', e);
             }
         } else {
-            console.log('✅ Fonctions de logging déjà disponibles');
+            console.log('✅ Logging functions already available');
         }
     </script>
     
@@ -2382,16 +2382,16 @@
     <!-- 🎯 CONSOLE NINJA TEST - DÉSACTIVÉ pour interface propre -->
     <!-- <script src="./dev-tools/console-ninja/console-ninja-test.js"></script> -->
 
-    <!-- THREE.js Bootstrap - Chargement forcé avec exposition globale -->
+    <!-- THREE.js bootstrap - forced load with global exposure -->
     <script type="module" src="./tools/three-bootstrap.js"></script>
     
     <!-- Gestionnaire d'initialisation -->
     <script src="./tools/diamants-initializer.js"></script>
     
-    <!-- Diagnostic et réparation -->
+    <!-- Diagnostics and repair -->
     <script src="./scripts/diagnostic-repair.js"></script>
 
-    <!-- Point d'entrée principal pour Vite -->
+    <!-- Main entry point for Vite -->
     <!-- Re-enabled main.js for proper GitHub functioning -->
     <script type="module" src="./main.js"></script>
 
@@ -2540,7 +2540,7 @@
                     if (d._labelSprite) d._labelSprite.visible = false;
                 }
                 window._mobileLabelsHidden = true;
-                console.log('[MOBILE] Labels 3D masqués automatiquement');
+                console.log('[MOBILE] 3D labels auto-hidden');
             } else if (_labelHideAttempts < 30) {
                 setTimeout(autoHideLabels, 500);
             }
@@ -2610,7 +2610,7 @@
             }
         };
 
-        // Fonction togglePanel simplifiée
+        // Simplified togglePanel function
         function togglePanel() {
             const panel = document.getElementById('ros_interface');
             const canvas = document.getElementById('canvas_container');
@@ -2737,9 +2737,9 @@
                         type: 'mission_command',
                         data: { action: 'start', mission_type: 'exploration' },
                     }));
-                    log('✅ Commande mission:start envoyée au backend');
+                    log('✅ mission:start command sent to backend');
                 } else {
-                    log('⚠️ WebSocket non connecté — la mission est probablement déjà active');
+                    log('⚠️ WebSocket not connected — the mission is likely already active');
                 }
             } catch (e) { log('⚠️ Erreur envoi mission:', e.message); }
             if (system && system.integratedController) {
@@ -2756,7 +2756,7 @@
                         type: 'swarm_command',
                         data: { action: 'disperse' },
                     }));
-                    log('✅ Commande disperse envoyée');
+                    log('✅ disperse command sent');
                 }
             } catch (e) { log('⚠️ Erreur envoi disperse:', e.message); }
         };
@@ -2792,7 +2792,7 @@
                             type: 'mission_command',
                             data: { action: 'emergency_land' },
                         }));
-                        log('✅ Commande emergency_land envoyée');
+                        log('✅ emergency_land command sent');
                     }
                 } catch (e) { log('⚠️ Erreur envoi emergency_land:', e.message); }
             };
@@ -2808,7 +2808,7 @@
                             type: 'swarm_command',
                             data: { action: 'reset' },
                         }));
-                        log('✅ Commande reset envoyée');
+                        log('✅ reset command sent');
                     }
                 } catch (e) { log('⚠️ Erreur envoi reset:', e.message); }
             };
@@ -2845,14 +2845,14 @@
         window.clearDebugLogs = function() {
             const logsContent = document.getElementById('debug-logs-content');
             if (logsContent) logsContent.innerHTML = '';
-            log('🧹 Logs nettoyés');
+            log('🧹 Logs cleared');
         };
 
         window.toggleDebugPanels = function() {
             log('🛠️ Toggle Debug Panels');
         };
 
-        log('✅ Fonctions UI chargées');
+        log('✅ UI functions loaded');
 
         // ═══════════════════════════════════════════════════════════
         // Minimap Detach / Dock System  (resize handles + font scaling)
@@ -3165,7 +3165,7 @@
                     }
                 }
                 const btn = panel.querySelector('.minimap-detach-btn');
-                if (btn) { btn.textContent = '⇱'; btn.title = 'Détacher'; }
+                if (btn) { btn.textContent = '⇱'; btn.title = 'Detach'; }
                 window.DIAMANTS?.viewPersistence?.scheduleSave();
             }
 
@@ -3218,7 +3218,7 @@
             // Dock back any floating panels (minimaps are now accessed via picker only)
             document.querySelectorAll('.minimap-panel.detached').forEach(p => dockPanel(p));
 
-            log('📌 Minimap detach/dock + resize + font-scale initialisé');
+            log('📌 Minimap detach/dock + resize + font-scale ready');
         })();
     </script>
 
@@ -3229,11 +3229,11 @@
 
         const MINIMAP_IDS = ['sitac-map', 'minimap', 'perception-map', 'discovery-map', 'federated-map', 'comm-panel-map'];
         const MINIMAP_LABELS = {
-            'sitac-map': '🎯 SITAC — Détection',
+            'sitac-map': '🎯 SITAC — Detection',
             'minimap': '🗺️ Exploration — Stigmergy',
             'perception-map': '🌲 SLAM — Reconstruction',
-            'discovery-map': '🟩 Découverte — Pixels',
-            'federated-map': '🧠 Fédéré — RL',
+            'discovery-map': '🟩 Discovery — Pixels',
+            'federated-map': '🧠 Federated — RL',
             'comm-panel-map': '📡 Communication — P2P'
         };
         const CANVAS_IDS = {
@@ -3350,11 +3350,11 @@
             }
         });
 
-        console.log('[MINIMAP-MANAGER] Initialisé — picker + viewer mode');
+        console.log('[MINIMAP-MANAGER] Ready — picker + viewer mode');
     })();
     </script>
 
-    <!-- Charger la forêt EZ-Tree (authentic) -->
+    <!-- Load the EZ-Tree forest -->
     <!-- <script type="module" src="./forest_authentic.js"></script> -->
 </body>
 </html>
