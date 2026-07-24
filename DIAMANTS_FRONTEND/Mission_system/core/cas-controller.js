@@ -217,14 +217,14 @@ export class CasController {
         if (statusEl) {
             if (ic?.missionStarted) statusEl.textContent = 'Mission active';
             else if (this.backendActive) statusEl.textContent = 'Backend ROS';
-            else if (this.engineReady) statusEl.textContent = 'Autonome';
-            else statusEl.textContent = 'Initialisation';
+            else if (this.engineReady) statusEl.textContent = 'Autonomous';
+            else statusEl.textContent = 'Initializing';
         }
 
         const footer = document.getElementById('system_status_footer');
         if (footer && total > 0) {
             const flying = drones.filter((d) => d.state && d.state !== 'IDLE' && d.state !== 'LANDED').length;
-            footer.textContent = `${flying}/${total} actifs · ${meta.short} · ${this._fps || '—'} FPS`;
+            footer.textContent = `${flying}/${total} active · ${meta.short} · ${this._fps || '—'} FPS`;
         }
 
         if (!this.wsConnected) {
