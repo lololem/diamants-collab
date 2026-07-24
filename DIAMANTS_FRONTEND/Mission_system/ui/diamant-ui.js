@@ -102,7 +102,7 @@ export class DiamantUI {
                 <button id="toggle-logs" class="ui-btn">🔇 Logs: Silent</button>
             </div>
             
-            <!-- Contrôles des modules avancés -->
+            <!-- Advanced module controls -->
             <div class="module-section">
                 <h4>🧠 AI & Behaviors</h4>
                 <label><input type="checkbox" id="toggle-advanced-ai" checked> Advanced Intelligence</label><br>
@@ -200,7 +200,7 @@ export class DiamantUI {
             border-radius: 5px;
             z-index: 200;
         `;
-        fallback.textContent = 'UI simplifiée - DIAMANTS actif';
+        fallback.textContent = 'Simplified UI - DIAMANTS active';
         document.body.appendChild(fallback);
     }
 
@@ -503,7 +503,7 @@ export class DiamantUI {
     }
 
     updateAdvancedPanel() {
-        // Mise à jour du panneau avancé avec détails complets des modules
+        // Mise à jour du panneau avancé avec détails completes des modules
         const detailsDiv = document.getElementById('advanced-module-details');
         if (!detailsDiv || !this.config.controller) return;
 
@@ -511,10 +511,10 @@ export class DiamantUI {
             { name: 'swarmIntelligence', label: 'Intelligence de Essaim', category: 'AI' },
             { name: 'dronePhysics', label: 'Physique des Drones', category: 'Physics' },
             { name: 'adaptivePerformanceEngine', label: 'Moteur de Performance Adaptatif', category: 'Performance' },
-            { name: 'networkOptimizer', label: 'Optimiseur Réseau', category: 'Network' },
+            { name: 'networkOptimizer', label: 'Network Optimizer', category: 'Network' },
             { name: 'crossPlatformOptimizer', label: 'Optimiseur Multi-Plateforme', category: 'Performance' },
-            { name: 'rlNeuralNetwork', label: 'Réseau de Neurones RL', category: 'AI' },
-            { name: 'quantumNeuralNetwork', label: 'Réseau de Neurones Quantique', category: 'AI' },
+            { name: 'rlNeuralNetwork', label: 'RL Neural Network', category: 'AI' },
+            { name: 'quantumNeuralNetwork', label: 'Quantum Neural Network', category: 'AI' },
             { name: 'pidController', label: 'Contrôleur PID', category: 'Control' },
             { name: 'flockingBehaviors', label: 'Comportements de Vol en Formation', category: 'Behavior' },
             { name: 'glslGrassField', label: 'Champ d\'Herbe GLSL', category: 'Visual' },
@@ -1022,7 +1022,7 @@ export class DiamantUI {
             </div>
             
             <div class="panel-section" id="advanced-metrics" style="display: none;">
-                <h3>🔬 Métriques Avancées</h3>
+                <h3>🔬 Métriques Advancedes</h3>
                 
                 <div class="metric-item">
                     <span class="metric-label">H1 (Externe):</span>

@@ -551,7 +551,7 @@ export class LLMChatPanel {
         this._hookKeyboard();
         this._hookEvents();
 
-        // Welcome message — show LLM status after probe completes
+        // Welcome message — show LLM status after probe completees
         const showWelcome = () => {
             const isLLM = this.missionService._ollamaOnline;
             const model = this.missionService._model;
@@ -658,7 +658,7 @@ export class LLMChatPanel {
                 </div>
                 <div class="llm-header-actions">
                     <button id="llm-btn-beacon" title="Placer une balise [📍]">📍</button>
-                    <button id="llm-btn-minimize" title="Réduire">—</button>
+                    <button id="llm-btn-minimize" title="Minimize">—</button>
                     <button id="llm-btn-close" title="Fermer [C]">✕</button>
                 </div>
             </div>
@@ -676,8 +676,8 @@ export class LLMChatPanel {
             <div class="llm-quick-actions" id="llm-quick-actions"></div>
             <div class="llm-input-bar">
                 <input type="text" class="llm-input" id="llm-input"
-                    placeholder="Décrivez votre ordre de mission…"
-                    autocomplete="off" />
+                    placeholder="Describe your mission order…"
+                    autocompletee="off" />
                 <button class="llm-send-btn" id="llm-send-btn" title="Envoyer">➤</button>
             </div>
         `;
@@ -968,7 +968,7 @@ export class LLMChatPanel {
         // Add clickable locate link
         const link = document.createElement('span');
         link.className = 'llm-beacon-link';
-        link.textContent = '📍 Localiser dans la scène';
+        link.textContent = '📍 Locate in the scene';
         link.addEventListener('click', () => this._focusOnBeacon(beaconId));
         div.appendChild(document.createElement('br'));
         div.appendChild(link);
@@ -1179,7 +1179,7 @@ export class LLMChatPanel {
                         );
                     }
                     break;
-                case 'mission-complete':
+                case 'mission-completee':
                     this._addMessage('system',
                         `✅ **Mission terminée** — toutes les balises ont été trouvées !`
                     );

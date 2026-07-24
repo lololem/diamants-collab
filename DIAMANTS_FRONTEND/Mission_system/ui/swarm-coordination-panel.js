@@ -13,7 +13,7 @@
  * RL fédérée des coordinateurs X500/S500.
  *
  * Affiche:
- *   - Rôle de chaque coordinateur (coordinator / patrol)
+ *   - Role de chaque coordinateur (coordinator / patrol)
  *   - Zone assignée + couverture locale
  *   - Action RL courante (dx, dz, spread, signal)
  *   - Scouts rattachés
@@ -201,7 +201,7 @@ export class SwarmCoordinationPanel {
             </div>
             <div style="display:flex; gap:8px; font-size:10px; margin-bottom:4px;">
                 <span>Zone: <b>(${(coord.zone?.n || 0).toFixed(0)}, ${(coord.zone?.e || 0).toFixed(0)})</b></span>
-                <span>Rôle: <b style="color:${roleColor}">${coord.role}</b></span>
+                <span>Role: <b style="color:${roleColor}">${coord.role}</b></span>
             </div>
             <div style="margin-bottom:4px;">
                 <div style="display:flex; justify-content:space-between; font-size:10px;">
@@ -265,7 +265,7 @@ export class SwarmCoordinationPanel {
                 color: '#555',
                 fontSize: '10px',
             });
-            empty.innerHTML = 'Aucun coordinateur detecté<br><span style="font-size:9px;color:#444">Les X500/S500 apparaîtront ici</span>';
+            empty.innerHTML = 'No coordinator detected<br><span style="font-size:9px;color:#444">Les X500/S500 apparaîtront ici</span>';
             this._body.appendChild(empty);
             return;
         }
