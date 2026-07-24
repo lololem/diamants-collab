@@ -601,7 +601,7 @@ export class MARLTrainingPanel {
                         <option value="fedavg" selected>FedAvg</option>
                         <option value="fedprox">FedProx</option>
                         <option value="weighted">Weighted</option>
-                        <option value="none">Indépendant</option>
+                        <option value="none">Independent</option>
                     </select>
                 </label>
                 <label style="display: flex; flex-direction: column; gap: 2px;">
@@ -613,8 +613,8 @@ export class MARLTrainingPanel {
                     <select id="marl-curriculum" style="background: #1e293b; border: 1px solid #334155; color: #e2e8f0; padding: 5px; border-radius: 4px; font-size: 12px; font-family: inherit; width: 100%; box-sizing: border-box;">
                         <option value="0">0 — Novice</option>
                         <option value="1" selected>1 — Apprenti</option>
-                        <option value="2">2 — Intermédiaire</option>
-                        <option value="3">3 — Avancé</option>
+                        <option value="2">2 — Intermediate</option>
+                        <option value="3">3 — Advanced</option>
                         <option value="4">4 — Expert</option>
                     </select>
                 </label>
@@ -1498,7 +1498,7 @@ export class MARLTrainingPanel {
             beforeMetrics,
         };
 
-        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-complete', {
+        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-completee', {
             detail: transferSummary
         }));
 
@@ -1520,7 +1520,7 @@ export class MARLTrainingPanel {
     }
 
     /**
-     * Show federation results dashboard after live MARL session completes.
+     * Show federation results dashboard after live MARL session completees.
      * Displays real metrics from actual mission data + Q-table federation.
      */
     _showFederationResults(history) {
@@ -1573,7 +1573,7 @@ export class MARLTrainingPanel {
         transferData.totalExperiences = transferData.agents.reduce((s, a) => s + a.experiences, 0);
         this._lastTransferData = transferData;
 
-        // Emit transfer complete event
+        // Emit transfer completee event
         const transferSummary = {
             agentsUpdated: transferData.agentsUpdated,
             totalExperiences: transferData.totalExperiences,
@@ -1584,7 +1584,7 @@ export class MARLTrainingPanel {
             beforeMetrics: this._beforeMetrics,
         };
 
-        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-complete', {
+        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-completee', {
             detail: transferSummary
         }));
 
@@ -1844,7 +1844,7 @@ export class MARLTrainingPanel {
     }
 
     /**
-     * Render the full Transfer Dashboard after _transferToRealAgents completes.
+     * Render the full Transfer Dashboard after _transferToRealAgents completees.
      */
     _renderTransferDashboard(data) {
         // Show the dashboard

@@ -145,15 +145,15 @@ export class OptimalSearchUI {
         tags.push(coa.id, coa.name.toLowerCase());
         
         // Performance tags
-        if (perf.coverage > 0.90) tags.push('haute couverture', 'high coverage', 'complet');
-        if (perf.time > 0.80) tags.push('rapide', 'fast', 'efficace');
-        if (perf.energy > 0.80) tags.push('économe', 'energy efficient', 'basse consommation');
+        if (perf.coverage > 0.90) tags.push('high coverage', 'high coverage', 'complete');
+        if (perf.time > 0.80) tags.push('fast', 'fast', 'efficient');
+        if (perf.energy > 0.80) tags.push('efficient', 'energy efficient', 'low consumption');
         if (perf.adaptability > 0.80) tags.push('adaptatif', 'flexible', 'intelligent');
-        if (perf.reliability > 0.90) tags.push('fiable', 'reliable', 'stable');
+        if (perf.reliability > 0.90) tags.push('reliable', 'reliable', 'stable');
         
         // Special tags
-        if (perf.coverage > 0.95 && perf.reliability > 0.90) tags.push('optimal', 'meilleur', 'best');
-        if (perf.adaptability > 0.90 && perf.energy > 0.80) tags.push('autonome', 'smart');
+        if (perf.coverage > 0.95 && perf.reliability > 0.90) tags.push('optimal', 'best', 'best');
+        if (perf.adaptability > 0.90 && perf.energy > 0.80) tags.push('autonomous', 'smart');
         
         return tags;
     }
@@ -225,7 +225,7 @@ export class OptimalSearchUI {
         
         this.searchInput = document.createElement('input');
         this.searchInput.type = 'text';
-        this.searchInput.placeholder = 'Rechercher... (ex: rapide couverture, stigmergie adaptatif)';
+        this.searchInput.placeholder = 'Rechercher... (ex: fast couverture, stigmergie adaptatif)';
         Object.assign(this.searchInput.style, {
             flex: '1',
             background: 'rgba(0, 40, 80, 0.6)',
@@ -367,16 +367,16 @@ export class OptimalSearchUI {
         });
         
         const label = document.createElement('span');
-        label.textContent = 'Priorité:';
+        label.textContent = 'Priority:';
         label.style.color = '#668899';
         label.style.fontSize = '10px';
         bar.appendChild(label);
         
         const priorities = [
             { key: 'coverage', label: '📐 Couverture', color: '#00FF88' },
-            { key: 'time', label: '⚡ Rapidité', color: '#FFAA00' },
+            { key: 'time', label: '⚡ Speed', color: '#FFAA00' },
             { key: 'energy', label: '🔋 Énergie', color: '#00CCFF' },
-            { key: 'reliability', label: '🛡️ Fiabilité', color: '#AA88FF' },
+            { key: 'reliability', label: '🛡️ Reliability', color: '#AA88FF' },
             { key: 'adaptability', label: '🧠 Adaptatif', color: '#FF88AA' }
         ];
         
@@ -565,7 +565,7 @@ export class OptimalSearchUI {
             empty.style.padding = '20px';
             empty.style.textAlign = 'center';
             empty.style.color = '#668899';
-            empty.textContent = 'Aucune configuration trouvée';
+            empty.textContent = 'No configuration found';
             this.resultsContainer.appendChild(empty);
             return;
         }
@@ -597,9 +597,9 @@ export class OptimalSearchUI {
             <div class="description">${config.coa.description}</div>
             <div class="metrics">
                 ${this._renderMetric('📐', 'Couverture', perf.coverage, '#00FF88')}
-                ${this._renderMetric('⚡', 'Rapidité', perf.time, '#FFAA00')}
+                ${this._renderMetric('⚡', 'Speed', perf.time, '#FFAA00')}
                 ${this._renderMetric('🔋', 'Énergie', perf.energy, '#00CCFF')}
-                ${this._renderMetric('🛡️', 'Fiabilité', perf.reliability, '#AA88FF')}
+                ${this._renderMetric('🛡️', 'Reliability', perf.reliability, '#AA88FF')}
                 ${this._renderMetric('🧠', 'Adaptatif', perf.adaptability, '#FF88AA')}
             </div>
         `;
@@ -707,7 +707,7 @@ export class OptimalSearchUI {
             'couverture': ['coverage_grid', 'coverage_boustrophedon', 'stigmergy_grid'],
             'recherche': ['search_adaptive', 'search_spiral', 'stigmergy_spiral'],
             'surveillance': ['formation_radial', 'stigmergy_perimeter'],
-            'rapide': ['swarm_adaptive', 'search_adaptive', 'stigmergy_adaptive']
+            'fast': ['swarm_adaptive', 'search_adaptive', 'stigmergy_adaptive']
         };
         
         const matches = typeMatches[missionType.toLowerCase()] || typeMatches['exploration'];
