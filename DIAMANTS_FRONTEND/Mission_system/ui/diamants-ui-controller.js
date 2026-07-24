@@ -219,7 +219,7 @@ export class DiamantsUIController {
         this.updateElement('metric-intelligence', totalIntel.toFixed(0));
         // Emergence: show phase state instead of raw percentage
         const eLevel = metrics.emergenceLevel || 0;
-        const ePhase = eLevel < 0.01 ? 'CENTRALISÉ'
+        const ePhase = eLevel < 0.01 ? 'CENTRALIZED'
                      : eLevel < 0.15 ? 'TRANSITION'
                      : 'AUTO-ORG';
         this.updateElement('metric-emergence', ePhase);
@@ -296,7 +296,7 @@ export class DiamantsUIController {
             let sourceTag = '';
             let itemClass = '';
             if (isReal) {
-                sourceTag = '<span class="drone-source-tag real">RÉEL</span>';
+                sourceTag = '<span class="drone-source-tag real">REAL</span>';
                 itemClass = 'real-agent';
             } else if (isAgent) {
                 const engineLabel = d.rosData?.engine ? ` ${d.rosData.engine.toUpperCase()}` : '';
@@ -395,12 +395,12 @@ export class DiamantsUIController {
 
     /* ── Autonomy step definitions ── */
     static AUTONOMY_STEPS = [
-        { step: 0, level:   0, icon: '🔗', mode: 'Centralisé',      short: 'CENTRAL',  desc: 'Tous les drones forment une seule unité coordonnée.' },
-        { step: 1, level:  25, icon: '📐', mode: 'Guidé',           short: 'GUIDÉ',    desc: 'Formation unifiée avec micro-ajustements individuels.' },
-        { step: 2, level:  50, icon: '🔀', mode: 'Hybride',         short: 'HYBRIDE',  desc: 'Objectifs de groupe + exploration locale autonome.' },
-        { step: 3, level:  75, icon: '🧠', mode: 'Semi-autonome',   short: 'SEMI-AUTO', desc: 'Exploration indépendante, coordination par stigmergie.' },
-        { step: 4, level:  90, icon: '🤖', mode: 'Autonome',        short: 'AUTONOME', desc: 'Agents indépendants, partage d\'information minimal.' },
-        { step: 5, level: 100, icon: '⚡', mode: 'Distribué total', short: 'DISTRIBUÉ', desc: 'Agents 100% autonomes — aucun contrôle central.' },
+        { step: 0, level:   0, icon: '🔗', mode: 'Centralized',      short: 'CENTRAL',  desc: 'All drones form a single coordinated unit.' },
+        { step: 1, level:  25, icon: '📐', mode: 'Guided',           short: 'GUIDED',    desc: 'Unified formation with individual micro-adjustments.' },
+        { step: 2, level:  50, icon: '🔀', mode: 'Hybrid',         short: 'HYBRIDE',  desc: 'Objectifs de groupe + exploration locale autonome.' },
+        { step: 3, level:  75, icon: '🧠', mode: 'Semi-autonomous',   short: 'SEMI-AUTO', desc: 'Independent exploration, stigmergy-based coordination.' },
+        { step: 4, level:  90, icon: '🤖', mode: 'Autonomous',        short: 'AUTONOME', desc: 'Agents indépendants, partage d\'information minimal.' },
+        { step: 5, level: 100, icon: '⚡', mode: 'Fully distributed', short: 'DISTRIBUTED', desc: 'Fully autonomous agents — no central control.' },
     ];
 
     setupAutonomySlider() {

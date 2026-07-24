@@ -43,7 +43,7 @@ export class AuthenticCrazyflie {
     static _daeBasePath = null;     // base path used for propellers
 
     constructor(id, x = 0, y = 3, z = 0, type = 'SCOUT', scene = null) {
-        logger.debug('Drone', `🚁 AuthenticCrazyflie.constructor() - Début création drone ${id}`);
+        logger.debug('Drone', `🚁 AuthenticCrazyflie.constructor() - Start creating drone ${id}`);
 
         // Assurer que THREE est bien disponible au moment de l'instanciation
         if (!THREE && typeof window !== 'undefined' && window.THREE) {
@@ -389,7 +389,7 @@ export class AuthenticCrazyflie {
     }
 
     initializeMesh() {
-        logger.debug('Drone', `🚁 initializeMesh() - Début pour drone ${this.id}`);
+        logger.debug('Drone', `🚁 initializeMesh() - Start for drone ${this.id}`);
 
         // Groupe principal du drone (toujours créé; l'ajout à la scène est optionnel)
         this.mesh = new THREE.Group();
@@ -398,12 +398,12 @@ export class AuthenticCrazyflie {
         // On grossit le modèle sans changer la physique/logique
         try {
             this.mesh.scale.setScalar(15);
-            logger.trace('Drone', `📏 Drone ${this.id}: échelle définie à 15x`);
+            logger.trace('Drone', `📏 Drone ${this.id}: scale set to 15x`);
         } catch (e) {
-            logger.warning('Drone', `⚠️ Erreur échelle drone ${this.id}:`, e);
+            logger.warning('Drone', `⚠️ Scale error for drone ${this.id}:`, e);
         }
 
-    logger.info('Drone', `🚀 INITIALISATION CRAZYFLIE AUTHENTIQUE ${this.id} - CHARGEMENT DAE PRIORITAIRE (fallback seulement si échec)`);
+    logger.info('Drone', `🚀 AUTHENTIC CRAZYFLIE INIT ${this.id} - PRIORITY DAE LOADING (fallback seulement si échec)`);
 
     // Désactiver la création d'hélices fallback vert fluo
     this.propellers = [];
@@ -422,14 +422,14 @@ export class AuthenticCrazyflie {
         this.tryLoadRealMesh().then((ok) => {
             clearTimeout(loadingTimeout);
             if (ok) {
-                log('✅ DAE chargé avec succès pour drone', this.id);
+                log('✅ DAE loaded successfully for drone', this.id);
             } else {
-                throw new Error('DAE non confirmé');
+                throw new Error('DAE not confirmed');
             }
         }).catch(err => {
             clearTimeout(loadingTimeout);
-            console.error('❌ ÉCHEC DAE pour drone', this.id, ':', err);
-            warn('🟡 Fallback debug créé (cube) car DAE indisponible', this.id);
+            console.error('❌ DAE FAILURE for drone', this.id, ':', err);
+            warn('🟡 Debug fallback created (cube) since DAE unavailable', this.id);
 
             // Créer le fallback uniquement en cas d'échec (évite les cubes par défaut)
             try {
@@ -450,7 +450,7 @@ export class AuthenticCrazyflie {
                 debugBody.castShadow = true;
                 debugBody.receiveShadow = true;
                 this.mesh.add(debugBody);
-                logger.debug('Drone', `✅ Drone ${this.id}: fallback mesh créé (échec DAE)`);
+                logger.debug('Drone', `✅ Drone ${this.id}: fallback mesh created (DAE failure)`);
             } catch (_) { /* safe */ }
         });
 
@@ -566,10 +566,10 @@ export class AuthenticCrazyflie {
 
             // ── Line 3: Autonomy mode badge + action ──
             const autonomy = info.autonomy ?? 100;
-            const autoMode = info.autonomyMode || (autonomy >= 90 ? 'DISTRIBUÉ' : autonomy >= 75 ? 'SEMI-AUTO' : autonomy >= 50 ? 'HYBRIDE' : autonomy >= 25 ? 'GUIDÉ' : 'CENTRAL');
+            const autoMode = info.autonomyMode || (autonomy >= 90 ? 'DISTRIBUTED' : autonomy >= 75 ? 'SEMI-AUTO' : autonomy >= 50 ? 'HYBRIDE' : autonomy >= 25 ? 'GUIDED' : 'CENTRAL');
             const barY = 102;
             // Mode badge background
-            const badgeColors = { 'CENTRAL': '#00BFFF', 'GUIDÉ': '#33bbdd', 'HYBRIDE': '#66DDAA', 'SEMI-AUTO': '#88dd88', 'AUTONOME': '#aaee66', 'DISTRIBUÉ': '#00FF88' };
+            const badgeColors = { 'CENTRAL': '#00BFFF', 'GUIDED': '#33bbdd', 'HYBRIDE': '#66DDAA', 'SEMI-AUTO': '#88dd88', 'AUTONOME': '#aaee66', 'DISTRIBUTED': '#00FF88' };
             const badgeColor = badgeColors[autoMode] || '#00FF88';
             const badgeW = ctx.measureText(autoMode).width + 16 || 80;
             ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -646,7 +646,7 @@ export class AuthenticCrazyflie {
     }
 
     async ensureColladaLoader() {
-        logger.debug('Drone', `🔧 ensureColladaLoader() - Vérification ColladaLoader`);
+        logger.debug('Drone', `🔧 ensureColladaLoader() - Checking ColladaLoader`);
 
         // 1) Préférence: import ESM aligné avec la version de three utilisée par Vite
         if (!this._ColladaLoaderClass) {
@@ -698,11 +698,11 @@ export class AuthenticCrazyflie {
                             this._ColladaLoaderClass.__diamantsParsePatched = true;
                         }
                     } catch (_) { /* noop */ }
-                    logger.info('Drone', '✅ ColladaLoader ESM chargé via import (addons)');
+                    logger.info('Drone', '✅ ColladaLoader ESM loaded via import (addons)');
                     return this._ColladaLoaderClass;
                 }
             } catch (e) {
-                logger.warning('Drone', '⚠️ Échec import ESM ColladaLoader, tentative fallback global:', e);
+                logger.warning('Drone', '⚠️ ESM ColladaLoader import failed, trying global fallback:', e);
             }
         } else {
             return this._ColladaLoaderClass;
@@ -710,7 +710,7 @@ export class AuthenticCrazyflie {
 
         // 2) Fallback global (ancienne méthode basée sur window.THREE)
         if (typeof window !== 'undefined' && window.THREE && window.THREE.ColladaLoader) {
-            logger.debug('Drone', '✅ ColladaLoader déjà disponible dans window.THREE');
+            logger.debug('Drone', '✅ ColladaLoader already available in window.THREE');
             try {
                 if (window.THREE.ColladaLoader.prototype && window.THREE.ColladaLoader.prototype.options) {
                     window.THREE.ColladaLoader.prototype.options.convertUpAxis = false;
@@ -743,7 +743,7 @@ export class AuthenticCrazyflie {
         try {
             const modCdn = await import('https://unpkg.com/three@0.167.1/examples/jsm/loaders/ColladaLoader.js');
             if (modCdn && modCdn.ColladaLoader) {
-                logger.info('Drone', '✅ ColladaLoader chargé via CDN ESM');
+                logger.info('Drone', '✅ ColladaLoader loaded via ESM CDN');
                 this._ColladaLoaderClass = modCdn.ColladaLoader;
                 try {
                     if (typeof window !== 'undefined') {

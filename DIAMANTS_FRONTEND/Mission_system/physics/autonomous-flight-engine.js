@@ -195,9 +195,9 @@ export class AutonomousFlightEngine {
         this.useSensorAvoidance = false; // DISABLED — 11 drones × 35 raycasts × 30Hz = 11K intersections/sec freezes GPU
 
         // ═══ AUTONOMY LEVEL (slider centralisé↔distribué) ═══
-        // 0   = Centralisé: formation serrée, tous ensemble
-        // 50  = Hybride: secteurs de groupe + liberté locale
-        // 100 = Distribué: chaque drone est un agent autonome indépendant
+        // 0   = Centralized: formation serrée, tous ensemble
+        // 50  = Hybrid: secteurs de groupe + liberté locale
+        // 100 = Distributed: chaque drone est un agent autonome indépendant
         this.autonomyLevel = 100; // Default: fully distributed (original behavior)
         this._formationCenter = new THREE.Vector3(0, 0, 0); // Leader/centroid for formation
         this._formationDirty = true;
@@ -601,11 +601,11 @@ export class AutonomousFlightEngine {
     // ─── Autonomy level control ──────────────────────────────────────
     /**
      * Set autonomy level (0-100).
-     * 0   = Centralisé: tight formation, drones follow leader
-     * 25  = Guidé: formation with local obstacle avoidance
-     * 50  = Hybride: sub-group sectors + individual exploration
-     * 75  = Semi-autonome: individual territories, stigmergy
-     * 100 = Distribué: fully independent agents
+     * 0   = Centralized: tight formation, drones follow leader
+     * 25  = Guided: formation with local obstacle avoidance
+     * 50  = Hybrid: sub-group sectors + individual exploration
+     * 75  = Semi-autonomous: individual territories, stigmergy
+     * 100 = Distributed: fully independent agents
      */
     setAutonomyLevel(level) {
         const old = this.autonomyLevel;
@@ -831,7 +831,7 @@ export class AutonomousFlightEngine {
         if (state._scenarioDisabled) {
             // Drone hovers in place — zero velocity, keep current position
             state.velocity.x = 0; state.velocity.y = 0; state.velocity.z = 0;
-            state._lastDecision = '💀 HORS SERVICE (scénario)';
+            state._lastDecision = '💀 OUT OF SERVICE (scenario)';
             return;
         }
 
@@ -1490,7 +1490,7 @@ export class AutonomousFlightEngine {
                     // ═══ AUTONOMY-DRIVEN WAYPOINT SELECTION (only if no mission waypoint) ═══
                     if (!this.missionWaypointProvider || !targetWP) {
                     if (autonomy < 25) {
-                        // CENTRALISÉ: formation serrée, mouvement coordonné
+                        // CENTRALIZED: formation serrée, mouvement coordonné
                         targetWP = this._pickFormationWaypoint(state);
                         state.waypoint = targetWP;
                         state._wpInitialDist = Math.sqrt((state.position.x - targetWP.x) ** 2 + (state.position.z - targetWP.z) ** 2);
@@ -1504,7 +1504,7 @@ export class AutonomousFlightEngine {
                         state._lastAction = 'HYBRID GRP';
                         state._lastDecision = `GRP d=${state._wpInitialDist.toFixed(0)}m`;
                     } else if (this.useOrganicMode) {
-                        // DISTRIBUÉ + ORGANIC MODE — v0 spiral + collaborative repulsion
+                        // DISTRIBUTED + ORGANIC MODE — v0 spiral + collaborative repulsion
                         if (stallTimeout) {
                             // Progressive escape: repeated stalls → bigger jumps
                             if (!state._escaleCount) state._escaleCount = 0;
@@ -1544,7 +1544,7 @@ export class AutonomousFlightEngine {
                         state._wpInitialDist = Math.sqrt((state.position.x - targetWP.x) ** 2 + (state.position.z - targetWP.z) ** 2);
                         state._lastDecision = `WP d=${state._wpInitialDist.toFixed(0)}m`;
                     } else {
-                        // DISTRIBUÉ + SWARM INTELLIGENCE MODE — termite/voronoi sector sweep
+                        // DISTRIBUTED + SWARM INTELLIGENCE MODE — termite/voronoi sector sweep
                         const neighbors = this._getNeighbors(state.id);
                         const suggested = this.swarmIntelligence.computeNextWaypoint(
                             state.id, state, neighbors
@@ -1588,17 +1588,17 @@ export class AutonomousFlightEngine {
                         // ── DEMO MODE: generate simulated LLM reasoning when Ollama is offline ──
                         const demoReasons = [
                             'Analyse thermique → zone prioritaire N-E',
-                            'Couverture sectorielle optimale détectée',
-                            'Évitement obstacle + replanification',
-                            'Coordination essaim → réduire redondance',
-                            'Détection mouvement → investigation',
+                            'Optimal sector coverage detected',
+                            'Obstacle avoidance + replanning',
+                            'Swarm coordination → reduce redundancy',
+                            'Motion detected → investigation',
                             'Signal faible → approche prudente',
-                            'Topologie favorable → accélération',
-                            'Cellules voisines non-visitées → expansion',
-                            'Vent contraire → altitude +2m recommandée',
-                            'Couverture locale 87% → transition secteur',
+                            'Favorable topology → speed up',
+                            'Unvisited neighbor cells → expansion',
+                            'Headwind → +2m altitude recommended',
+                            'Coverage locale 87% → transition secteur',
                             'Analyse terrain → contournement colline',
-                            'Peer #' + ((parseInt(state.id) + 3) % this.drones.size) + ' couvre déjà → déviation',
+                            'Peer #' + ((parseInt(state.id) + 3) % this.drones.size) + ' already covered → deviation',
                         ];
                         state._lastReasoning = demoReasons[Math.floor(Math.random() * demoReasons.length)];
                     }
@@ -1727,7 +1727,7 @@ export class AutonomousFlightEngine {
      */
     setDoctrineManager(dm) {
         this.doctrineManager = dm;
-        console.log('[ENGINE] DoctrineManager connecté');
+        console.log('[ENGINE] DoctrineManager connected');
 
         // Listen for real-time doctrine/COA changes to flush cached waypoints
         // and log the updated weights + bias for debugging
@@ -1772,7 +1772,7 @@ export class AutonomousFlightEngine {
     setPathfinder(pathfinder, voxelizer = null) {
         this.pathfinder = pathfinder;
         this.voxelizer = voxelizer;
-        console.log('[ENGINE] 🧭 Pathfinder Dijkstra configuré');
+        console.log('[ENGINE] 🧭 Dijkstra pathfinder configured');
     }
 
     /**
@@ -1818,7 +1818,7 @@ export class AutonomousFlightEngine {
                 // Skip first point (current position)
                 const pathTail = path.slice(1);
                 this._pathWaypoints.set(state.id, pathTail);
-                console.log(`[PATHFINDER] ${state.id}: ${path.length} waypoints calculés`);
+                console.log(`[PATHFINDER] ${state.id}: ${path.length} waypoints computed`);
                 return new THREE.Vector3(pathTail[0].x, pathTail[0].y, pathTail[0].z);
             }
         } catch (e) {
@@ -2724,7 +2724,7 @@ export class AutonomousFlightEngine {
         if (this.swarmIntelligence && typeof this.swarmIntelligence.setTerrainHeightFunction === 'function') {
             this.swarmIntelligence.setTerrainHeightFunction(heightFn);
         }
-        console.log('[ENGINE] 🌳 Terrain height function configurée');
+        console.log('[ENGINE] 🌳 Terrain height function configured');
     }
 
     /**
@@ -3409,8 +3409,8 @@ export class AutonomousFlightEngine {
                 const autoOrg = this.autonomyLevel >= 90;
                 drone.updateStatusText({
                     phase:            state.phase,
-                    doctrine:         autoOrg ? '🔄 Auto-Organisé' : (dm?.currentDoctrine?.name || '—'),
-                    coa:              autoOrg ? 'Distribué'        : (dm?.currentCOA?.name  || '—'),
+                    doctrine:         autoOrg ? '🔄 Self-Organized' : (dm?.currentDoctrine?.name || '—'),
+                    coa:              autoOrg ? 'Distributed'        : (dm?.currentCOA?.name  || '—'),
                     autonomy:         this.autonomyLevel,
                     autonomyMode:     window.DIAMANTS_AUTONOMY_MODE || '',
                     action:           state._lastAction || '',
