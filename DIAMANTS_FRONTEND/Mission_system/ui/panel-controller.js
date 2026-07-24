@@ -2091,54 +2091,54 @@ export class PanelController {
             // ── Perception layer: what the drone sees ──
             let perception;
             if (alerts.critical?.length > 0) {
-                perception = `CRITIQUE: obstacle ${minSensorDir} à ${minSensor.toFixed(1)}m — capteur ToF alerte critique`;
+                perception = `CRITICAL: obstacle ${minSensorDir} at ${minSensor.toFixed(1)}m — ToF sensor critical alert`;
             } else if (alerts.warning?.length > 0) {
-                perception = `Obstacle détecté ${minSensorDir} à ${minSensor.toFixed(1)}m — zone de sécurité entamée`;
+                perception = `Obstacle detected ${minSensorDir} at ${minSensor.toFixed(1)}m — safety zone breached`;
             } else if (minSensor < 2.0) {
-                perception = `Proximité ${minSensorDir}: ${minSensor.toFixed(1)}m — surveillance active`;
+                perception = `Proximity ${minSensorDir}: ${minSensor.toFixed(1)}m — active monitoring`;
             } else {
                 // No obstacle - describe exploration perception
-                const sensorStatus = sensors.slice(0, 4).every(s => s > 3.0) ? 'dégagé 360°' : `min ${minSensor.toFixed(1)}m ${minSensorDir}`;
-                perception = `Environnement ${sensorStatus}, altitude ${alt}m AGL`;
+                const sensorStatus = sensors.slice(0, 4).every(s => s > 3.0) ? 'clear 360°' : `min ${minSensor.toFixed(1)}m ${minSensorDir}`;
+                perception = `Environment ${sensorStatus}, altitude ${alt}m AGL`;
             }
 
             // ── Decision layer: what the drone decided ──
             let decisionText;
             switch (phase) {
                 case 'TAKEOFF':
-                    decisionText = `Montée vers ${cruiseAlt}m — vitesse verticale ${vel?.y?.toFixed(1) || '0.8'}m/s, stabilisation PID`;
+                    decisionText = `Climb to ${cruiseAlt}m — vertical speed ${vel?.y?.toFixed(1) || '0.8'}m/s, PID stabilization`;
                     break;
                 case 'HOVER':
-                    decisionText = `Maintien position [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — hover alt ${alt}m`;
+                    decisionText = `Hold position [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — hover alt ${alt}m`;
                     break;
                 case 'EXPLORE': {
                     if (droneState._returningToBase) {
                         const home = droneState.homePosition;
                         const distHome = home ? Math.sqrt((pos.x - home.x) ** 2 + (pos.z - home.z) ** 2).toFixed(0) : '?';
-                        decisionText = `Retour base — distance ${distHome}m, cap ${compass}`;
+                        decisionText = `Return to base — distance ${distHome}m, heading ${compass}`;
                     } else if (action.includes('ESCAPE')) {
-                        decisionText = `Anti-blocage: déviation d'urgence, vitesse 2D = ${speed2D}m/s`;
+                        decisionText = `Anti-stall: emergency deviation, 2D speed = ${speed2D}m/s`;
                     } else if (action.includes('BEACON')) {
-                        decisionText = `Convergence balise — ${decision}`;
+                        decisionText = `Beacon convergence — ${decision}`;
                     } else if (action.includes('MISSION')) {
-                        decisionText = `Exécution mission LLM — waypoint à ${wpDist}m, cap ${compass}`;
+                        decisionText = `LLM mission execution — waypoint at ${wpDist}m, heading ${compass}`;
                     } else if (action.includes('FORMATION')) {
-                        decisionText = `Mode formation — repositionnement d=${wpDist}m, cap ${compass}`;
+                        decisionText = `Formation mode — repositioning d=${wpDist}m, heading ${compass}`;
                     } else if (action.includes('SWARM')) {
-                        decisionText = `Intelligence essaim — secteur Voronoï, WP à ${wpDist}m`;
+                        decisionText = `Swarm intelligence — Voronoi sector, WP at ${wpDist}m`;
                     } else if (action.includes('REDIR')) {
-                        decisionText = `Redirection reçue — ordre cognitif, cap ${compass}`;
+                        decisionText = `Redirect received — cognitive order, heading ${compass}`;
                     } else {
-                        decisionText = `Exploration ${compass} — WP à ${wpDist}m, ${waypointsVisited} points visités`;
-                        if (covPct !== null) decisionText += `, couverture ${covPct}%`;
+                        decisionText = `Exploration ${compass} — WP at ${wpDist}m, ${waypointsVisited} points visited`;
+                        if (covPct !== null) decisionText += `, coverage ${covPct}%`;
                     }
                     break;
                 }
                 case 'LAND':
-                    decisionText = `Atterrissage en cours — alt ${alt}m, descent contrôlée`;
+                    decisionText = `Landing — alt ${alt}m, controlled descent`;
                     break;
                 case 'LANDED':
-                    decisionText = `Au sol — moteurs coupés, ${waypointsVisited} waypoints complétés`;
+                    decisionText = `On ground — motors off, ${waypointsVisited} waypoints completed`;
                     break;
                 case 'IDLE': {
                     // Get current scenario/mission context for richer decisions
@@ -2148,19 +2148,19 @@ export class PanelController {
                     const docMgr = window.diamantsSystem?.integratedController?.doctrineManager
                         || window.DIAMANTS?.doctrineManager;
                     const doctrine = docMgr?.currentDoctrine?.name || 'Exploration';
-                    const coa = docMgr?.currentCOA?.name || 'Adaptatif';
+                    const coa = docMgr?.currentCOA?.name || 'Adaptive';
 
                     const idleVariants = [
-                        `Pré-vol: calibration IMU + magnétomètre, attente GPS fix (— sat)`,
-                        `Initialisation capteurs ToF + barométrique, auto-check ESC —/4`,
-                        `Diagnostic système: batterie —%, moteurs OK, liaison radio — dBm`,
-                        `Mode standby — doctrine «${doctrine}» / COA «${coa}» chargées, prêt au takeoff`,
-                        `Standby ordre de mission — algorithme Voronoï pré-calculé, ${drones.length} drones dans l'essaim`,
+                        `Pre-flight: IMU + magnetometer calibration, waiting for GPS fix (— sat)`,
+                        `ToF + barometric sensor init, ESC auto-check —/4`,
+                        `System diagnostics: battery —%, motors OK, radio link — dBm`,
+                        `Standby mode — doctrine «${doctrine}» / COA «${coa}» loaded, ready for takeoff`,
+                        `Standby for mission order — Voronoi algorithm precomputed, ${drones.length} drones in the swarm`,
                         `Pre-flight check: nominal motor temperature, wind estimate —m/s`,
                     ];
                     if (activeScen) {
-                        idleVariants.push(`Scénario «${activeScen.name}» actif — configuration en cours, attente synchronisation essaim`);
-                        idleVariants.push(`Briefing scénario: ${activeScen.description?.slice(0, 80) || activeScen.name} — prêt`);
+                        idleVariants.push(`Scenario «${activeScen.name}» active — configuring, waiting for swarm sync`);
+                        idleVariants.push(`Scenario briefing: ${activeScen.description?.slice(0, 80) || activeScen.name} — ready`);
                     }
                     decisionText = idleVariants[Math.floor(Math.random() * idleVariants.length)];
                     break;
@@ -2175,20 +2175,20 @@ export class PanelController {
             const pitchDeg = (attitude.pitch * 180 / Math.PI).toFixed(1);
             if (phase === 'IDLE' || phase === 'LANDED') {
                 const idleActions = [
-                    `Au sol pos [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — moteurs arrêtés, télémétrie active`,
-                    `Stationnaire on ground — vérification liens essaim, latency —ms`,
-                    `Slot base [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — prêt takeoff, batt —%`,
+                    `On ground pos [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — motors off, telemetry active`,
+                    `Stationary on ground — checking swarm links, latency —ms`,
+                    `Base slot [${pos?.x?.toFixed(0) || 0}, ${pos?.z?.toFixed(0) || 0}] — ready for takeoff, batt —%`,
                     `Initial position — 3D GPS fix, HDOP —, data compression ok`,
                 ];
                 actionText = idleActions[Math.floor(Math.random() * idleActions.length)];
             } else if (alerts.critical?.length > 0) {
-                actionText = `Évitement urgence: force latérale ${droneState.sensorAlerts?.obstacleVector ? 'active' : 'appliquée'}, roll=${rollDeg}°`;
+                actionText = `Emergency avoidance: lateral force ${droneState.sensorAlerts?.obstacleVector ? 'active' : 'applied'}, roll=${rollDeg}°`;
             } else if (parseFloat(speed2D) > 2.0) {
-                actionText = `Vol cap ${compass} à ${speed2D}m/s, alt ${alt}m, attitude [R:${rollDeg}° P:${pitchDeg}°]`;
+                actionText = `Flight heading ${compass} at ${speed2D}m/s, alt ${alt}m, attitude [R:${rollDeg}° P:${pitchDeg}°]`;
             } else if (parseFloat(speed2D) > 0.3) {
-                actionText = `Approche lente ${compass} à ${speed2D}m/s, stabilisation fine`;
+                actionText = `Slow approach ${compass} at ${speed2D}m/s, fine stabilization`;
             } else {
-                actionText = `Stationnaire [${pos?.x?.toFixed(0) || 0}, ${alt}, ${pos?.z?.toFixed(0) || 0}], vit=${speed}m/s`;
+                actionText = `Stationary [${pos?.x?.toFixed(0) || 0}, ${alt}, ${pos?.z?.toFixed(0) || 0}], spd=${speed}m/s`;
             }
 
             // ── Compose full OODA-style reasoning ──
