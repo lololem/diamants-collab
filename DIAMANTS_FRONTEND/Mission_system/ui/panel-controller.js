@@ -1941,7 +1941,7 @@ export class PanelController {
     handleResetLLMBrains() {
         const mgr = this._getIntelligenceManager();
         if (!mgr) return;
-        for (const [id, brain] of mgr.brains) {
+        for (const [id, brain] of (mgr.brains || [])) {
             brain.reset();
             // Respect global toggle: only re-enable if global is ON AND profile allows it
             brain.setEnabled(mgr.globalEnabled && brain.profile?.enableLLM !== false);
@@ -2542,12 +2542,12 @@ export class PanelController {
             if (droneCount > 0) {
                 el.innerHTML = `🧠 <span style="color:#0ff">${droneCount}/${droneCount}</span> cerveaux actifs | 🟡 DÉMO (offline) | 💭 —`;
             } else {
-                el.innerHTML = '🧠 Initialisation cerveaux IA…';
+                el.innerHTML = '🧠 Initializing AI brains…';
             }
             return;
         }
         let active = 0, total = 0, thinking = 0;
-        for (const [id, b] of mgr.brains) {
+        for (const [id, b] of (mgr.brains || [])) {
             total++;
             if (b.enabled) active++;
             if (b._lastReasoning) thinking++;
