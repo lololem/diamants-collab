@@ -6,6 +6,15 @@ A fleet takes off from a helipad in a forest and explores on its own. Rendering,
 flight physics and collision avoidance are handled. You bring the coordination
 algorithm.
 
+https://github.com/lololem/diamants-collab/raw/main/docs/video/wildfire-mission.mp4
+
+> **Eleven drones, two tracked UGVs, one wildfire — and nobody in charge.**
+> Micro-drones sweep the forest and flag what they cannot identify. Camera
+> platforms fly out, confirm the fire with a YOLO detector running on their own
+> pixels, and put it on the radio. A ground vehicle elects itself, drives in, and
+> does not open its water monitor until its thermal camera holds the flame.
+> [How it works ↓](#wildfire-response-three-tiers-no-dispatcher)
+
 > **PolyForm Noncommercial 1.0.0** — free for research, teaching, personal and
 > non-profit use. Commercial use is not permitted. See [LICENSE](LICENSE).
 
@@ -37,10 +46,11 @@ while the rest keep exploring.*
 
 ## Wildfire response: three tiers, no dispatcher
 
-[![Watch the mission: a Colossus tracked UGV advancing through the forest while the onboard OAK-D camera view, bottom left, draws live YOLO detection boxes on smoke and fire](docs/images/wildfire-poster.jpg)](docs/video/wildfire-mission.mp4)
+![A Colossus tracked UGV advancing through the forest while the onboard OAK-D camera view, bottom left, draws live YOLO detection boxes on smoke and fire](docs/images/wildfire-poster.jpg)
 
-*▶ [Watch the full run (2 min 28)](docs/video/wildfire-mission.mp4) — survey,
-camera confirmation and suppression, end to end.*
+*The onboard view, bottom left: what the cognitive drone's OAK-D Pro W actually
+sees, with the detector's boxes drawn on it and a stereo depth map in the
+corner. [Full run, 2 min 28](docs/video/wildfire-mission.mp4).*
 
 Three kinds of agent, three jobs. Nobody hands out assignments: every decision
 is made locally, and the mission falls out of it.
