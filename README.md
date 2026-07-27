@@ -6,6 +6,23 @@ A fleet takes off from a helipad in a forest and explores on its own. Rendering,
 flight physics and collision avoidance are handled. You bring the coordination
 algorithm.
 
+### Why wildfire
+
+A forest fire is cheap to stop and ruinous to chase. In its first minutes one
+vehicle and a few hundred litres are enough; an hour later it takes a squadron,
+and the outcome no longer depends on you. The difficulty was never the water —
+it is knowing *where* to send it, across terrain that swallows radio and has no
+roads, faster than the front moves.
+
+That is a search problem before it is a firefighting one, and it is a poor fit
+for a single operator watching a single feed. It suits a swarm: many cheap
+sensors covering ground in parallel, a few better ones to confirm what the cheap
+ones flagged, and heavy machines committed only once there is something real to
+attack. Each tier does what it is actually equipped for, and no link in the
+chain is allowed to become the one that breaks it.
+
+This simulation runs that mission end to end.
+
 https://github.com/lololem/diamants-collab/raw/main/docs/video/wildfire-mission.mp4
 
 > **Eleven drones, two tracked UGVs, one wildfire — and nobody in charge.**
@@ -14,6 +31,11 @@ https://github.com/lololem/diamants-collab/raw/main/docs/video/wildfire-mission.
 > pixels, and put it on the radio. A ground vehicle elects itself, drives in, and
 > does not open its water monitor until its thermal camera holds the flame.
 > [How it works ↓](#wildfire-response-three-tiers-no-dispatcher)
+
+> ⚠️ **Preview — this code is not in this repository yet.** The wildfire mission
+> shown above (task network, onboard perception, ground vehicles, fire and
+> suppression physics) is still being finalised and has not been published here.
+> What you can run today is the swarm exploration simulator documented below.
 
 > **PolyForm Noncommercial 1.0.0** — free for research, teaching, personal and
 > non-profit use. Commercial use is not permitted. See [LICENSE](LICENSE).
@@ -45,6 +67,11 @@ while the rest keep exploring.*
 ---
 
 ## Wildfire response: three tiers, no dispatcher
+
+> **Not shipped yet.** This mission is running, filmed and described here, but
+> its code is still being finalised and is not part of this repository. Nothing
+> below can be cloned and run today — treat it as a look ahead, not a feature
+> list.
 
 ![A Colossus tracked UGV advancing through the forest while the onboard OAK-D camera view, bottom left, draws live YOLO detection boxes on smoke and fire](docs/images/wildfire-poster.jpg)
 
