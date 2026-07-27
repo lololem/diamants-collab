@@ -35,6 +35,44 @@ while the rest keep exploring.*
 
 ---
 
+## Wildfire response: three tiers, no dispatcher
+
+[![Watch the mission: a Colossus tracked UGV advancing through the forest while the onboard OAK-D camera view, bottom left, draws live YOLO detection boxes on smoke and fire](docs/images/wildfire-poster.jpg)](docs/video/wildfire-mission.mp4)
+
+*▶ [Watch the full run (2 min 28)](docs/video/wildfire-mission.mp4) — survey,
+camera confirmation and suppression, end to end.*
+
+Three kinds of agent, three jobs. Nobody hands out assignments: every decision
+is made locally, and the mission falls out of it.
+
+**Crazyflie — survey.** The micro-drones carry no camera. They split the area
+between themselves — each derives its own lane from its rank among its peers,
+so the division needs no coordinator — and sweep it boustrophedon, lifting the
+fog of war. Passing near a heat source, a Crazyflie raises an **unconfirmed
+contact**. It cannot tell a fire from a hot roof, and it does not pretend to.
+
+**X500 / S500 — inspect and confirm.** The cognitive platforms carry an OAK-D
+Pro W depth camera. Each claims the nearest open contact — again by local
+comparison — flies out to look, and runs a real YOLO detector on the pixels its
+own camera produces. The boxes you see in the picture-in-picture come from
+inference on those pixels, not from the scene graph. A fire is confirmed only
+by the detector, together with a stereo range fix, and the confirmation goes out
+on the radio.
+
+**Colossus — suppress.** The tracked UGVs hear the broadcast and one elects
+itself: the closest free vehicle takes the call. It drives to a standoff, and
+its own thermal camera must hold flame in its field of view before the water
+monitor opens — a radio report is a vector to the area, never a firing solution.
+The jet is ballistic, and the fire goes out because water reaches it, not
+because a timer expired. The rover then holds position, re-scans, and only
+declares the fire out once its optics stay clear.
+
+Information travels **upward** — Crazyflie to X500, X500 to Colossus — as
+contacts and confirmations, never as orders coming down. Take any agent out and
+the rest carry on.
+
+---
+
 ## Live maps
 
 The **Maps** button (bottom-right) opens a picker of six live views. Every one
