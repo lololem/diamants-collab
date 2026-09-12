@@ -1,3 +1,4 @@
+import { alea } from '../core/alea.js';
 /*
  * DIAMANTS — Collaborative drone swarm simulation
  * Copyright (c) 2026 Loic Lemasle
@@ -393,7 +394,7 @@ export class ModelRegistry {
         const test = this.abTests.get(testName);
         if (!test) return new Map();
 
-        const shuffled = [...droneIds].sort(() => Math.random() - 0.5);
+        const shuffled = [...droneIds].sort(() => alea() - 0.5);
         const splitIdx = Math.round(shuffled.length * test.splitRatio);
 
         for (let i = 0; i < shuffled.length; i++) {

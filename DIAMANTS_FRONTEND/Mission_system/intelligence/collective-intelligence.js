@@ -14,6 +14,7 @@
 
 import { DiamantFormulas } from '../core/diamants-formulas.js';
 
+import { alea } from '../core/alea.js';
 // Mode silencieux global
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
@@ -96,7 +97,7 @@ export class CollectiveIntelligence {
         }
 
         // Légère adaptation continue pour montrer une activité
-        this.collectiveState.adaptationLevel = Math.min(1.0, Math.max(0.0, this.collectiveState.adaptationLevel + (Math.random() - 0.5) * 0.001));
+        this.collectiveState.adaptationLevel = Math.min(1.0, Math.max(0.0, this.collectiveState.adaptationLevel + (alea() - 0.5) * 0.001));
     }
 
     setupKnowledgeBase() {
@@ -390,9 +391,9 @@ export class CollectiveIntelligence {
             .map(s => s.action);
 
         // Sélection d'une stratégie éprouvée ou exploration
-        if (recentStrategies.length > 0 && Math.random() > 0.3) {
+        if (recentStrategies.length > 0 && alea() > 0.3) {
             // Exploitation : utiliser une stratégie connue
-            const randomStrategy = recentStrategies[Math.floor(Math.random() * recentStrategies.length)];
+            const randomStrategy = recentStrategies[Math.floor(alea() * recentStrategies.length)];
             return { action: randomStrategy, type: 'exploitation' };
         } else {
             // Exploration : nouvelle stratégie
@@ -624,7 +625,7 @@ export class CollectiveIntelligence {
 
         // Choix de la direction la plus libre
         // (Simplification : préférence aléatoire, à améliorer avec détection d'obstacles)
-        return Math.random() > 0.5 ? right : left;
+        return alea() > 0.5 ? right : left;
     }
 
     calculateFormationPosition(agent, situation) {

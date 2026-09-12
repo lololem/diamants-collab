@@ -16,6 +16,7 @@
 import { logger } from '../core/logger.js';
 import { CollectiveIntelligence } from '../intelligence/collective-intelligence.js';
 
+import { alea } from '../core/alea.js';
 // Mode silencieux pour les logs
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 
@@ -127,7 +128,7 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
         this.createInitialAttractors();
 
         // Configurer paramètres dynamiques
-        this.wahooSystem.groupEnergy = Math.random() * 0.3 + 0.4; // 0.4-0.7
+        this.wahooSystem.groupEnergy = alea() * 0.3 + 0.4; // 0.4-0.7
         this.wahooSystem.collectiveMotivation = 0.8;
 
         log('🌊 Système Wahoo configuré');
@@ -262,8 +263,8 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
             attractor.strength = Math.max(0.1, attractor.strength * ageDecay);
 
             // Fluctuations dynamiques basées sur utilisation
-            if (Math.random() < 0.1) { // 10% chance par update
-                const fluctuation = (Math.random() - 0.5) * 0.2;
+            if (alea() < 0.1) { // 10% chance par update
+                const fluctuation = (alea() - 0.5) * 0.2;
                 attractor.strength = Math.max(0.1, Math.min(2.0, attractor.strength + fluctuation));
             }
 
@@ -292,7 +293,7 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
 
         // Créer nouvelles vagues depuis attracteurs forts
         for (const [id, attractor] of this.wahooSystem.attractors) {
-            if (attractor.strength > 1.5 && Math.random() < 0.05) { // 5% chance
+            if (attractor.strength > 1.5 && alea() < 0.05) { // 5% chance
                 this.wahooSystem.influenceWaves.push({
                     origin: { ...attractor.position },
                     strength: attractor.strength * 0.5,
@@ -374,7 +375,7 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
             let score = 0.5; // Base
 
             // Bonus aléatoire basé sur "performance" simulée
-            score += (Math.random() - 0.5) * 0.4;
+            score += (alea() - 0.5) * 0.4;
 
             // Bonus historique si déjà leader
             if (this.wahooSystem.emergentLeaders.has(agentId)) {
@@ -401,13 +402,13 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
         const attractorId = `leadership_${leaderId}_${Date.now()}`;
 
         // Position aléatoire dans zone d'opération
-        const angle = Math.random() * 2 * Math.PI;
-        const distance = 5 + Math.random() * 10;
+        const angle = alea() * 2 * Math.PI;
+        const distance = 5 + alea() * 10;
 
         this.wahooSystem.attractors.set(attractorId, {
             position: {
                 x: Math.cos(angle) * distance,
-                y: 2 + Math.random() * 2,
+                y: 2 + alea() * 2,
                 z: Math.sin(angle) * distance
             },
             strength: 1.5,
@@ -506,12 +507,12 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
         // Création basée sur énergie collective et activité
         const creationProbability = this.wahooSystem.groupEnergy * 0.02; // 0-2% par update
 
-        if (Math.random() < creationProbability) {
+        if (alea() < creationProbability) {
             this.createRandomAttractor();
         }
 
         // Création d'attracteurs d'urgence si énergie faible
-        if (this.wahooSystem.groupEnergy < 0.3 && Math.random() < 0.1) {
+        if (this.wahooSystem.groupEnergy < 0.3 && alea() < 0.1) {
             this.createEmergencyAttractor();
         }
     }
@@ -521,24 +522,24 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
      */
     createRandomAttractor() {
         const types = ['EXPLORATION', 'GATHERING', 'DISCOVERY', 'INNOVATION'];
-        const type = types[Math.floor(Math.random() * types.length)];
+        const type = types[Math.floor(alea() * types.length)];
 
         const attractorId = `spontaneous_${type}_${Date.now()}`;
 
         // Position aléatoire dans zone étendue
-        const angle = Math.random() * 2 * Math.PI;
-        const distance = 10 + Math.random() * 15;
+        const angle = alea() * 2 * Math.PI;
+        const distance = 10 + alea() * 15;
 
         this.wahooSystem.attractors.set(attractorId, {
             position: {
                 x: Math.cos(angle) * distance,
-                y: 1 + Math.random() * 4,
+                y: 1 + alea() * 4,
                 z: Math.sin(angle) * distance
             },
-            strength: 0.5 + Math.random() * 0.8,
+            strength: 0.5 + alea() * 0.8,
             type: type,
             age: 0,
-            influence: 3 + Math.random() * 5,
+            influence: 3 + alea() * 5,
             spontaneous: true
         });
 
@@ -880,11 +881,11 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
         for (let i = 0; i < recentMessages.length; i++) {
             for (let j = i + 1; j < recentMessages.length; j++) {
                 // Simuler création liens sémantiques
-                if (Math.random() < 0.1) {
+                if (alea() < 0.1) {
                     this.createSemanticLink(
                         `concept_${i}`,
                         `concept_${j}`,
-                        0.1 + Math.random() * 0.3
+                        0.1 + alea() * 0.3
                     );
                 }
             }
@@ -913,13 +914,13 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
         const emergentPatterns = Array.from(this.wahooSystem.emergentPatterns);
 
         for (const pattern of emergentPatterns) {
-            if (Math.random() < 0.05) { // 5% chance
+            if (alea() < 0.05) { // 5% chance
                 const gestureId = `gesture_${pattern}_${Date.now()}`;
 
                 this.enhancedCommunication.gestureLibrary.set(gestureId, {
                     meaning: pattern,
                     context: 'emergent',
-                    effectiveness: Math.random() * 0.5 + 0.3,
+                    effectiveness: alea() * 0.5 + 0.3,
                     usage: 0
                 });
 
@@ -937,7 +938,7 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
             data.generations += 0.01; // Évolution continue
 
             // Mutation occasionnelle
-            if (Math.random() < 0.01) {
+            if (alea() < 0.01) {
                 data.mutations.push({
                     type: 'adaptation',
                     timestamp: Date.now(),
@@ -968,10 +969,10 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
         const strategies = this.wahooSystem.behaviorEvolution.strategies;
 
         // Créer nouvelles stratégies par combinaison/mutation
-        if (strategies.size > 2 && Math.random() < 0.05) {
+        if (strategies.size > 2 && alea() < 0.05) {
             const strategyArray = Array.from(strategies.entries());
-            const parent1 = strategyArray[Math.floor(Math.random() * strategyArray.length)];
-            const parent2 = strategyArray[Math.floor(Math.random() * strategyArray.length)];
+            const parent1 = strategyArray[Math.floor(alea() * strategyArray.length)];
+            const parent2 = strategyArray[Math.floor(alea() * strategyArray.length)];
 
             const newStrategyId = `hybrid_${Date.now()}`;
             const newStrategy = this.combineStrategies(parent1[1], parent2[1]);
@@ -1020,13 +1021,13 @@ export class AdvancedCollectiveIntelligence extends CollectiveIntelligence {
      * Génération innovations
      */
     generateInnovations() {
-        if (this.wahooSystem.groupEnergy > 0.8 && Math.random() < 0.02) {
+        if (this.wahooSystem.groupEnergy > 0.8 && alea() < 0.02) {
             const innovation = {
                 type: 'SPONTANEOUS',
                 trigger: this.currentPhase,
                 energy: this.wahooSystem.groupEnergy,
                 timestamp: Date.now(),
-                potential: Math.random()
+                potential: alea()
             };
 
             this.wahooSystem.behaviorEvolution.mutations.push(innovation);

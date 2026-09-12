@@ -1,3 +1,4 @@
+import { alea } from '../core/alea.js';
 /*
  * DIAMANTS — Collaborative drone swarm simulation
  * Copyright (c) 2026 Loic Lemasle
@@ -44,7 +45,7 @@ export class BoxSpace {
     sample() {
         const s = new Float32Array(this.shape);
         for (let i = 0; i < this.shape; i++) {
-            s[i] = this.low[i] + Math.random() * (this.high[i] - this.low[i]);
+            s[i] = this.low[i] + alea() * (this.high[i] - this.low[i]);
         }
         return s;
     }
@@ -153,7 +154,7 @@ export class GymnasiumSwarmEnv {
 
     _createRNG(seed) {
         if (seed == null) {
-            seed = Math.floor(Math.random() * 2147483647);
+            seed = Math.floor(alea() * 2147483647);
         }
         let s = seed | 0;
         return () => {
@@ -616,8 +617,8 @@ export class PPOPolicy {
         const scale = Math.sqrt(2 / (rows + cols));
         const a = new Float32Array(rows * cols);
         for (let i = 0; i < a.length; i++) {
-            const u1 = Math.random() || 1e-8;
-            const u2 = Math.random();
+            const u1 = alea() || 1e-8;
+            const u2 = alea();
             a[i] = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2) * scale;
         }
         a._rows = rows;
@@ -655,8 +656,8 @@ export class PPOPolicy {
 
         for (let i = 0; i < this.actDim; i++) {
             const std = Math.exp(this.logStd[i]);
-            const u1 = Math.random() || 1e-8;
-            const u2 = Math.random();
+            const u1 = alea() || 1e-8;
+            const u2 = alea();
             const noise = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
             action[i] = mean[i] + noise * std;
 
@@ -748,7 +749,7 @@ export class PPOPolicy {
             // Shuffle indices
             const indices = Array.from({ length: trajectory.length }, (_, i) => i);
             for (let i = indices.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
+                const j = Math.floor(alea() * (i + 1));
                 [indices[i], indices[j]] = [indices[j], indices[i]];
             }
 
@@ -766,7 +767,7 @@ export class PPOPolicy {
                 const numParams = Math.min(16, weights.length);
                 const paramIndices = [];
                 for (let p = 0; p < numParams; p++) {
-                    paramIndices.push(Math.floor(Math.random() * weights.length));
+                    paramIndices.push(Math.floor(alea() * weights.length));
                 }
 
                 let batchPolicyLoss = 0;

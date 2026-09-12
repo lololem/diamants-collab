@@ -27,6 +27,7 @@ import { AutonomousAgent, AgentPhase } from './autonomous-agent.js';
 import { ModelRegistry } from './brain-interface.js';
 import { AgentDroneRegistry } from './agent-drone-registry.js';
 
+import { alea } from '../core/alea.js';
 // ─── COORDINATOR CONFIG ──────────────────────────────────────────────
 
 const DEFAULT_CONFIG = {
@@ -841,7 +842,7 @@ export class MultiAgentCoordinator extends SwarmIntelligenceInterface {
 
         for (const msg of toRoute) {
             // Simulate packet loss
-            if (Math.random() < this.cfg.messageDropRate) continue;
+            if (alea() < this.cfg.messageDropRate) continue;
 
             if (msg.to) {
                 // Targeted message (Raft, etc.)

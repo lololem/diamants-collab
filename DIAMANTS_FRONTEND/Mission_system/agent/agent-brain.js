@@ -28,6 +28,7 @@
 
 import { BrainInterface } from './brain-interface.js';
 
+import { alea } from '../core/alea.js';
 // ─── ACTION SPACE ────────────────────────────────────────────────────
 
 export const AgentAction = Object.freeze({
@@ -218,7 +219,7 @@ class ExperienceReplayBuffer {
         const batch = [];
         const len = this.buffer.length;
         for (let i = 0; i < Math.min(batchSize, len); i++) {
-            const idx = Math.floor(Math.random() * len);
+            const idx = Math.floor(alea() * len);
             batch.push(this.buffer[idx]);
         }
         return batch;
@@ -352,13 +353,13 @@ export class AgentBrain extends BrainInterface {
         let action;
         let explore = false;
 
-        if (this.trainingEnabled && Math.random() < this.epsilon) {
+        if (this.trainingEnabled && alea() < this.epsilon) {
             // Epsilon-greedy exploration: random valid action
             const validActions = [];
             for (let a = 0; a < this.numActions; a++) {
                 if (mask[a] > 0) validActions.push(a);
             }
-            action = validActions[Math.floor(Math.random() * validActions.length)];
+            action = validActions[Math.floor(alea() * validActions.length)];
             explore = true;
         } else {
             // Greedy: best Q-value among valid actions
