@@ -1,10 +1,10 @@
 # DIAMANTS Frontend Swarm Intelligence Demo
 
-## 🧠 Overview
+## Overview
 
 This directory contains an advanced demonstration of **Swarm Intelligence** using the DIAMANTS framework for autonomous coordination of multiple drones in a complex forest environment.
 
-## 🎯 Demonstration Objectives
+## Demonstration Objectives
 
 ### Emergent Collective Intelligence
 - **Decentralized coordination**: Each drone develops its own expertise while collaborating
@@ -18,16 +18,16 @@ This directory contains an advanced demonstration of **Swarm Intelligence** usin
 - **Dynamic sector assignment**: Adaptive distribution according to number of drones
 - **Collaborative completion**: Coordination to complete partially explored areas
 
-## 🚁 Drone Types and Specializations
+## Drone Types and Specializations
 
 | Type | Role | Capabilities | Color |
 |------|------|-------------|-------|
-| **Scout** | Exploration | High speed, optimized detection range | 🟢 Green |
-| **Coordinator** | Leadership | Long-range communication, synchronization | 🔴 Red |
-| **Stealth** | Reconnaissance | Discretion, navigation precision | 🔵 Blue |
-| **Heavy** | Transport | Load capacity, stability | 🟠 Orange |
+| **Scout** | Exploration | High speed, optimized detection range | Green |
+| **Coordinator** | Leadership | Long-range communication, synchronization | Red |
+| **Stealth** | Reconnaissance | Discretion, navigation precision | Blue |
+| **Heavy** | Transport | Load capacity, stability | Orange |
 
-## 📊 Collective Intelligence Metrics
+## Collective Intelligence Metrics
 
 ### Swarm Intelligence Metrics
 - **Emergence**: Level of detected self-organized behaviors
@@ -36,7 +36,7 @@ This directory contains an advanced demonstration of **Swarm Intelligence** usin
 - **Experts**: Number of drones that have developed specialized expertise
 - **Communication**: Intensity of information exchanges between drones
 
-## 🌲 Simulation Environment
+## Simulation Environment
 
 ### Realistic Dense Forest
 - **30 trees** positioned with natural spacing (minimum distance 15m)
@@ -49,7 +49,7 @@ This directory contains an advanced demonstration of **Swarm Intelligence** usin
 - **Trunk level**: 8m (optimal scouting)
 - **Coordination level**: 15m (overview)
 
-## 🎮 Controls and Interface
+## Controls and Interface
 
 ### Commands
 - **WASD**: Camera movement
@@ -57,11 +57,11 @@ This directory contains an advanced demonstration of **Swarm Intelligence** usin
 - **Scroll wheel**: Zoom in/out
 
 ### Control Buttons
-- **🚀 START**: Launch swarm intelligence mission
-- **⏸️ PAUSE**: Temporary simulation suspension
-- **🔄 Reset**: Complete environment reset
+- ** START**: Launch swarm intelligence mission
+- **⏸ PAUSE**: Temporary simulation suspension
+- ** Reset**: Complete environment reset
 
-## ⚙️ Advanced Configuration
+## Advanced Configuration
 
 ### Swarm Parameters (CONFIG)
 ```javascript
@@ -79,7 +79,7 @@ autonomyPower: 4.5         // Individual autonomy level
 - **Emulation learning**: Knowledge transfer between drones
 - **Behavioral adaptation**: Strategy change according to context
 
-## 🔬 Technical Features
+## Technical Features
 
 ### Advanced Intelligence Systems
 1. **Global Collective Memory** (`SWARM_MEMORY`)
@@ -100,7 +100,7 @@ autonomyPower: 4.5         // Individual autonomy level
    - Reconversion according to swarm needs
    - Dynamic emergent leadership
 
-## 🎯 Mission Phases
+## Mission Phases
 
 ### Phase 1: Dispersion (0-20% progress)
 - Rapid distribution in the zone
@@ -122,7 +122,7 @@ autonomyPower: 4.5         // Individual autonomy level
 - Cross-verification of discoveries
 - Final consensus on mission state
 
-## 🚀 Technologies Used
+## Technologies Used
 
 ### Rendering Engine
 - **Three.js r128**: High-performance WebGL 3D rendering
@@ -134,7 +134,7 @@ autonomyPower: 4.5         // Individual autonomy level
 - **Emergent neural networks**: Distributed learning
 - **Swarm optimization**: Collective convergence toward optima
 
-## 📈 Performance Metrics
+## Performance Metrics
 
 ### Optimized Coverage Time
 - **Target**: < 3 minutes for complete coverage
@@ -147,7 +147,7 @@ autonomyPower: 4.5         // Individual autonomy level
 - **Consensus**: Collective decisions in < 5 seconds
 - **Communication**: > 90% reliability of information exchanges
 
-## 🔧 Installation and Launch
+## Installation and Launch
 
 ### Prerequisites
 - Modern browser with WebGL 2.0 support
@@ -157,10 +157,10 @@ autonomyPower: 4.5         // Individual autonomy level
 ### Startup
 1. Open `DIAMANTS_Complete_Frontend_Swarm_Intelligence_Demo.html`
 2. Launch with HTTP server (avoid file://)
-3. Click "🚀 START" to initiate the mission
+3. Click " START" to initiate the mission
 4. Observe the emergence of collective intelligence
 
-## 📊 Results Analysis
+## Results Analysis
 
 ### Success Indicators
 - **Territorial coverage**: Percentage of explored area
@@ -175,7 +175,7 @@ autonomyPower: 4.5         // Individual autonomy level
 - Optimized communication chains
 - Contextual adaptive strategies
 
-## 🔍 Debug and Monitoring
+## Debug and Monitoring
 
 ### Debug Console
 Enabled by default, displays:
@@ -191,7 +191,7 @@ Enabled by default, displays:
 - **Expertise auras**: Expert influence zones
 - **Communication links**: Active connections between drones
 
-## 🎓 Practical Applications
+## Practical Applications
 
 ### Usage Scenarios
 - **Search and rescue** in difficult terrain
@@ -208,10 +208,10 @@ Enabled by default, displays:
 
 ---
 
-## 🤝 Contribution and Development
+## Contribution and Development
 
 This demonstration is part of the DIAMANTS project and illustrates advanced capabilities of decentralized collective intelligence. It serves as a reference for developing autonomous swarm applications in real contexts.
 
 **Version**: 1.0.0  
 **Last update**: 19 September 2025  
-**Status**: ✅ Complete functional demonstration
+**Status**:  Complete functional demonstration

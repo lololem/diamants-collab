@@ -34,7 +34,7 @@ async function startDevServer() {
           ignored: [
             '**/node_modules/**', '**/dist/**', '**/.cache/**',
             '**/third-party/**', '**/assets/**', '**/public/**',
-            '**/DIAMANTS_BACKEND/**', '**/log/**', '**/.git/**'
+            '**/log/**', '**/.git/**'
           ]
         }
       },
@@ -52,8 +52,7 @@ async function startDevServer() {
           '@missions': resolve(process.cwd(), './missions'),
           '@environment': resolve(process.cwd(), './environment'),
           '@drones': resolve(process.cwd(), './drones'),
-          '@net': resolve(process.cwd(), './net'),
-          '@ros2_bridge': resolve(process.cwd(), './ros2_bridge')
+          '@net': resolve(process.cwd(), './net')
         }
       },
       optimizeDeps: {

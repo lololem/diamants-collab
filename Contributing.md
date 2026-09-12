@@ -151,15 +151,15 @@ Questions: open an issue or email loic.lemasle@gmail.com.
 
 ---
 
-## Licence des contributions
+## Licence of contributions
 
-Ce projet est distribué sous **PolyForm Noncommercial License 1.0.0** : usage
-libre pour la recherche, l'enseignement et les projets non commerciaux, mais
-**toute exploitation commerciale est interdite**. Voir [LICENSE](LICENSE).
+This project is distributed under the **PolyForm Noncommercial License 1.0.0**:
+free for research, teaching and non-profit projects, but **commercial use is not
+permitted**. See [LICENSE](LICENSE).
 
-En proposant une contribution (pull request, correctif, profil de drone,
-algorithme), vous acceptez qu'elle soit distribuée sous cette même licence.
+By submitting a contribution — a pull request, a fix, a drone profile, an
+algorithm — you agree that it is distributed under that same licence.
 
-Si vous ajoutez du code tiers, indiquez-en clairement la provenance et la
-licence : les composants tiers gardent la leur et sont listés dans la section
-« Composants tiers » du fichier LICENSE.
+If you add third-party code, state its origin and its licence clearly:
+third-party components keep their own, and are listed in the "Third-party
+components" section of the LICENSE file.
