@@ -420,7 +420,7 @@ export class AutonomousFlightEngine {
 
     /**
      * Plug a SwarmIntelligenceInterface implementation.
-     * The concrete engine (stigmergy, RL, etc.) lives in a private repository.
+     * No concrete engine ships here — stigmergy, RL or otherwise. Bring your own.
      */
     setSwarmIntelligence(impl) {
         this.swarmIntelligence = impl || new NoopSwarmIntelligence();

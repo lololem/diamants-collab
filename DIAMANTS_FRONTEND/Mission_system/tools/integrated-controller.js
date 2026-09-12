@@ -379,7 +379,7 @@ export class IntegratedDiamantsController {
             }
         } catch (e) { /* safe */ }
 
-        // ── Load Stigmergy Engine (if available from a private repository) ──
+        // ── Load a stigmergy engine, if one has been plugged in ──
         const stigmergyEngine = await loadStigmergyEngine({
             gridSize: 100,
             gridResolution: 1.0,
