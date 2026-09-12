@@ -24,12 +24,13 @@
 import * as THREE from 'three';
 import { OBS_DIM, ObsIndex } from './agent-brain.js';
 
+import { alea } from '../core/alea.js';
 // ─── SENSOR NOISE ────────────────────────────────────────────────────
 
 /** Box-Muller Gaussian random */
 function gaussNoise(stddev) {
-    const u1 = Math.random();
-    const u2 = Math.random();
+    const u1 = alea();
+    const u2 = alea();
     return stddev * Math.sqrt(-2 * Math.log(Math.max(u1, 1e-10))) * Math.cos(2 * Math.PI * u2);
 }
 

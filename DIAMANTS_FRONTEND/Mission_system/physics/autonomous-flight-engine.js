@@ -36,6 +36,7 @@ export { DRONE_PROFILES };
 
 // ─── Engine-level flight constants (externalized from code) ──────────
 import flightConfigRaw from './flight-config.json?raw';
+import { alea } from '../core/alea.js';
 const FLIGHT_CONFIG = JSON.parse(flightConfigRaw);
 const AVOID  = FLIGHT_CONFIG.avoidance;
 const EXPLORE = FLIGHT_CONFIG.exploration;
@@ -72,7 +73,7 @@ class DroneFlightState {
         this.position = startPos.clone();
         this.homePosition = startPos.clone(); // Original spawn position for return-to-base
         this.velocity = new THREE.Vector3();
-        this.heading = Math.random() * Math.PI * 2; // yaw
+        this.heading = alea() * Math.PI * 2; // yaw
 
         // PIDs
         this.pidX = new PID(profile.pid.pos);
@@ -84,7 +85,7 @@ class DroneFlightState {
         this.phase = 'IDLE'; // IDLE → TAKEOFF → EXPLORE → LAND → LANDED
         this.waypoint = null;
         this.waypointTimer = 0;
-        this.explorationAngle = Math.random() * Math.PI * 2;
+        this.explorationAngle = alea() * Math.PI * 2;
         this.lastWaypointTime = 0;
         this.waypointsVisited = 0;
 
@@ -706,8 +707,8 @@ export class AutonomousFlightEngine {
         const localKnowledge = this._getDroneLocalCells(state.id);
 
         for (let c = 0; c < numCandidates; c++) {
-            const subAngle = Math.random() * Math.PI * 2;
-            const subR = Math.random() * scatter;
+            const subAngle = alea() * Math.PI * 2;
+            const subR = alea() * scatter;
             const wx = gcx + Math.cos(subAngle) * subR;
             const wz = gcz + Math.sin(subAngle) * subR;
             const cx = Math.max(-halfZone, Math.min(halfZone, wx));
@@ -842,7 +843,7 @@ export class AutonomousFlightEngine {
         // unanimous consensus (Vicsek et al. 1995).
         // NOT centralized control: each drone's noise is independent.
         if (state._driftAngle == null) state._driftAngle = state.heading || 0;
-        state._driftAngle += (Math.random() - 0.5) * 0.5 * dt; // ~0.5 rad/s noise rate
+        state._driftAngle += (alea() - 0.5) * 0.5 * dt; // ~0.5 rad/s noise rate
 
         // 1. State machine — pick target
         this._updateStateMachine(state, dt);
@@ -2601,7 +2602,7 @@ export class AutonomousFlightEngine {
         }
 
         // Roulette-wheel selection
-        let r = Math.random() * totalWeight;
+        let r = alea() * totalWeight;
         for (let i = 0; i < candidates.length; i++) {
             r -= weights[i];
             if (r <= 0) return candidates[i];
@@ -2664,7 +2665,7 @@ export class AutonomousFlightEngine {
         let escapeAngle;
         if (frontierAngle !== null) {
             // Head toward nearest unvisited frontier cell
-            escapeAngle = frontierAngle + (Math.random() - 0.5) * 0.4;
+            escapeAngle = frontierAngle + (alea() - 0.5) * 0.4;
         } else if (nCount > 0) {
             // No frontier found — flee AWAY from centroid of nearby drones
             const centX = cxSum / nCount;
@@ -2672,16 +2673,16 @@ export class AutonomousFlightEngine {
             escapeAngle = Math.atan2(state.position.z - centZ, state.position.x - centX);
         } else {
             // No nearby drones — pick random direction
-            escapeAngle = Math.random() * Math.PI * 2;
+            escapeAngle = alea() * Math.PI * 2;
         }
 
         // Add some randomness to avoid repeated escape in same direction
-        escapeAngle += (Math.random() - 0.5) * 0.6;
+        escapeAngle += (alea() - 0.5) * 0.6;
 
         // Progressive escape distance: repeated stalls → bigger jumps (12-40m)
         const escaleCount = state._escaleCount || 1;
         const baseDist = 12 + Math.min(escaleCount * 5, 20); // 12m → 32m
-        const dist = baseDist + Math.random() * 10;
+        const dist = baseDist + alea() * 10;
         let wx = state.position.x + Math.cos(escapeAngle) * dist;
         let wz = state.position.z + Math.sin(escapeAngle) * dist;
 
@@ -3451,7 +3452,12 @@ export class AutonomousFlightEngine {
             treesRegistered: this.treeBounds.length,
             cellsVisited: this.visitedCells.size,
             coverageArea: this.visitedCells.size * this.cellSize * this.cellSize,
-            swarmIntelligence: this.swarmIntelligence.getMetrics(),
+            // An engine plugged in through setSwarmIntelligence() does not
+            // necessarily extend SwarmIntelligenceInterface — writing your own
+            // is the documented use. Guard like every other optional method in
+            // this file, or getStats() throws on a perfectly valid engine.
+            swarmIntelligence: typeof this.swarmIntelligence?.getMetrics === 'function'
+                ? this.swarmIntelligence.getMetrics() : null,
             profiles: DronePhysicsRegistry.getInstance().listProfiles(),
         };
     }

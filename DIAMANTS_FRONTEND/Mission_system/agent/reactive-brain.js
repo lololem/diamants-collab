@@ -28,6 +28,7 @@
 import { BrainInterface } from './brain-interface.js';
 import { AgentAction, OBS_DIM, ObsIndex } from './agent-brain.js';
 
+import { alea } from '../core/alea.js';
 // ─── THRESHOLDS ──────────────────────────────────────────────────────
 
 const EMERGENCY_DIST    = 0.15;   // obs value (normalized) — very close obstacle
@@ -174,7 +175,7 @@ export class ReactiveBrain extends BrainInterface {
                     AgentAction.EXPLORE_RIGHT,
                     AgentAction.GOTO_FRONTIER
                 ];
-                action = choices[Math.floor(Math.random() * choices.length)];
+                action = choices[Math.floor(alea() * choices.length)];
                 rule = 'explore-jitter';
             } else {
                 action = AgentAction.EXPLORE_FORWARD;
@@ -195,7 +196,7 @@ export class ReactiveBrain extends BrainInterface {
             this._stuckCounter++;
             if (this._stuckCounter > 30) {
                 const alt = [AgentAction.EXPLORE_LEFT, AgentAction.EXPLORE_RIGHT, AgentAction.GOTO_FRONTIER];
-                action = alt[Math.floor(Math.random() * alt.length)];
+                action = alt[Math.floor(alea() * alt.length)];
                 rule = 'anti-stuck';
                 this._stuckCounter = 0;
             }

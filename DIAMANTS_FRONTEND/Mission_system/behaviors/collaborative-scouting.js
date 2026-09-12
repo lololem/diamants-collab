@@ -18,6 +18,7 @@ import { FlightBehaviors } from './flight-behaviors.js';
 import { EnvironmentVoxelizer } from '../intelligence/environment-voxelizer.js';
 import { createPathfinderFromVoxelGrid } from '../intelligence/drone-pathfinder.js';
 
+import { alea } from '../core/alea.js';
 // Mode silencieux global - utilise les fonctions globales  
 if (typeof window.SILENT_MODE === 'undefined') window.SILENT_MODE = true;
 // Force silence total pour ce module
@@ -212,7 +213,7 @@ export class CollaborativeScouting {
             this.flightBehaviors.initializeDronePhysics(droneId, startPosition);
 
             // ⚠️ PAS DE DÉCOLLAGE AUTOMATIQUE - ATTENDRE COMMANDE UTILISATEUR
-            // const ok = await this.flightBehaviors.performTakeoff(droneId, 2.0 + Math.random() * 2.0);
+            // const ok = await this.flightBehaviors.performTakeoff(droneId, 2.0 + alea() * 2.0);
 
             // Assignation initiale uniquement - DRONE RESTE AU SOL jusqu'à commande utilisateur
             this.assignInitialRole(droneId);
@@ -500,7 +501,7 @@ export class CollaborativeScouting {
 
         if (unexplored.length > 0) {
             // Pick a random one from the top 3 nearest to add some diversity
-            const pick = unexplored[Math.floor(Math.random() * Math.min(3, unexplored.length))];
+            const pick = unexplored[Math.floor(alea() * Math.min(3, unexplored.length))];
             assignment.target = pick.position;
 
             // Naviguer vers la cible
@@ -840,7 +841,7 @@ export class CollaborativeScouting {
         const unexplored = this.findUnexploredAreas({ x: 0, z: 0 });
 
         if (unexplored.length > 0) {
-            const newZone = unexplored[Math.floor(Math.random() * Math.min(3, unexplored.length))];
+            const newZone = unexplored[Math.floor(alea() * Math.min(3, unexplored.length))];
             const assignment = this.droneAssignments.get(droneId);
 
             assignment.zone = {
@@ -1023,8 +1024,8 @@ export class CollaborativeScouting {
             const leaderTelemetry = this.flightBehaviors.getTelemetry(leaderId);
             if (leaderTelemetry) {
                 assignment.targetArea = {
-                    x: leaderTelemetry.position.x + (Math.random() - 0.5) * 10,
-                    z: leaderTelemetry.position.z + (Math.random() - 0.5) * 10
+                    x: leaderTelemetry.position.x + (alea() - 0.5) * 10,
+                    z: leaderTelemetry.position.z + (alea() - 0.5) * 10
                 };
             }
         }
@@ -1053,8 +1054,8 @@ export class CollaborativeScouting {
         
         // Simple: choisir une zone aléatoire dans les limites
         return {
-            x: (Math.random() - 0.5) * this.config.missionArea.width,
-            z: (Math.random() - 0.5) * this.config.missionArea.height
+            x: (alea() - 0.5) * this.config.missionArea.width,
+            z: (alea() - 0.5) * this.config.missionArea.height
         };
     }
 
@@ -1064,8 +1065,8 @@ export class CollaborativeScouting {
     getBestLeaderPosition(droneId, telemetry) {
         // Position centrale pour coordonner les followers
         return {
-            x: telemetry.position.x + (Math.random() - 0.5) * 5,
-            z: telemetry.position.z + (Math.random() - 0.5) * 5
+            x: telemetry.position.x + (alea() - 0.5) * 5,
+            z: telemetry.position.z + (alea() - 0.5) * 5
         };
     }
 

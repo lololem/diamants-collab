@@ -40,6 +40,7 @@ import { AgentCommunicator }                from './agent-communication.js';
 import { RaftNode, RaftCommand }            from './raft-consensus.js';
 import { RewardShaper }                     from './reward-shaper.js';
 
+import { alea } from '../core/alea.js';
 // ─── AGENT PHASES ────────────────────────────────────────────────────
 
 export const AgentPhase = Object.freeze({
@@ -527,7 +528,7 @@ export class AutonomousAgent {
                 return { x: frontier.x, y, z: frontier.z };
             }
             // Fallback: random exploration
-            const angle = Math.random() * Math.PI * 2;
+            const angle = alea() * Math.PI * 2;
             return {
                 x: x + Math.cos(angle) * WAYPOINT_STEP * 2,
                 y,

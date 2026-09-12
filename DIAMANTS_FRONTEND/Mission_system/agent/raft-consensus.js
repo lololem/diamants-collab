@@ -1,3 +1,4 @@
+import { alea } from '../core/alea.js';
 /*
  * DIAMANTS — Collaborative drone swarm simulation
  * Copyright (c) 2026 Loic Lemasle
@@ -502,6 +503,6 @@ export class RaftNode {
 
     _resetElectionTimer() {
         this.electionTimeout = this.electionTimeoutMinMs +
-            Math.random() * (this.electionTimeoutMaxMs - this.electionTimeoutMinMs);
+            alea() * (this.electionTimeoutMaxMs - this.electionTimeoutMinMs);
     }
 }

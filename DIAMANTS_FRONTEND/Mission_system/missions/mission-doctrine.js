@@ -1,3 +1,4 @@
+import { alea } from '../core/alea.js';
 /*
  * DIAMANTS — Collaborative drone swarm simulation
  * Copyright (c) 2026 Loic Lemasle
@@ -860,12 +861,12 @@ export class DoctrineManager {
         const quadrantZ = (droneIndex % 2 === 0) ? -1 : 1;
         
         for (let i = 0; i < 5; i++) {
-            const spreadX = 0.15 + Math.random() * 0.35; // 15-50% of half-zone
-            const spreadZ = 0.15 + Math.random() * 0.35;
+            const spreadX = 0.15 + alea() * 0.35; // 15-50% of half-zone
+            const spreadZ = 0.15 + alea() * 0.35;
             waypoints.push({
-                x: quadrantX * spreadX * sizeX + (Math.random() - 0.5) * sizeX * 0.3,
-                y: altitude + (Math.random() - 0.5) * 1.5,
-                z: quadrantZ * spreadZ * sizeZ + (Math.random() - 0.5) * sizeZ * 0.3
+                x: quadrantX * spreadX * sizeX + (alea() - 0.5) * sizeX * 0.3,
+                y: altitude + (alea() - 0.5) * 1.5,
+                z: quadrantZ * spreadZ * sizeZ + (alea() - 0.5) * sizeZ * 0.3
             });
         }
         

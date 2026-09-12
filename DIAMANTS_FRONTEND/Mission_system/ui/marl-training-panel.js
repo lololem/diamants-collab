@@ -580,8 +580,8 @@ export class MARLTrainingPanel {
 
         this._root.innerHTML = `
         <div id="marl-header" style="padding: 10px 14px; background: linear-gradient(90deg, #5b21b6, #7c3aed); border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; cursor: grab; user-select: none; flex-shrink: 0;">
-            <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px;">🧠 MARL — Apprentissage Collaboratif</span>
-            <span style="font-size: 11px; opacity: 0.7;">☰ glisser | [T] fermer</span>
+            <span style="font-size: 15px; font-weight: 700; letter-spacing: 0.5px;">🧠 MARL — Collaborative Learning</span>
+            <span style="font-size: 11px; opacity: 0.7;">☰ drag | [T] close</span>
         </div>
 
         <!-- Config Section -->
@@ -647,7 +647,7 @@ export class MARLTrainingPanel {
 
         <!-- Agent Cards -->
         <div id="marl-agents" style="padding: 6px 14px; border-bottom: 1px solid #1e293b; flex-shrink: 0;">
-            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; font-weight: 600;">Agents Cognitifs</div>
+            <div style="font-size: 10px; color: #64748b; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 1px; font-weight: 600;">Cognitive Agents</div>
             <div id="marl-agent-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px;">
             </div>
         </div>
@@ -655,7 +655,7 @@ export class MARLTrainingPanel {
         <!-- Charts -->
         <div style="padding: 8px 14px; flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; flex-wrap: wrap; gap: 4px;">
-                <span style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Courbes d'Apprentissage</span>
+                <span style="font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Learning Curves</span>
                 <div style="display: flex; gap: 4px;">
                     <button id="marl-chart-reward" class="marl-chart-btn" style="padding: 4px 10px; background: #334155; color: #e2e8f0; border: 1px solid #475569; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit;">Reward</button>
                     <button id="marl-chart-coverage" class="marl-chart-btn" style="padding: 4px 10px; background: #7c3aed; color: white; border: 1px solid #7c3aed; border-radius: 4px; cursor: pointer; font-size: 11px; font-family: inherit;">Coverage</button>
@@ -704,7 +704,7 @@ export class MARLTrainingPanel {
 
             <!-- Session History -->
             <div id="marl-transfer-history-section" style="display: none;">
-                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px;">📈 Historique des Transferts</div>
+                <div style="font-size: 11px; color: #64748b; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; letter-spacing: 1px;">📈 Transfer History</div>
                 <div id="marl-transfer-history-items" style="display: flex; gap: 8px; flex-wrap: wrap;"></div>
             </div>
         </div>
@@ -1278,7 +1278,7 @@ export class MARLTrainingPanel {
 
         const coord = D.controller.multiAgentCoordinator;
         if (!coord || !coord.agents) {
-            log('⚠️ Transfert impossible — coordinateur multi-agent non disponible');
+            log('⚠️ Transfer unavailable — multi-agent coordinator not present');
             this._els.status.textContent += ' ⚠️ Transfert échoué (coordinateur absent)';
             return;
         }
@@ -1498,7 +1498,7 @@ export class MARLTrainingPanel {
             beforeMetrics,
         };
 
-        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-completee', {
+        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-complete', {
             detail: transferSummary
         }));
 
@@ -1584,7 +1584,7 @@ export class MARLTrainingPanel {
             beforeMetrics: this._beforeMetrics,
         };
 
-        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-completee', {
+        window.dispatchEvent(new CustomEvent('diamants:marl-transfer-complete', {
             detail: transferSummary
         }));
 
@@ -1844,7 +1844,7 @@ export class MARLTrainingPanel {
     }
 
     /**
-     * Render the full Transfer Dashboard after _transferToRealAgents completees.
+     * Render the full Transfer Dashboard after _transferToRealAgents completes.
      */
     _renderTransferDashboard(data) {
         // Show the dashboard

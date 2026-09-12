@@ -20,6 +20,7 @@ const debugLog = SILENT_MODE ? () => {} : (...args) => console.warn(...args);
 
 import * as THREE from 'three';
 
+import { alea } from '../core/alea.js';
 export class CollisionDetection {
     constructor() {
         this.platformBounds = null;
@@ -248,9 +249,9 @@ export class CollisionDetection {
         // Essayer des positions alternatives
         for (let attempt = 0; attempt < maxAttempts; attempt++) {
             const offset = new THREE.Vector3(
-                (Math.random() - 0.5) * 4,
-                Math.random() * 2 + 1,
-                (Math.random() - 0.5) * 4
+                (alea() - 0.5) * 4,
+                alea() * 2 + 1,
+                (alea() - 0.5) * 4
             );
             
             const testPosition = desiredPosition.clone().add(offset);

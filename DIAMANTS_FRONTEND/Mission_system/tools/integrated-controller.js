@@ -1296,14 +1296,32 @@ export class IntegratedDiamantsController {
             this.updateDronesBehaviors(deltaTime);
             return;
         }
-        const physicsDt = this._physicsAccum;
-        this._physicsAccum = 0;
+        /* AT MOST ONE STEP PER FRAME.
+         *
+         * A previous version drained the accumulator with a `while` loop, up to
+         * four steps per frame. Measured: as soon as a frame exceeds 100 ms the
+         * accumulator grows faster than it drains, every frame takes four steps,
+         * costs four times as much, and the frame rate collapses — 0.1 frames
+         * per second at 4.0 steps per frame. Bounding the catch-up only caps the
+         * spiral, it does not prevent it.
+         *
+         * So at most ONE step is consumed. The step is still exactly
+         * PHYSICS_STEP — the property that was wanted — and on a slow machine
+         * simulated time falls behind the wall clock instead of choking the
+         * loop. For a simulator that is the right trade: better slow than stuck.
+         */
+        let nSteps = 0;
 
         try {
             // 1. AutonomousFlightEngine — the ONLY physics system
-            if (this.autonomousFlightEngine) {
-                this.autonomousFlightEngine.update(physicsDt);
+            if (this.autonomousFlightEngine && this._physicsAccum >= PHYSICS_STEP) {
+                this.autonomousFlightEngine.update(PHYSICS_STEP);
+                this._physicsAccum -= PHYSICS_STEP;
+                nSteps = 1;
+                // debt beyond two steps: drop it rather than replay it
+                if (this._physicsAccum > PHYSICS_STEP * 2) this._physicsAccum = 0;
             }
+            const physicsDt = PHYSICS_STEP;
 
             // 2. Sync drone visuals (mesh position, propellers, labels)
             this.updateDronesBehaviors(deltaTime);
