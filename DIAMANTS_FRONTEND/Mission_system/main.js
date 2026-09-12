@@ -863,8 +863,17 @@ class DiamantsMissionSystem {
     }
 
     async setupPostProcessing() {
-        const container = this.renderer.domElement.parentElement;
-        
+        // The post-processing classes are imported optionally in initializeTHREE():
+        // if that import fails, they stay undefined. Every consumer of
+        // this.composer already guards on it being null, so leaving it null is a
+        // supported state — constructing blindly here would abort the whole
+        // startup for an effect the application does not need.
+        if (!EffectComposer || !RenderPass || !OutputPass) {
+            warn('⚠️ Post-processing unavailable — rendering without it');
+            this.composer = null;
+            return;
+        }
+
         this.composer = new EffectComposer(this.renderer);
         
         // Pass de rendu principal
