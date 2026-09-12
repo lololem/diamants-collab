@@ -9,20 +9,22 @@
 /**
  * DIAMANTS — Stigmergy Engine Loader
  * =====================================
- * Charge dynamiquement l'implémentation du moteur stigmergique.
- * 
- * Le code propriétaire (StigmergyEngine) vit dans a private repository.
- * Ce loader permet au frontend public de l'utiliser SI disponible,
- * sans dépendance directe.
+ * Loads a stigmergy engine at runtime, if one is available.
  *
- * Mécanisme (par ordre de priorité):
- *   1. Import dynamique de stigmergy-engine-private.js (symlink vers a private repository)
- *   2. Cherche `window.DIAMANTS_STIGMERGY_ENGINE` (injection manuelle)
- *   3. Si rien trouvé, retourne null (l'engine utilise NoopSwarmIntelligence par défaut)
+ * No engine ships with this repository. The loader lets you drop yours in
+ * without the application taking a hard dependency on it.
  *
- * Pour activer le moteur stigmergique depuis a private repository:
- *   - Créer un symlink: ln -s /path/to/private-repo/src/intelligence/stigmergy-engine.js stigmergy-engine-private.js
- *   - OU importer manuellement: import { StigmergyEngine } from '...'; window.DIAMANTS_STIGMERGY_ENGINE = StigmergyEngine;
+ * Resolution order:
+ *   1. dynamic import of ./stigmergy-engine-private.js
+ *   2. `window.DIAMANTS_STIGMERGY_ENGINE`, injected by hand
+ *   3. nothing found — returns null, and the flight engine falls back to
+ *      NoopSwarmIntelligence
+ *
+ * To plug an engine in:
+ *   - place or symlink your implementation at ./stigmergy-engine-private.js
+ *   - or import it yourself and assign:
+ *       import { StigmergyEngine } from '...';
+ *       window.DIAMANTS_STIGMERGY_ENGINE = StigmergyEngine;
  */
 
 import { StigmergyInterface, PheromoneType } from './stigmergy-interface.js';
@@ -76,7 +78,7 @@ async function tryLoadPrivateEngine() {
         console.debug('🔍 Distributed engine not available:', err.message);
     }
 
-    // Try 2: symlink stigmergy-engine-private.js → a private repository
+    // Try 2: a local stigmergy-engine-private.js, real file or symlink
     try {
         const module = await import('./stigmergy-engine-private.js');
         if (module.StigmergyEngine) {
@@ -165,7 +167,7 @@ export function isStigmergyAvailable() {
 
 /**
  * Register a stigmergy engine implementation.
- * Call this from a private repository to make the engine available.
+ * Call this from your own module to make the engine available.
  *
  * @param {typeof StigmergyInterface} EngineClass - The StigmergyEngine class
  */

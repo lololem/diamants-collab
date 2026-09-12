@@ -22,8 +22,8 @@
  *   2. L'API de la grille (lecture/dépôt/évaporation)
  *   3. La classe abstraite StigmergyInterface (extends SwarmIntelligenceInterface)
  *
- * L'implémentation concrète (diffusion, gradient, optimisation)
- * vit dans a private repository.
+ * The concrete implementation — diffusion, gradient, optimisation — is not
+ * part of this repository. Writing one is the intended use.
  *
  * Usage :
  *   import { StigmergyInterface, PheromoneType } from './stigmergy-interface.js';

@@ -13,8 +13,8 @@
  * Contrat abstrait que toute implémentation d'intelligence d'essaim
  * doit respecter pour s'intégrer à l'AutonomousFlightEngine.
  *
- * L'implémentation concrète (stigmergie, RL, LLM...) vit dans
- * a private repository. Ici on ne définit que la FORME du slot.
+ * No concrete engine ships here — stigmergy, RL, LLM or anything else.
+ * This file defines only the SHAPE of the slot one plugs into.
  *
  * Usage :
  *   class MonMoteurStigmergique extends SwarmIntelligenceInterface {
