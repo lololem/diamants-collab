@@ -8,6 +8,8 @@ algorithm.
 
 > 🎬 **New: two demonstration films (September 2026)** — [▶ watch them online](https://lololem.github.io/diamants-collab/), or see [Demonstration films](#demonstration-films-september-2026) below.
 > They were recorded from the current internal development version: **the code published here is not up to date** and does not include every capability shown in them.
+>
+> 🚀 **Try it quickly in your browser:** [diamants-hypervision.pages.dev](https://diamants-hypervision.pages.dev) — note that this online demo is not up to date either compared with the demonstration films.
 
 ### Why wildfire
 
@@ -265,6 +267,8 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 ### Demonstration films (September 2026)
 
 **▶ Online player: [https://lololem.github.io/diamants-collab/](https://lololem.github.io/diamants-collab/)**
+
+**🚀 Try it quickly in your browser: [https://diamants-hypervision.pages.dev](https://diamants-hypervision.pages.dev)** — this online demo is not up to date either compared with the demonstration films.
 
 > ⚠️ **These are demonstration videos.** They were recorded from the current internal development version of DIAMANTS. **The code published in this repository is not up to date** and does not include every capability shown here.
 
