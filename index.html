@@ -29,6 +29,13 @@
   li strong { color:#fff; }
   .alt { margin-top:10px; font-size:14px; color:var(--muted); }
   .alt a, footer a { color:var(--accent); }
+  .demo { margin-top:16px; display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; }
+  .demo p { margin:0; flex:1 1 260px; font-size:14px; color:var(--muted); }
+  .btn { display:inline-flex; align-items:center; gap:10px; padding:11px 18px; border-radius:10px; text-decoration:none;
+         background:linear-gradient(180deg,#5ee0ff,#2bb7e8); color:#04121a; font-weight:700; box-shadow:0 6px 20px rgba(79,216,255,.25);
+         transition:transform .15s ease, box-shadow .15s ease; }
+  .btn:hover { transform:translateY(-1px); box-shadow:0 10px 28px rgba(79,216,255,.35); }
+  .btn small { font-weight:500; opacity:.75; margin-left:4px; }
   footer { margin-top:56px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
 </style>
 </head>
@@ -43,10 +50,13 @@
       <strong>The code published in the <a href="https://github.com/lololem/diamants-collab" style="color:inherit">diamants-collab</a> repository is not up to date</strong>
       and does not include every capability shown here.
     </div>
-    <div class="notice" style="margin-top:12px;border-color:rgba(79,216,255,.45);background:rgba(79,216,255,.06);color:#d6eef8">
-      <strong style="color:#4fd8ff">🚀 Try it quickly in your browser:</strong>
-      <a href="https://diamants-hypervision.pages.dev" style="color:#4fd8ff">diamants-hypervision.pages.dev</a>
-      — note that this online demo is not up to date either compared with the demonstration films.
+    <div class="demo">
+      <a class="btn" href="https://diamants-hypervision.pages.dev" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 8l6 4-6 4z" fill="currentColor"/></svg>
+        <span>Try the live demo</span>
+        <small>diamants-hypervision.pages.dev</small>
+      </a>
+      <p>Runs in your browser — no install. Note that this online demo is not up to date either compared with the demonstration films.</p>
     </div>
   </header>
 
