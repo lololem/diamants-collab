@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DIAMANTS — Demonstration films</title>
+<meta name="description" content="Two demonstration films of DIAMANTS: a heterogeneous, fully distributed drone swarm simulation.">
+<meta property="og:title" content="DIAMANTS — Demonstration films">
+<meta property="og:description" content="Unmapped Sector Reconnaissance · Distributed Wildfire Response">
+<meta property="og:image" content="https://lololem.github.io/diamants-collab/film1.jpg">
+<meta property="og:type" content="video.other">
+<style>
+  :root { color-scheme: dark; --bg:#070b10; --panel:#0e151d; --line:#1d2a36; --text:#e6eef5; --muted:#8fa3b5; --accent:#4fd8ff; --warn:#ffb454; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width: 980px; margin: 0 auto; padding: 32px 16px 64px; }
+  header p.kick { margin:0; font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--muted); }
+  h1 { margin:.2em 0 .1em; font-size: clamp(28px, 5vw, 42px); letter-spacing:-.01em; }
+  header p.lead { margin:0 0 20px; color:var(--muted); }
+  .notice { border:1px solid rgba(255,180,84,.45); background:rgba(255,180,84,.07); border-radius:8px; padding:12px 16px; color:#f3e2c8; }
+  .notice strong { color:var(--warn); }
+  section { margin-top: 44px; }
+  h2 { margin:0 0 4px; font-size: clamp(22px, 3.6vw, 28px); }
+  .sub { margin:0 0 14px; color:var(--accent); font-size:14px; letter-spacing:.02em; }
+  video { width:100%; aspect-ratio:16/9; background:#000; border:1px solid var(--line); border-radius:8px; display:block; }
+  .intro { margin:16px 0 6px; }
+  ul { margin:0; padding-left: 1.1em; }
+  li { margin: 8px 0; }
+  li strong { color:#fff; }
+  .alt { margin-top:10px; font-size:14px; color:var(--muted); }
+  .alt a, footer a { color:var(--accent); }
+  footer { margin-top:56px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:14px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="kick">DIAMANTS · Mission System</p>
+    <h1>Demonstration films</h1>
+    <p class="lead">A heterogeneous drone swarm simulation — September 2026</p>
+    <div class="notice">
+      <strong>Demonstration videos.</strong> These films were recorded from the current internal development version of DIAMANTS.
+      <strong>The code published in the <a href="https://github.com/lololem/diamants-collab" style="color:inherit">diamants-collab</a> repository is not up to date</strong>
+      and does not include every capability shown here.
+    </div>
+  </header>
+
+  <section id="film1">
+    <h2>Film 1: Unmapped Sector Reconnaissance</h2>
+    <p class="sub">Heterogeneous exploration · distributed swarming · federated learning — 22 min</p>
+    <video controls preload="metadata" playsinline poster="film1.jpg">
+      <source src="film1.mp4" type="video/mp4">
+    </video>
+    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4">download</a>.</p>
+    <p class="intro">This scenario showcases a heterogeneous swarm operating within a fully decentralized architecture:</p>
+    <ul>
+      <li><strong>Heterogeneous Swarm &amp; Division of Labor:</strong> Micro-drones act as reactive scouts, while camera-equipped platforms use on-board AI to verify targets in a two-stage detection process.</li>
+      <li><strong>Distributed Autonomy:</strong> All decisions are made on-board without a central planner, utilizing collaborative coverage methods (stigmergy, consensus-based allocation, and area partitioning).</li>
+      <li><strong>True Flight Physics &amp; Neurosymbolic AI:</strong> Action proposals from the AI are strictly vetted by a deterministic rule layer before execution. The simulation incorporates the true flight physics of the drones (mass, inertia, rotor thrusts), ensuring highly realistic and safe control.</li>
+      <li><strong>Federated Learning &amp; Operator Control:</strong> Agents collaboratively learn while keeping their observation data private. Operators can issue natural-language commands that seamlessly override autonomous missions, visualized through a live command-chain display.</li>
+    </ul>
+  </section>
+
+  <section id="film2">
+    <h2>Film 2: Distributed Wildfire Response</h2>
+    <p class="sub">Dynamic task allocation · asymmetric agents · emergent coordination — 17 min</p>
+    <video controls preload="metadata" playsinline poster="film2.jpg">
+      <source src="film2.mp4" type="video/mp4">
+    </video>
+    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film2-distributed-wildfire-response.mp4">download</a>.</p>
+    <p class="intro">This scenario focuses on dynamic task allocation and emergent air-ground coordination during a rapidly evolving fire simulation:</p>
+    <ul>
+      <li><strong>Air-Ground Synergy:</strong> Drones and autonomous ground vehicles collaborate to execute a complete detection-to-extinction chain with no human in the loop.</li>
+      <li><strong>Consensus-Based Allocation:</strong> Tasks are broken down via a Hierarchical Task Network (HTN). Vehicles allocate assignments among themselves through consensus, eliminating the need for a central dispatcher.</li>
+      <li><strong>Resilience &amp; AI Doctrine:</strong> The swarm adapts live to partial information, agent loss, and multiple simultaneous events. The AI advises on strategy, while the vehicles manage their own navigation and physical suppression.</li>
+      <li><strong>Live Adaptation:</strong> Federated learning runs continuously during the response, while the operator retains the ability to dynamically issue high-level commands (e.g., zone search, patrol, return to base).</li>
+    </ul>
+  </section>
+
+  <footer>
+    DIAMANTS · <a href="https://github.com/lololem/diamants-collab">github.com/lololem/diamants-collab</a> ·
+    <a href="https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09">release page</a>
+  </footer>
+</main>
+</body>
+</html>
