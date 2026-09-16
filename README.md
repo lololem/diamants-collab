@@ -6,6 +6,9 @@ A fleet takes off from a helipad in a forest and explores on its own. Rendering,
 flight physics and collision avoidance are handled. You bring the coordination
 algorithm.
 
+> 🎬 **New: two demonstration films (September 2026)** — see [Demonstration films](#demonstration-films-september-2026) below.
+> They were recorded from the current internal development version: **the code published here is not up to date** and does not include every capability shown in them.
+
 ### Why wildfire
 
 A forest fire is cheap to stop and ruinous to chase. In its first minutes one
@@ -258,6 +261,32 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 ---
 
 ## Videos
+
+### Demonstration films (September 2026)
+
+> ⚠️ **These are demonstration videos.** They were recorded from the current internal development version of DIAMANTS. **The code published in this repository is not up to date** and does not include every capability shown here.
+
+#### Film 1: Unmapped Sector Reconnaissance — [watch / download](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4) (22 min)
+
+This scenario showcases a heterogeneous swarm operating within a fully decentralized architecture:
+
+- **Heterogeneous Swarm & Division of Labor:** Micro-drones act as reactive scouts, while camera-equipped platforms use on-board AI to verify targets in a two-stage detection process.
+- **Distributed Autonomy:** All decisions are made on-board without a central planner, utilizing collaborative coverage methods (stigmergy, consensus-based allocation, and area partitioning).
+- **True Flight Physics & Neurosymbolic AI:** Action proposals from the AI are strictly vetted by a deterministic rule layer before execution. The simulation incorporates the true flight physics of the drones (mass, inertia, rotor thrusts), ensuring highly realistic and safe control.
+- **Federated Learning & Operator Control:** Agents collaboratively learn while keeping their observation data private. Operators can issue natural-language commands that seamlessly override autonomous missions, visualized through a live command-chain display.
+
+#### Film 2: Distributed Wildfire Response — [watch / download](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film2-distributed-wildfire-response.mp4) (17 min)
+
+This scenario focuses on dynamic task allocation and emergent air-ground coordination during a rapidly evolving fire simulation:
+
+- **Air-Ground Synergy:** Drones and autonomous ground vehicles collaborate to execute a complete detection-to-extinction chain with no human in the loop.
+- **Consensus-Based Allocation:** Tasks are broken down via a Hierarchical Task Network (HTN). Vehicles allocate assignments among themselves through consensus, eliminating the need for a central dispatcher.
+- **Resilience & AI Doctrine:** The swarm adapts live to partial information, agent loss, and multiple simultaneous events. The AI advises on strategy, while the vehicles manage their own navigation and physical suppression.
+- **Live Adaptation:** Federated learning runs continuously during the response, while the operator retains the ability to dynamically issue high-level commands (e.g., zone search, patrol, return to base).
+
+Both films are also listed on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
+
+### Earlier videos
 
 [3D frontend](https://www.youtube.com/watch?v=fyEmYu4lbzo) ·
 [Multi-agent systems](https://www.youtube.com/watch?v=1Av_o-9fzrE) ·
