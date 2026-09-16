@@ -9,7 +9,10 @@ algorithm.
 > 🎬 **New: two demonstration films (September 2026)** — [▶ watch them online](https://lololem.github.io/diamants-collab/), or see [Demonstration films](#demonstration-films-september-2026) below.
 > They were recorded from the current internal development version: **the code published here is not up to date** and does not include every capability shown in them.
 >
-> 🚀 **Try it quickly in your browser:** [diamants-hypervision.pages.dev](https://diamants-hypervision.pages.dev) — note that this online demo is not up to date either compared with the demonstration films.
+>
+> [![Live demo — diamants-hypervision](https://img.shields.io/badge/%E2%96%B6%20Live%20demo-diamants--hypervision-4fd8ff?style=for-the-badge&logo=cloudflarepages&logoColor=white&labelColor=0e151d)](https://diamants-hypervision.pages.dev) [![Watch the demonstration films](https://img.shields.io/badge/%F0%9F%8E%AC%20Watch%20the%20films-online%20player-48e0a0?style=for-the-badge&logo=githubpages&logoColor=white&labelColor=0e151d)](https://lololem.github.io/diamants-collab/)
+>
+> <sub>The live demo lets you try DIAMANTS in your browser — it is not up to date either compared with the demonstration films.</sub>
 
 ### Why wildfire
 
@@ -268,7 +271,9 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 **▶ Online player: [https://lololem.github.io/diamants-collab/](https://lololem.github.io/diamants-collab/)**
 
-**🚀 Try it quickly in your browser: [https://diamants-hypervision.pages.dev](https://diamants-hypervision.pages.dev)** — this online demo is not up to date either compared with the demonstration films.
+[![Live demo — diamants-hypervision](https://img.shields.io/badge/%E2%96%B6%20Live%20demo-diamants--hypervision-4fd8ff?style=for-the-badge&logo=cloudflarepages&logoColor=white&labelColor=0e151d)](https://diamants-hypervision.pages.dev) [![Watch the demonstration films](https://img.shields.io/badge/%F0%9F%8E%AC%20Watch%20the%20films-online%20player-48e0a0?style=for-the-badge&logo=githubpages&logoColor=white&labelColor=0e151d)](https://lololem.github.io/diamants-collab/)
+
+<sub>Try DIAMANTS directly in your browser with the live demo — note that it is not up to date either compared with the demonstration films.</sub>
 
 > ⚠️ **These are demonstration videos.** They were recorded from the current internal development version of DIAMANTS. **The code published in this repository is not up to date** and does not include every capability shown here.
 
