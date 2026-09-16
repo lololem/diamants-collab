@@ -264,9 +264,13 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 ### Demonstration films (September 2026)
 
+**▶ Online player: [https://lololem.github.io/diamants-collab/](https://lololem.github.io/diamants-collab/)**
+
 > ⚠️ **These are demonstration videos.** They were recorded from the current internal development version of DIAMANTS. **The code published in this repository is not up to date** and does not include every capability shown here.
 
 #### Film 1: Unmapped Sector Reconnaissance (22 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
+
+[![Film 1: Unmapped Sector Reconnaissance — click to watch](https://lololem.github.io/diamants-collab/film1-play.jpg)](https://lololem.github.io/diamants-collab/#film1)
 
 This scenario showcases a heterogeneous swarm operating within a fully decentralized architecture:
 
@@ -276,6 +280,8 @@ This scenario showcases a heterogeneous swarm operating within a fully decentral
 - **Federated Learning & Operator Control:** Agents collaboratively learn while keeping their observation data private. Operators can issue natural-language commands that seamlessly override autonomous missions, visualized through a live command-chain display.
 
 #### Film 2: Distributed Wildfire Response (17 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film2) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film2-distributed-wildfire-response.mp4)
+
+[![Film 2: Distributed Wildfire Response — click to watch](https://lololem.github.io/diamants-collab/film2-play.jpg)](https://lololem.github.io/diamants-collab/#film2)
 
 This scenario focuses on dynamic task allocation and emergent air-ground coordination during a rapidly evolving fire simulation:
 
