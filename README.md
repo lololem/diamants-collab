@@ -4,7 +4,9 @@
 
 A fleet takes off from a helipad in a forest and explores on its own. Rendering,
 flight physics and collision avoidance are handled. You bring the coordination
-algorithm.
+algorithm — **and your own drone and your own model**: a language model, a
+reinforcement-learning policy, any decision maker, kept in check by symbolic
+rules. See [Bring your own model](#bring-your-own-model-neurosymbolic).
 
 > 🎬 **New: two demonstration films (September 2026)** — [▶ watch them online](https://lololem.github.io/diamants-collab/), or see [Demonstration films](#demonstration-films-september-2026) below.
 > They were recorded from the current internal development version: **the code published here is not up to date** and does not include every capability shown in them.
@@ -188,8 +190,9 @@ The ROS 2 backend and WebSocket gateway are not published. The frontend runs
 standalone.
 
 The "LLM Intelligence" panel expects a local [Ollama](https://ollama.com) server.
-Without one it shows **simulated** decisions for demonstration — not model
-output.
+Without one, and without your own models plugged in (see
+[Bring your own model](#bring-your-own-model-neurosymbolic)), it shows
+**simulated** decisions for demonstration — not model output.
 
 ---
 
@@ -198,7 +201,10 @@ output.
 ```
 DIAMANTS_FRONTEND/Mission_system/     the whole application
   physics/        PID flight engine, drone profiles
-  intelligence/   swarm interfaces and shells
+  intelligence/   swarm interfaces, shells, and the bring-your-own-model contract
+    agent-model-interface.js    Observation → model → rules → decision
+    neurosymbolic-bridge.js     connects your models to the running simulator
+    model-providers/            ollama, openai-compatible, http-policy, example rules
   environment/    terrain, vegetation, sky
   shaders/        grass and sky (GLSL)
   drones/         3D models
@@ -259,6 +265,162 @@ the flight command, not substituted for it — stability is not your problem.
 
 ---
 
+## Bring your own model (neurosymbolic)
+
+Anyone can put **their own drone** (a JSON profile, above) **with their own
+model** into the swarm. The model can be anything that turns what a drone
+knows into a proposed decision:
+
+- a language model served by Ollama, llama.cpp, vLLM, LM Studio…
+- a reinforcement-learning policy, an ONNX network, a planner behind an HTTP endpoint;
+- a provider you write yourself in a few lines.
+
+### The model proposes, the rules dispose
+
+A model is never trusted with the aircraft. Every decision goes through a
+symbolic rule layer — that is what *neurosymbolic* means here:
+
+```
+ Observation ──► rules.before ──► model.decide ──► rules.after ──► bounded influence
+ (own view:           │ veto              (neural)         │ reject        on the waypoint
+  neighbours,         ▼                                    ▼               — the PID flies
+  battery, …)   imposed action                     reactive fallback
+```
+
+| Step | Who | What happens |
+|---|---|---|
+| `rules.before` | symbolic | critical situations (battery, separation…) **veto**: the action is imposed, the model is not even asked |
+| `model.decide` | your model | returns `{ action, direction, confidence, reasoning }` — or `null` |
+| `rules.after` | symbolic | action not allowed for this drone, unknown direction, low confidence → **rejected** |
+| engine | physics | an accepted decision shifts the next waypoint by at most 8 m, clamped to the arena |
+
+A model that times out, answers garbage or proposes something forbidden
+changes nothing: the drone keeps flying on its reactive behaviour. **Swap the
+model, keep the rules** — a better model never needs the safety behaviour to be
+re-validated.
+
+### In three steps
+
+**1. Your drone** — `physics/profiles/my-drone.json` (see [Adding a drone](#adding-a-drone)).
+
+**2. Your model** — copy the registry and give each profile id a provider:
+
+```bash
+cd DIAMANTS_FRONTEND/Mission_system/intelligence/model-providers
+cp agent-models.example.json agent-models.json     # git-ignored
+```
+
+```json
+{
+  "X500": {
+    "provider": "ollama",
+    "model": "my-drone-model:latest",
+    "allowedActions": ["EXPLORE", "AVOID", "HOVER", "RTL", "REPLAN", "COORDINATE"],
+    "minConfidence": 0.6,
+    "systemPrompt": "You are an X500 survey drone. Answer with one JSON object: {\"action\", \"direction\", \"confidence\", \"reasoning\"}"
+  },
+  "MY_DRONE": {
+    "provider": "http-policy",
+    "name": "ppo-explorer-v3",
+    "url": "http://localhost:9000/decide",
+    "allowedActions": ["EXPLORE", "AVOID", "HOVER", "RTL"],
+    "timeoutMs": 2000
+  }
+}
+```
+
+Several profiles can run **different models at the same time** — that is the
+point: heterogeneous agents, one contract. Profiles without an entry fly without
+a model. `_settings.maxConcurrent` (default 2) caps requests in flight for the
+whole swarm: a local server answers one at a time, so past the cap a drone skips
+that thought instead of queueing into a timeout. Rule vetoes are never skipped.
+
+> `agent-models.json` is read from the **dev server only** and never bundled
+> into `npm run build` output. Keep API keys there or in your server's own
+> config — never in a committed file.
+
+**3. Run** — `npm run dev`. When `agent-models.json` exists, the controller
+replaces the inert LLM shell by `neurosymbolic-bridge.js`; the console prints
+`Own models attached: N drones`. They start enabled; the **LLM ON/OFF** button
+of the *LLM Intelligence* panel pauses and resumes them. Every decision, veto
+and rejection appears in its feed with the model name and latency.
+
+Hot-swap from the browser console, rules untouched:
+
+```javascript
+const mgr = diamantsSystem.integratedController.droneIntelligenceManager;
+mgr.setModelForType('X500', 'my-drone-model-v2:latest');
+mgr.getStats();   // { requests, accepted, rejected, vetoes, failures, activeBrains }
+```
+
+### Writing a provider
+
+```javascript
+import { AgentModel } from '../agent-model-interface.js';
+import { registerProvider } from './index.js';
+
+class MyPolicy extends AgentModel {
+    get name() { return `mine:${this.config.checkpoint}`; }
+    async decide(observation, { allowedActions, signal }) {
+        // observation = { agentId, agentType, phase, position{x,z,alt}, speed,
+        //                 battery, neighbours[{id,dist,dir}], sharedFindings[], coverage }
+        // pass `signal` to fetch(): on timeout the request is cancelled server-side
+        return { action: 'EXPLORE', direction: 'NE', confidence: 0.8, reasoning: 'frontier NE' };
+    }
+}
+registerProvider('my-policy', MyPolicy);   // then "provider": "my-policy" in agent-models.json
+```
+
+### Writing your rules
+
+`model-providers/example-rules.js` is a deliberately small example (battery
+veto, separation veto, allowed actions, confidence threshold). Extend
+`RuleLayer` with your own and pass it to `NeuroSymbolicIntelligenceManager`.
+The rules are the part to review and test — whatever model sits behind them.
+
+### Making a better model — what fine-tuning is
+
+A general-purpose language model knows language, not your drone. Asked *"battery
+21 %, home is north, what now?"* it may answer in prose, invent an action, or
+ignore the battery. **Fine-tuning** means continuing the training of an existing
+model on examples of the exact job — here, thousands of *(observation → correct
+decision)* pairs — so the behaviour becomes a reflex instead of a guess.
+
+The neurosymbolic way to get those examples without labelling anything by hand:
+
+1. **Write the rules as a teacher.** The same kind of symbolic rules that guard
+   the model are turned into a function `teach(observation) → decision`.
+2. **Generate situations.** Sample thousands of observations covering every rule
+   (low battery, neighbour too close, stall, unexplored frontier…); render each
+   one with the *same* prompt builder the simulator uses; label it with the teacher.
+   Keep a held-out set the model never sees.
+3. **Train an adapter, not the whole model.** LoRA freezes the base weights and
+   learns small low-rank matrices on top (tens of millions of parameters instead
+   of billions). A 4 B instruct model trains in minutes on one consumer GPU —
+   e.g. with [Unsloth](https://github.com/unslothai/unsloth) or Hugging Face PEFT,
+   loss on the answer tokens only.
+4. **Export and serve.** Merge, quantise to GGUF (Q4_K_M), then
+   `ollama create my-drone-model -f Modelfile`.
+5. **Measure before you swap.** On the held-out set: valid JSON %, same action %,
+   exact decision %, unsafe proposals, latency. Plug the new model in only if it
+   beats the one in place. The rules stay in the loop either way.
+
+For scale, measured on the internal development version — the same 4 B base
+model before and after this fine-tune, on the same 607 held-out situations it
+never saw in training:
+
+| Qwen3-4B-Instruct | valid JSON | same action as the rules | exact decision | unsafe proposals |
+|---|---|---|---|---|
+| untuned | 72.5 % | 41.4 % | 31.8 % | 15 |
+| fine-tuned on the rules (LoRA r16, 5,410 examples) | **100 %** | **93.9 %** | **88.6 %** | **4** |
+
+The four unsafe proposals left are exactly why the rules stay in the loop. The
+teacher rules and training pipeline used there are not published — the method
+above is the whole idea, and the contract lets you compare your model against
+any other on equal terms.
+
+---
+
 ## Stack
 
 Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
@@ -313,7 +475,8 @@ This scenario focuses on dynamic task allocation and emergent air-ground coordin
 
 ## Contributing
 
-Drone profiles, swarm algorithms, rendering improvements, bug fixes, tests, docs.
+Drone profiles, models and model providers, rule layers, swarm algorithms,
+rendering improvements, bug fixes, tests, docs.
 Fork, branch, pull request — see [Contributing.md](Contributing.md).
 Contributions are distributed under the project licence.
 

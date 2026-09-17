@@ -409,6 +409,7 @@ export class IntegratedDiamantsController {
             // Don't await — Ollama ping can take 2s+ if not running
             this.droneIntelligenceManager.init().then(() => {
                 this.autonomousFlightEngine?.setIntelligenceManager(this.droneIntelligenceManager);
+                this._attachOwnModels();
                 logger.info('Controller', '🧠 Drone Intelligence Manager initialized (Ollama LLM)');
             }).catch(e => {
                 console.warn('[Controller] DroneIntelligence init failed (Ollama may not be running):', e.message);
@@ -836,6 +837,38 @@ export class IntegratedDiamantsController {
             const profile = typeAssignment[index];
             log(`  ${drone.id} [${profile}]: x=${drone.position.x.toFixed(2)}, y=${drone.position.y.toFixed(2)}, z=${drone.position.z.toFixed(2)}`);
         });
+    }
+
+    /**
+     * Bring your own model: when intelligence/model-providers/agent-models.json
+     * exists, its models replace the inert DroneIntelligenceManager. Drones
+     * already registered are handed over. See README, "Bring your own model".
+     * @private
+     */
+    async _attachOwnModels() {
+        let registry;
+        try {
+            // Built from a runtime string ON PURPOSE: a static `new URL(..., import.meta.url)`
+            // makes Vite inline the file into production bundles — with any API key in it.
+            // The registry is read from the dev server only; a deployed build has none.
+            const registryPath = ['intelligence', 'model-providers', 'agent-models.json'].join('/');
+            const res = await fetch(`${import.meta.env.BASE_URL || '/'}${registryPath}`, { cache: 'no-store' });
+            if (!res.ok) return;
+            registry = await res.json();
+        } catch (_) {
+            return;
+        }
+        const { NeuroSymbolicIntelligenceManager } = await import('../intelligence/neurosymbolic-bridge.js');
+        const mgr = new NeuroSymbolicIntelligenceManager(registry);
+        for (const [id, state] of this.autonomousFlightEngine?.drones || []) {
+            mgr.registerDrone(id, state.profile?.id);
+        }
+        // a registry written on purpose is the intent: start enabled
+        // (the panel's LLM ON/OFF button still pauses and resumes them)
+        mgr.setGlobalEnabled(true);
+        this.droneIntelligenceManager = mgr;
+        this.autonomousFlightEngine?.setIntelligenceManager(mgr);
+        logger.info('Controller', `🧠 Own models attached: ${mgr.brains.size} drones (${Object.keys(registry).filter(k => registry[k]?.provider).join(', ')})`);
     }
 
     /**

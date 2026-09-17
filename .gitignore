@@ -21,3 +21,6 @@ Thumbs.db
 diamants-collab.wiki/
 *.code-workspace
 .playwright-mcp/
+
+# Your own model registry (copy of agent-models.example.json)
+DIAMANTS_FRONTEND/Mission_system/intelligence/model-providers/agent-models.json

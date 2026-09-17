@@ -7,17 +7,17 @@
  * https://polyformproject.org/licenses/noncommercial/1.0.0/
  */
 /**
- * DroneIntelligenceManager — Stub public
+ * DroneIntelligenceManager — public shell
  * ========================================
- * Le pont vers les modèles de langage locaux (construction de prompt,
- * analyse de décision, mémoire par drone, garde-fous d'action) vit dans le
- * private repository.
+ * The internal bridge to local language models (prompt building, decision
+ * parsing, per-drone memory, action guards) lives in the private repository.
  *
- * Ce stub expose la même surface, désactivée. Il est importé statiquement
- * par tools/integrated-controller.js.
+ * This shell exposes the same surface, disabled. It is imported statically by
+ * tools/integrated-controller.js.
  *
- * Conséquence : le panneau « Intelligence LLM » s'affiche mais aucun drone
- * n'interroge de modèle. Le vol autonome, lui, ne dépend pas du LLM.
+ * To plug in YOUR models instead, create
+ * intelligence/model-providers/agent-models.json: the controller then swaps
+ * this shell for neurosymbolic-bridge.js. See README, "Bring your own model".
  */
 
 export class DroneIntelligenceManager {

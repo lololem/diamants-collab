@@ -100,7 +100,37 @@ export class YourAlgorithm extends SwarmIntelligenceInterface {
 
 **How to test:** Replace `NoopSwarmIntelligence` in `autonomous-flight-engine.js` with your implementation.
 
-### 3. Bug fixes, tests, documentation
+### 3. A model, a model provider or a rule layer (neurosymbolic)
+
+Give any drone profile its own decision maker — a language model, an RL policy,
+anything behind an HTTP endpoint — kept in check by symbolic rules. Full guide:
+README, "Bring your own model".
+
+**Files:**
+
+| You add | Where | Contract |
+|---|---|---|
+| a model entry | `intelligence/model-providers/agent-models.json` (git-ignored; share yours as `agent-models.<name>.example.json`) | `{ provider, model / url, allowedActions, minConfidence, systemPrompt }` |
+| a provider | `intelligence/model-providers/your-provider.js` | extend `AgentModel`, implement `decide(observation, context)`, call `registerProvider('id', Class)` |
+| a rule layer | `intelligence/model-providers/your-rules.js` | extend `RuleLayer`: `before(observation)` → veto or `null`; `after(decision, observation, context)` → `{ ok }` |
+
+**Rules:**
+- `decide` returns `{ action, direction?, confidence, reasoning? }` or `null` — never throws on bad model output
+- actions must come from the entry's `allowedActions`; anything else is rejected
+- a model is never given direct control: the rule layer runs before and after it, and the engine bounds its influence
+- no API keys or private endpoints in committed files
+- a PR that adds a model states **how it was measured**: held-out situations, valid-JSON %, action agreement %, unsafe proposals, latency — and against which model
+
+**How to test:**
+
+```bash
+npm test -- tests/agent-model-interface.test.js tests/neurosymbolic-bridge.test.js
+```
+
+Add a test with a scripted provider (see `tests/neurosymbolic-bridge.test.js`)
+showing your rules veto and reject what they should, whatever the model says.
+
+### 4. Bug fixes, tests, documentation
 
 Standard open-source workflow:
 - Check [issues](https://github.com/lololem/diamants-collab/issues) for known bugs
@@ -157,8 +187,8 @@ This project is distributed under the **PolyForm Noncommercial License 1.0.0**:
 free for research, teaching and non-profit projects, but **commercial use is not
 permitted**. See [LICENSE](LICENSE).
 
-By submitting a contribution — a pull request, a fix, a drone profile, an
-algorithm — you agree that it is distributed under that same licence.
+By submitting a contribution — a pull request, a fix, a drone profile, a
+model, a provider, an algorithm — you agree that it is distributed under that same licence.
 
 If you add third-party code, state its origin and its licence clearly:
 third-party components keep their own, and are listed in the "Third-party
