@@ -470,15 +470,27 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 > ⚠️ **Films 1 and 2 are demonstration videos**, recorded from the internal development version: **the code published here does not include every capability shown in them.** The tutorial below is the exception — it was recorded on this repository.
 
-#### Tutorial: add your drone and your model (6 min) — [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
+#### Tutorial: add your drone and your model (4 min) — [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
 
 Recorded on **this** repository, as you receive it — not on the internal build.
-Five steps, each one done on screen: clone and run, write a drone profile and
-watch it join the fleet, read the state machine that flies it, declare a model
-in the registry and see its answers arrive, then set a battery to 8 % and watch
-a rule impose the landing without asking the model. It ends with how to write
-your own provider — a reinforcement-learning policy or any HTTP endpoint, not
-only a language model.
+Five steps, done on screen in the **Fleet & models** panel: clone and run, load
+a drone profile and put one in the air — it flies a real PX4 airframe, not a
+placeholder — read the state machine that flies it, pick a model from the list
+your own Ollama server offers and apply it to that profile, then set a battery
+to 8 % and watch a rule impose the landing without asking the model. It ends
+with the file route, and with how to write your own provider: a
+reinforcement-learning policy or any HTTP endpoint, not only a language model.
+
+#### Film 3: Real-time multi-agent, shown and measured (12 min) — [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4)
+
+Recorded on the internal development build. A time-stamped event feed of what
+each drone does; a find that travels from a scout to another drone's model
+through the shared journal; the rules imposing a landing; the journal proved by
+cutting one drone's radio and by refusing a forged entry; the trace written and
+faded on a drone's own grid; consensus — a contact is never a confirmation; the
+mission panel with the local models it actually holds; and the measured part,
+stated as measured: **no faster detection** (p = 0.89), less duplicated ground
+(42 % → 37 %), before/after fine-tuning on the same base (31.8 % → 88.6 %).
 
 #### Film 1: Unmapped Sector Reconnaissance (22 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
 
