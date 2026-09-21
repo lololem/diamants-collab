@@ -1,0 +1,43 @@
+{
+    "id": "TAROT_680",
+    "label": "Tarot 680 Pro (example)",
+    "manufacturer": "Example Robotics",
+    "category": "medium",
+    "physical": {
+        "mass": 2.4,
+        "armLength": 0.34,
+        "boundingRadius": 0.68,
+        "propCount": 6
+    },
+    "performance": {
+        "maxSpeed": 9,
+        "maxClimb": 3,
+        "cruiseAlt": 7,
+        "maxAlt": 60,
+        "agility": 0.9,
+        "explorationRadius": 90,
+        "endurance_min": 26
+    },
+    "pid": {
+        "pos": {
+            "kp": 2.1,
+            "ki": 0.04,
+            "kd": 1.2
+        },
+        "alt": {
+            "kp": 3,
+            "ki": 0.09,
+            "kd": 1.4
+        },
+        "yaw": {
+            "kp": 1.8,
+            "ki": 0,
+            "kd": 0.3
+        }
+    },
+    "visual": {
+        "scale": 22,
+        "color": "0xffaa22",
+        "model": "generic"
+    }
+}

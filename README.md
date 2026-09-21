@@ -256,10 +256,17 @@ there at startup.
 `id`, `label`, `physical`, `performance` and `pid` are required. Full schema in
 `profiles/drone-profile.schema.json`.
 
-Restart `npm run dev` and your drone is in the registry: the fleet can be
-composed with it, `DIAMANTS.spawnDrone('my_drone_01', 'MY_DRONE', {x, y, z})`
-puts one in the air, and it flies on the same PID engine and state machine as
-the built-ins. A profile the role table does not know flies as a hybrid
+Restart `npm run dev` and your drone is in the registry. Put one in the air
+from the browser console — it flies on the same PID engine and state machine as
+the built-ins, and if your profile has an entry in the model registry, that
+model starts deciding for it straight away:
+
+```javascript
+DIAMANTS.spawnDrone('my_drone_01', 'MY_DRONE', { x: 6, y: 0.4, z: 6 });
+takeoffAllDrones();
+```
+
+To have it in the fleet from the start instead, name it in `fleet_config.json`. A profile the role table does not know flies as a hybrid
 explorer — no other file to edit.
 
 **Checked end to end**: a fresh clone, `npm install`, a new profile dropped in,

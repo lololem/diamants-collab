@@ -1177,6 +1177,15 @@ export class IntegratedDiamantsController {
             this.autonomousFlightEngine.registerDrone(droneId, profileId, startVec);
         }
 
+        /* MESURÉ : un drone ajouté en vol volait sans modèle.
+         * La flotte initiale est enregistrée auprès du gestionnaire
+         * d'intelligence (voir createDroneFleet), mais cette voie-ci ne l'était
+         * pas : le drone apparaissait, volait, et n'interrogeait jamais le
+         * modèle déclaré pour son profil. */
+        if (this.droneIntelligenceManager) {
+            this.droneIntelligenceManager.registerDrone(droneId, profileId);
+        }
+
         // 3. Create RL agent with profile-appropriate brain
         let agent = null;
         if (this.multiAgentCoordinator) {
