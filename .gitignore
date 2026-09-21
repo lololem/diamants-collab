@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Wiki (managed separately)
+diamants-collab.wiki/
+*.code-workspace
+.playwright-mcp/
+
+# Your own model registry (copy of agent-models.example.json)
+DIAMANTS_FRONTEND/Mission_system/intelligence/model-providers/agent-models.json

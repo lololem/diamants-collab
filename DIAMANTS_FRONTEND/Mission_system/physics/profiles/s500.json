@@ -1,0 +1,67 @@
+{
+    "id": "S500",
+    "label": "Holybro S500",
+    "manufacturer": "Holybro",
+    "category": "medium",
+
+    "physical": {
+        "mass": 2.3,
+        "armLength": 0.27,
+        "boundingRadius": 0.55,
+        "propCount": 4
+    },
+
+    "performance": {
+        "maxSpeed": 10.0,
+        "maxClimb": 4.0,
+        "cruiseAlt": 4.0,
+        "maxAlt": 20.0,
+        "agility": 0.7,
+        "explorationRadius": 180,
+        "endurance_min": 22
+    },
+
+    "pid": {
+        "pos":  { "kp": 0.95, "ki": 0.015, "kd": 0.35 },
+        "alt":  { "kp": 1.0,  "ki": 0.03,  "kd": 0.5  },
+        "yaw":  { "kp": 2.8,  "ki": 0.0,   "kd": 0.15 }
+    },
+
+    "sensors": {
+        "camera": "OAK-D Lite",
+        "depthRange": [0.2, 20.0],
+        "hFov": 73,
+        "vFov": 58,
+        "imu": "ICM-42688-P",
+        "gps": true,
+        "lidar": false
+    },
+
+    "physics": {
+        "maxThrust": 45.0,
+        "dragCoeffH": 0.30,
+        "dragCoeffV": 0.40,
+        "maxTiltAngle": 0.35,
+        "maxAngularRate": 3.5,
+        "velKp": 1.8,
+        "velKi": 0.4,
+        "velKd": 0.2,
+        "velAltKp": 4.0,
+        "velAltKi": 2.0,
+        "velAltKd": 0.0,
+        "_comment": "PX4 4014_s500 + rc.mc_defaults: MC_ROLLRATE_P=0.18, MC_PITCHRATE_P=0.18, MC_ROLLRATE_I=0.15, MC_PITCHRATE_I=0.15. Same MPC firmware defaults. TWR~2.0 (heavier frame, slight drag increase)"
+    },
+
+    "visual": {
+        "scale": 11,
+        "color": "0x2E86C1",
+        "model": "s500"
+    },
+
+    "agent": {
+        "role": "patrol",
+        "brainType": "cognitive",
+        "teamRole": "patrol",
+        "description": "Heavy patrol/surveillance drone with OAK-D Lite, PX4 S500 frame, longer endurance"
+    }
+}

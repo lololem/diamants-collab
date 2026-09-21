@@ -1,0 +1,129 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "DIAMANTS Drone Physics Profile",
+    "description": "Définit les caractéristiques physiques, PID et visuelles d'un type de drone pour l'AutonomousFlightEngine. Chaque droniste crée un fichier JSON suivant ce schéma.",
+    "type": "object",
+    "required": ["id", "label", "physical", "performance", "pid"],
+    "properties": {
+        "id": {
+            "type": "string",
+            "description": "Identifiant unique du profil (ex: CRAZYFLIE, MAVIC, CUSTOM_X500)",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+        },
+        "label": {
+            "type": "string",
+            "description": "Nom lisible du drone (ex: 'Crazyflie 2.1')"
+        },
+        "manufacturer": {
+            "type": "string"
+        },
+        "category": {
+            "type": "string",
+            "enum": ["nano", "micro", "compact", "medium", "heavy", "custom"],
+            "description": "Catégorie de taille"
+        },
+        "physical": {
+            "type": "object",
+            "required": ["mass", "boundingRadius"],
+            "properties": {
+                "mass": {
+                    "type": "number",
+                    "description": "Masse en kg",
+                    "minimum": 0.01
+                },
+                "armLength": {
+                    "type": "number",
+                    "description": "Longueur d'un bras en mètres"
+                },
+                "boundingRadius": {
+                    "type": "number",
+                    "description": "Rayon de la sphère de collision en mètres",
+                    "minimum": 0.05
+                },
+                "propCount": {
+                    "type": "integer",
+                    "description": "Nombre de rotors",
+                    "minimum": 1,
+                    "default": 4
+                }
+            }
+        },
+        "performance": {
+            "type": "object",
+            "required": ["maxSpeed", "maxClimb", "cruiseAlt", "maxAlt"],
+            "properties": {
+                "maxSpeed": {
+                    "type": "number",
+                    "description": "Vitesse horizontale max en m/s",
+                    "minimum": 0.1
+                },
+                "maxClimb": {
+                    "type": "number",
+                    "description": "Vitesse verticale max en m/s",
+                    "minimum": 0.1
+                },
+                "cruiseAlt": {
+                    "type": "number",
+                    "description": "Altitude de croisière en mètres"
+                },
+                "maxAlt": {
+                    "type": "number",
+                    "description": "Altitude plafond en mètres"
+                },
+                "agility": {
+                    "type": "number",
+                    "description": "Multiplicateur de taux de virage (1.0 = standard)",
+                    "default": 1.0
+                },
+                "explorationRadius": {
+                    "type": "number",
+                    "description": "Rayon d'exploration max en mètres",
+                    "default": 40
+                },
+                "endurance_min": {
+                    "type": "number",
+                    "description": "Autonomie en minutes (pour simulation batterie future)"
+                }
+            }
+        },
+        "pid": {
+            "type": "object",
+            "required": ["pos", "alt", "yaw"],
+            "description": "Gains PID pour le contrôle de vol",
+            "properties": {
+                "pos": { "$ref": "#/definitions/pidGains" },
+                "alt": { "$ref": "#/definitions/pidGains" },
+                "yaw": { "$ref": "#/definitions/pidGains" }
+            }
+        },
+        "visual": {
+            "type": "object",
+            "properties": {
+                "scale": {
+                    "type": "number",
+                    "description": "Échelle visuelle Three.js",
+                    "default": 15
+                },
+                "color": {
+                    "type": "string",
+                    "description": "Couleur hex (ex: '0x00FF88')"
+                },
+                "model": {
+                    "type": "string",
+                    "description": "Nom du modèle 3D dans models/"
+                }
+            }
+        }
+    },
+    "definitions": {
+        "pidGains": {
+            "type": "object",
+            "required": ["kp"],
+            "properties": {
+                "kp": { "type": "number", "description": "Gain proportionnel" },
+                "ki": { "type": "number", "description": "Gain intégral", "default": 0 },
+                "kd": { "type": "number", "description": "Gain dérivé", "default": 0 }
+            }
+        }
+    }
+}

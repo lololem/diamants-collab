@@ -1,0 +1,184 @@
+/*
+ * DIAMANTS — Collaborative drone swarm simulation
+ * Copyright (c) 2026 Loic Lemasle
+ *
+ * Licensed under the PolyForm Noncommercial License 1.0.0.
+ * Commercial use is not permitted. See LICENSE at the repository root.
+ * https://polyformproject.org/licenses/noncommercial/1.0.0/
+ */
+/**
+ * DIAMANTS — Stigmergy Engine Loader
+ * =====================================
+ * Loads a stigmergy engine at runtime, if one is available.
+ *
+ * No engine ships with this repository. The loader lets you drop yours in
+ * without the application taking a hard dependency on it.
+ *
+ * Resolution order:
+ *   1. dynamic import of ./stigmergy-engine-private.js
+ *   2. `window.DIAMANTS_STIGMERGY_ENGINE`, injected by hand
+ *   3. nothing found — returns null, and the flight engine falls back to
+ *      NoopSwarmIntelligence
+ *
+ * To plug an engine in:
+ *   - place or symlink your implementation at ./stigmergy-engine-private.js
+ *   - or import it yourself and assign:
+ *       import { StigmergyEngine } from '...';
+ *       window.DIAMANTS_STIGMERGY_ENGINE = StigmergyEngine;
+ */
+
+import { StigmergyInterface, PheromoneType } from './stigmergy-interface.js';
+
+// Re-export for convenience
+export { StigmergyInterface, PheromoneType };
+
+/**
+ * Default stigmergy configuration.
+ * Can be overridden when calling loadStigmergyEngine(config).
+ */
+export const DEFAULT_STIGMERGY_CONFIG = {
+    /*
+     * Neutral placeholders. The tuned values of the research build — evaporation,
+     * diffusion and the weight of each trace in the combined gradient — are not
+     * published: tuning them for your own arena is part of the exercise.
+     */
+    gridResolution: 1.0,    // meters per cell
+    gridSize: 100,          // cells per side
+    evaporationRate: 0,     // per second — 0 = traces never fade
+    diffusionRate: 0,       // per tick
+    maxIntensity: 100,
+
+    weights: {
+        exploration: 0,
+        interest: 0,
+        danger: 0,
+        rally: 0,
+    },
+
+    deposits: {
+        exploration: 0,
+        interest: 0,
+        danger: 0,
+        rally: 0,
+    },
+};
+
+/**
+ * Try to dynamically import the private stigmergy engine.
+ * Returns the StigmergyEngine class or null.
+ */
+async function tryLoadPrivateEngine() {
+    // Try 1: Distributed Swarm Engine (autonomous agents)
+    try {
+        const distModule = await import('./distributed-swarm-engine.js');
+        if (distModule.DistributedSwarmEngine) {
+            return { Engine: distModule.DistributedSwarmEngine, mode: 'distributed' };
+        }
+    } catch (err) {
+        console.debug('🔍 Distributed engine not available:', err.message);
+    }
+
+    // Try 2: a local stigmergy-engine-private.js, real file or symlink
+    try {
+        const module = await import('./stigmergy-engine-private.js');
+        if (module.StigmergyEngine) {
+            return { Engine: module.StigmergyEngine, mode: 'centralized' };
+        }
+    } catch (err) {
+        // File not found or symlink broken — that's OK, it's optional
+        if (!err.message?.includes('Failed to fetch') && !err.message?.includes('Cannot find')) {
+            console.debug('🔍 Private stigmergy module not available:', err.message);
+        }
+    }
+
+    // Try 3: Direct import of stigmergy-engine.js (concrete implementation)
+    try {
+        const module = await import('./stigmergy-engine.js');
+        if (module.StigmergyEngine) {
+            return { Engine: module.StigmergyEngine, mode: 'centralized' };
+        }
+    } catch (err) {
+        console.debug('🔍 Stigmergy engine not found:', err.message);
+    }
+
+    return null;
+}
+
+/**
+ * Load the StigmergyEngine implementation if available.
+ * This is an ASYNC function — use await or .then() to get the result.
+ *
+ * @param {object} config - Configuration to pass to the engine constructor
+ * @returns {Promise<StigmergyInterface|null>} - Engine instance or null if not available
+ */
+export async function loadStigmergyEngine(config = {}) {
+    const mergedConfig = { ...DEFAULT_STIGMERGY_CONFIG, ...config };
+
+    // 1. Check for already-injected implementation (synchronous)
+    if (window.DIAMANTS_STIGMERGY_ENGINE) {
+        try {
+            const EngineClass = window.DIAMANTS_STIGMERGY_ENGINE;
+            const engine = new EngineClass(mergedConfig);
+            console.log('🧠 StigmergyEngine loaded from window.DIAMANTS_STIGMERGY_ENGINE');
+            return engine;
+        } catch (err) {
+            console.warn('⚠️ Failed to instantiate StigmergyEngine:', err);
+        }
+    }
+
+    // 2. Try dynamic import (distributed first, then centralized)
+    const result = await tryLoadPrivateEngine();
+    if (result) {
+        try {
+            const engine = new result.Engine(mergedConfig);
+            const modeIcon = result.mode === 'distributed' ? '🌐' : '🧠';
+            console.log(`${modeIcon} StigmergyEngine loaded — mode: ${result.mode.toUpperCase()}`);
+            return engine;
+        } catch (err) {
+            console.warn('⚠️ Failed to instantiate StigmergyEngine:', err);
+        }
+    }
+
+    // 3. Check for async loader callback (alternative pattern)
+    if (window.DIAMANTS_LOAD_STIGMERGY) {
+        try {
+            const engine = window.DIAMANTS_LOAD_STIGMERGY(mergedConfig);
+            if (engine) {
+                console.log('🧠 StigmergyEngine loaded via async loader callback');
+                return engine;
+            }
+        } catch (err) {
+            console.warn('⚠️ Async stigmergy loader failed:', err);
+        }
+    }
+
+    // No implementation available
+    console.log('ℹ️ No StigmergyEngine available — using NoopSwarmIntelligence');
+    return null;
+}
+
+/**
+ * Check if stigmergy implementation is available.
+ * @returns {boolean}
+ */
+export function isStigmergyAvailable() {
+    return !!(window.DIAMANTS_STIGMERGY_ENGINE || window.DIAMANTS_LOAD_STIGMERGY);
+}
+
+/**
+ * Register a stigmergy engine implementation.
+ * Call this from your own module to make the engine available.
+ *
+ * @param {typeof StigmergyInterface} EngineClass - The StigmergyEngine class
+ */
+export function registerStigmergyEngine(EngineClass) {
+    window.DIAMANTS_STIGMERGY_ENGINE = EngineClass;
+    console.log('✅ StigmergyEngine registered');
+
+    // Dispatch event for late listeners
+    try {
+        window.dispatchEvent(new CustomEvent('diamants:stigmergy-available', {
+            detail: { EngineClass }
+        }));
+    } catch (_) { /* ignore */ }
+}

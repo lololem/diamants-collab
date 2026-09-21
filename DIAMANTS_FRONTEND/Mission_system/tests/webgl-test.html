@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<!--
+  DIAMANTS — Collaborative drone swarm simulation
+  Copyright (c) 2026 Loic Lemasle
+
+  Licensed under the PolyForm Noncommercial License 1.0.0.
+  Commercial use is not permitted. See LICENSE at the repository root.
+  https://polyformproject.org/licenses/noncommercial/1.0.0/
+-->
+<html>
+<head>
+    <title>Test WebGL DIAMANTS</title>
+    <style>
+        body { 
+            background: #1a1a2e; 
+            color: #00FFFF; 
+            font-family: monospace; 
+            margin: 20px; 
+        }
+        .result { 
+            padding: 10px; 
+            margin: 10px 0; 
+            border-radius: 5px; 
+        }
+        .success { background: #28a745; }
+        .error { background: #dc3545; }
+        .warning { background: #fd7e14; }
+        canvas { border: 2px solid #00CCFF; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test WebGL DIAMANTS</h1>
+    
+    <div id="results"></div>
+    
+    <canvas id="testCanvas" width="400" height="300"></canvas>
+    
+    <script>
+        const results = document.getElementById('results');
+        
+        function log(message, type = 'info') {
+            const div = document.createElement('div');
+            div.className = `result ${type}`;
+            div.textContent = message;
+            results.appendChild(div);
+            console.log(message);
+        }
+        
+        // Test 1: Basic WebGL detection
+        log('🔍 Test 1: Détection WebGL basique...');
+        
+        const canvas = document.getElementById('testCanvas');
+        let gl = null;
+        
+        // Test WebGL2
+        try {
+            gl = canvas.getContext('webgl2');
+            if (gl) {
+                log('✅ WebGL2 disponible !', 'success');
+            } else {
+                throw new Error('WebGL2 indisponible');
+            }
+        } catch (e) {
+            log('❌ WebGL2: ' + e.message, 'warning');
+            
+            // Fallback WebGL1
+            try {
+                gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    log('✅ WebGL1 disponible !', 'success');
+                } else {
+                    throw new Error('Aucun contexte WebGL');
+                }
+            } catch (e2) {
+                log('❌ WebGL1: ' + e2.message, 'error');
+            }
+        }
+        
+        if (gl) {
+            // Test 2: GPU Info
+            log('🔍 Test 2: Informations GPU...');
+            const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+            if (debugInfo) {
+                const vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+                const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+                log(`🎮 GPU: ${vendor} - ${renderer}`, 'success');
+            } else {
+                log('⚠️ Infos GPU non disponibles', 'warning');
+            }
+            
+            // Test 3: Capacités WebGL
+            log('🔍 Test 3: Capacités WebGL...');
+            const version = gl.getParameter(gl.VERSION);
+            const shaderVersion = gl.getParameter(gl.SHADING_LANGUAGE_VERSION);
+            log(`📊 Version WebGL: ${version}`, 'success');
+            log(`🔧 Shaders: ${shaderVersion}`, 'success');
+            
+            const maxTextures = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
+            const maxVertexAttribs = gl.getParameter(gl.MAX_VERTEX_ATTRIBS);
+            log(`🖼️ Max textures: ${maxTextures}`, 'success');
+            log(`📐 Max vertex attributes: ${maxVertexAttribs}`, 'success');
+            
+            // Test 4: Rendu simple
+            log('🔍 Test 4: Test de rendu...');
+            try {
+                gl.clearColor(0.1, 0.8, 1.0, 1.0);
+                gl.clear(gl.COLOR_BUFFER_BIT);
+                log('✅ Rendu de test réussi !', 'success');
+                
+                // Test 5: THREE.js compatibility  
+                log('🔍 Test 5: Test THREE.js...');
+                
+                // Import THREE.js dynamique
+                import('https://unpkg.com/three@0.160.0/build/three.module.js')
+                    .then(THREE => {
+                        log('✅ THREE.js chargé !', 'success');
+                        
+                        try {
+                            const scene = new THREE.Scene();
+                            const camera = new THREE.PerspectiveCamera(75, 400/300, 0.1, 1000);
+                            const renderer = new THREE.WebGLRenderer({ canvas: canvas });
+                            
+                            renderer.setSize(400, 300);
+                            
+                            const geometry = new THREE.BoxGeometry();
+                            const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                            const cube = new THREE.Mesh(geometry, material);
+                            scene.add(cube);
+                            
+                            camera.position.z = 5;
+                            
+                            function animate() {
+                                requestAnimationFrame(animate);
+                                cube.rotation.x += 0.01;
+                                cube.rotation.y += 0.01;
+                                renderer.render(scene, camera);
+                            }
+                            animate();
+                            
+                            log('✅ THREE.js fonctionne parfaitement !', 'success');
+                            log('🎯 WebGL est prêt pour DIAMANTS !', 'success');
+                            
+                        } catch (threeError) {
+                            log('❌ Erreur THREE.js: ' + threeError.message, 'error');
+                        }
+                    })
+                    .catch(err => {
+                        log('❌ Impossible de charger THREE.js: ' + err.message, 'error');
+                    });
+                    
+            } catch (renderError) {
+                log('❌ Erreur rendu: ' + renderError.message, 'error');
+            }
+        } else {
+            log('🛑 WebGL totalement indisponible', 'error');
+            log('💡 Solutions:', 'warning');
+            log('  - Redémarrer le navigateur', 'warning');
+            log('  - Vérifier chrome://gpu/', 'warning');
+            log('  - Activer accélération matérielle', 'warning');
+            log('  - Mettre à jour drivers GPU', 'warning');
+        }
+    </script>
+</body>
+</html>

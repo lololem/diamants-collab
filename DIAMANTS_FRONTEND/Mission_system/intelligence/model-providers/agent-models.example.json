@@ -1,0 +1,30 @@
+{
+  "_about": "Which model proposes decisions for which drone profile. Copy to agent-models.json and edit. Keys are profile ids from physics/profiles/*.json (the \"id\" field). A profile with no entry keeps flying without a model.",
+  "_settings": { "maxConcurrent": 2 },
+  "X500": {
+    "provider": "ollama",
+    "model": "my-drone-model:latest",
+    "baseUrl": "http://localhost:11434",
+    "temperature": 0.2,
+    "maxTokens": 150,
+    "allowedActions": ["EXPLORE", "AVOID", "HOVER", "RTL", "REPLAN", "COORDINATE"],
+    "minConfidence": 0.6,
+    "systemPrompt": "You are an X500 survey drone. Answer with one JSON object: {\"action\": ..., \"direction\": ..., \"confidence\": 0-1, \"reasoning\": \"short\"}"
+  },
+  "S500": {
+    "provider": "openai-compatible",
+    "model": "qwen3-4b-instruct",
+    "baseUrl": "http://localhost:8080",
+    "allowedActions": ["EXPLORE", "AVOID", "HOVER", "RTL", "COORDINATE"],
+    "minConfidence": 0.6,
+    "systemPrompt": "You are an S500 survey drone. Answer with one JSON object."
+  },
+  "CRAZYFLIE": {
+    "provider": "http-policy",
+    "name": "ppo-explorer-v3",
+    "url": "http://localhost:9000/decide",
+    "allowedActions": ["EXPLORE", "AVOID", "HOVER", "RTL"],
+    "minConfidence": 0.5,
+    "timeoutMs": 2000
+  }
+}
