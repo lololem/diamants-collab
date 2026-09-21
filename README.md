@@ -447,7 +447,17 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 <sub>Try DIAMANTS directly in your browser with the live demo — note that it is not up to date either compared with the demonstration films.</sub>
 
-> ⚠️ **These are demonstration videos.** They were recorded from the current internal development version of DIAMANTS. **The code published in this repository is not up to date** and does not include every capability shown here.
+> ⚠️ **Films 1 and 2 are demonstration videos**, recorded from the internal development version: **the code published here does not include every capability shown in them.** The tutorial below is the exception — it was recorded on this repository.
+
+#### Tutorial: add your drone and your model (6 min) — [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
+
+Recorded on **this** repository, as you receive it — not on the internal build.
+Five steps, each one done on screen: clone and run, write a drone profile and
+watch it join the fleet, read the state machine that flies it, declare a model
+in the registry and see its answers arrive, then set a battery to 8 % and watch
+a rule impose the landing without asking the model. It ends with how to write
+your own provider — a reinforcement-learning policy or any HTTP endpoint, not
+only a language model.
 
 #### Film 1: Unmapped Sector Reconnaissance (22 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
 
