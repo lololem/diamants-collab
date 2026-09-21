@@ -1,5 +1,5 @@
 {
-  "_about": "Which model proposes decisions for which drone profile. Copy to agent-models.json and edit. Keys are profile ids from physics/profiles/*.json (the \"id\" field). A profile with no entry keeps flying without a model. Keys starting with \"_\" are ignored, so the http-policy sample below stays inert until you rename it to one of your profiles and point it at a server that answers.",
+  "_about": "Which model proposes decisions for which drone profile. Copy to agent-models.json and edit. Keys are profile ids from physics/profiles/*.json (the \"id\" field). A profile with no entry keeps flying without a model. Keys starting with \"_\" are ignored: the two samples below stay inert until you rename them to one of your profiles and point them at a server that answers. As shipped, only X500 is active \u2014 it expects a local Ollama on port 11434.",
   "_settings": {
     "maxConcurrent": 2
   },
@@ -20,7 +20,7 @@
     "minConfidence": 0.6,
     "systemPrompt": "You are an X500 survey drone. Answer with one JSON object: {\"action\": ..., \"direction\": ..., \"confidence\": 0-1, \"reasoning\": \"short\"}"
   },
-  "S500": {
+  "_sample_openai_compatible": {
     "provider": "openai-compatible",
     "model": "qwen3-4b-instruct",
     "baseUrl": "http://localhost:8080",
