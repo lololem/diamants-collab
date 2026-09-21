@@ -374,6 +374,20 @@ that thought instead of queueing into a timeout. Rule vetoes are never skipped.
 > into `npm run build` output. Keep API keys there or in your server's own
 > config — never in a committed file.
 
+### Or do it from the interface
+
+`npm run dev`, then open **🚁 Fleet & models** (bottom right). It does the same
+thing without touching a file, while the simulation runs:
+
+- load or paste a drone profile, and put one in the air — it flies with the
+  airframe your profile names (`visual.model`: `x500`, `s500`, `crazyflie`);
+- pick a provider and a model for that profile — the model list is read from
+  your Ollama server, not typed from memory — and apply it to the fleet;
+- watch the counters: decisions accepted, rejected, vetoed by the rules.
+
+The files remain the way to make it permanent; the panel is how you try
+something in a few seconds. The tutorial film below does exactly this.
+
 **3. Run** — `npm run dev`. When `agent-models.json` exists, the controller
 replaces the inert LLM shell by `neurosymbolic-bridge.js`; the console prints
 `Own models attached: N drones`. They start enabled; the **LLM ON/OFF** button

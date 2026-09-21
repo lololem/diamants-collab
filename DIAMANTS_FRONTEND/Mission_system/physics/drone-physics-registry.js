@@ -192,6 +192,12 @@ export class DronePhysicsRegistry {
         const profile = normalizeProfile(raw);
         this._profiles.set(raw.id, profile);
         this._loadOrder.push(`${raw.id}[${source}]`);
+        /* DRONE_PROFILES est un instantané pris à l'import, et c'est LUI que
+         * lit le moteur de vol. Sans cette ligne, un profil ajouté à chaud
+         * (interface « Fleet & models », registerCustomProfile, URL) n'existe
+         * pas pour registerDrone : l'appareil apparaît avec le profil de repli
+         * — un Crazyflie gris à la place du drone qu'on vient de décrire. */
+        try { DRONE_PROFILES[raw.id] = profile; } catch (_) { /* avant l'export */ }
     }
 }
 

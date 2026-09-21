@@ -147,6 +147,7 @@ import { PerceptionMinimap } from './ui/perception-minimap.js';
 import { DiscoveryMinimap } from './ui/discovery-minimap.js';
 import { SitacMinimap } from './ui/sitac-minimap.js';
 import { initPanelController } from './ui/panel-controller.js';
+import { initFleetModelsPanel } from './ui/fleet-models-panel.js';
 import { initDoctrineManager } from './missions/mission-doctrine.js';
 import { loadFleetConfig } from './core/config.js';
 import { CasController } from './core/cas-controller.js';
@@ -1577,6 +1578,11 @@ class DiamantsMissionSystem {
             try {
                 initDoctrineManager();
                 initPanelController();
+                /* ajouter un drone et lui donner un modèle sans ligne de commande */
+                try {
+                    initFleetModelsPanel(this.integratedController);
+                    log('🚁 Panneau « Fleet & models » prêt');
+                } catch (e) { warn('Fleet & models panel indisponible:', e.message); }
                 log('✅ Panel Controller et Doctrine Manager initialisés');
                 
                 if (import.meta.env.DEV) {
