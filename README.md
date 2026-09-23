@@ -481,16 +481,6 @@ Five steps, every one of them done on screen in the **Fleet & models** panel:
 - **Rules outrank the model:** a battery forced to 8 % triggers a safety rule that imposes the landing before the model is even asked.
 - **Beyond language models:** the last chapter shows the file route, and how to write your own provider — a reinforcement-learning policy or any HTTP endpoint, not only an LLM.
 
-#### Film 3: Real-time multi-agent, shown and measured (13 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film3) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4)
-
-Recorded on the internal development build. Eleven aircraft, no central server,
-no GPS — and every claim checked on camera at the end of the run:
-
-- **A time-stamped event feed:** each line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed rather than on a commentary over it.
-- **Knowledge travels by journal:** a scout's find reaches a distant drone's model through peer-to-peer journal exchange — no server, no shared database — and the swarm navigates without GPS. The trace is written on each drone's own grid, and fades.
-- **The journal put to the test, on camera:** one drone's radio is cut, then restored — it asks for what it missed and checks each hash chain before accepting it; a forged entry is rejected. Consensus keeps a contact from ever counting as a confirmation on its own.
-- **Measured, and stated as measured:** **no faster detection** (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.
-
 #### Film 1: Unmapped Sector Reconnaissance (21 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
 
 [![Film 1: Unmapped Sector Reconnaissance — click to watch](https://lololem.github.io/diamants-collab/film1-play.jpg)](https://lololem.github.io/diamants-collab/#film1)
@@ -512,6 +502,16 @@ This scenario focuses on dynamic task allocation and emergent air-ground coordin
 - **Consensus-Based Allocation:** Tasks are broken down via a Hierarchical Task Network (HTN). Vehicles allocate assignments among themselves through consensus, eliminating the need for a central dispatcher.
 - **Resilience & AI Doctrine:** The swarm adapts live to partial information, agent loss, and multiple simultaneous events. The AI advises on strategy, while the vehicles manage their own navigation and physical suppression.
 - **Live Adaptation:** Federated learning runs continuously during the response, while the operator retains the ability to dynamically issue high-level commands (e.g., zone search, patrol, return to base).
+
+#### Film 3: Real-time multi-agent, shown and measured (13 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film3) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4)
+
+Recorded on the internal development build. Eleven aircraft, no central server,
+no GPS — and every claim checked on camera at the end of the run:
+
+- **A time-stamped event feed:** each line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed rather than on a commentary over it.
+- **Knowledge travels by journal:** a scout's find reaches a distant drone's model through peer-to-peer journal exchange — no server, no shared database — and the swarm navigates without GPS. The trace is written on each drone's own grid, and fades.
+- **The journal put to the test, on camera:** one drone's radio is cut, then restored — it asks for what it missed and checks each hash chain before accepting it; a forged entry is rejected. Consensus keeps a contact from ever counting as a confirmation on its own.
+- **Measured, and stated as measured:** **no faster detection** (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.
 
 ▶ **Watch all four films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
