@@ -468,31 +468,30 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 <sub>Try DIAMANTS directly in your browser with the live demo — note that it is not up to date either compared with the demonstration films.</sub>
 
-> ⚠️ **Films 1 and 2 are demonstration videos**, recorded from the internal development version: **the code published here does not include every capability shown in them.** The tutorial below is the exception — it was recorded on this repository.
+> ⚠️ **Films 1, 2 and 3 are demonstration videos**, recorded from the internal development version: **the code published here does not include every capability shown in them.** The tutorial below is the exception — it was recorded on this repository, as you receive it.
 
-#### Tutorial: add your drone and your model (4 min) — [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
+#### Tutorial: add your drone and your model (4 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#tutorial) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
 
 Recorded on **this** repository, as you receive it — not on the internal build.
-Five steps, done on screen in the **Fleet & models** panel: clone and run, load
-a drone profile and put one in the air — it flies a real PX4 airframe, not a
-placeholder — read the state machine that flies it, pick a model from the list
-your own Ollama server offers and apply it to that profile, then set a battery
-to 8 % and watch a rule impose the landing without asking the model. It ends
-with the file route, and with how to write your own provider: a
-reinforcement-learning policy or any HTTP endpoint, not only a language model.
+Five steps, every one of them done on screen in the **Fleet & models** panel:
 
-#### Film 3: Real-time multi-agent, shown and measured (12 min) — [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4)
+- **Hardware is a file:** a drone is one JSON profile — mass, size, speed, PID gains, airframe. Load it from the panel and the aircraft joins the swarm in flight, without touching a line of code.
+- **A real airframe, not a stand-in:** that profile flies an authentic PX4 mesh, under the same physics and the same eight-state flight logic (idle, take-off, hover, explore, avoid, return, land, landed) as the rest of the fleet.
+- **Your model, from your own server:** the model list is read from the Ollama server running on your machine. Pick one, apply it to the profile, and that profile's drone starts proposing actions — each proposal is a nudge of at most 8 metres on the computed waypoint, and only during exploration.
+- **Rules outrank the model:** a battery forced to 8 % triggers a safety rule that imposes the landing before the model is even asked.
+- **Beyond language models:** the last chapter shows the file route, and how to write your own provider — a reinforcement-learning policy or any HTTP endpoint, not only an LLM.
 
-Recorded on the internal development build. A time-stamped event feed of what
-each drone does; a find that travels from a scout to another drone's model
-through the shared journal; the rules imposing a landing; the journal proved by
-cutting one drone's radio and by refusing a forged entry; the trace written and
-faded on a drone's own grid; consensus — a contact is never a confirmation; the
-mission panel with the local models it actually holds; and the measured part,
-stated as measured: **no faster detection** (p = 0.89), less duplicated ground
-(42 % → 37 %), before/after fine-tuning on the same base (31.8 % → 88.6 %).
+#### Film 3: Real-time multi-agent, shown and measured (13 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film3) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4)
 
-#### Film 1: Unmapped Sector Reconnaissance (22 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
+Recorded on the internal development build. Eleven aircraft, no central server,
+no GPS — and every claim checked on camera at the end of the run:
+
+- **A time-stamped event feed:** each line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed rather than on a commentary over it.
+- **Knowledge travels by journal:** a scout's find reaches a distant drone's model through peer-to-peer journal exchange — no server, no shared database — and the swarm navigates without GPS. The trace is written on each drone's own grid, and fades.
+- **The journal put to the test, on camera:** one drone's radio is cut, then restored — it asks for what it missed and checks each hash chain before accepting it; a forged entry is rejected. Consensus keeps a contact from ever counting as a confirmation on its own.
+- **Measured, and stated as measured:** **no faster detection** (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.
+
+#### Film 1: Unmapped Sector Reconnaissance (21 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
 
 [![Film 1: Unmapped Sector Reconnaissance — click to watch](https://lololem.github.io/diamants-collab/film1-play.jpg)](https://lololem.github.io/diamants-collab/#film1)
 
@@ -514,7 +513,7 @@ This scenario focuses on dynamic task allocation and emergent air-ground coordin
 - **Resilience & AI Doctrine:** The swarm adapts live to partial information, agent loss, and multiple simultaneous events. The AI advises on strategy, while the vehicles manage their own navigation and physical suppression.
 - **Live Adaptation:** Federated learning runs continuously during the response, while the operator retains the ability to dynamically issue high-level commands (e.g., zone search, patrol, return to base).
 
-▶ **Watch both films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
+▶ **Watch all four films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
 ### Earlier videos
 
