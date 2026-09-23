@@ -509,9 +509,10 @@ Recorded on the internal development build. Eleven aircraft, no central server,
 no GPS — and every claim checked on camera at the end of the run:
 
 - **A time-stamped event feed:** each line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed rather than on a commentary over it.
-- **Knowledge travels by journal:** a scout's find reaches a distant drone's model through peer-to-peer journal exchange — no server, no shared database — and the swarm navigates without GPS. The trace is written on each drone's own grid, and fades.
+- **Digital stigmergy, carried by shared journals:** each drone writes where it has been into its own grid — mapped cells and virtual pheromones, nothing laid in the world and no shared database — and those entries travel drone to drone through peer-to-peer journal exchange whenever two come within radio range. That is how a scout's find reaches a distant drone's model: no server, and the swarm navigates without GPS.
+- **The trace repels instead of attracting:** classic stigmergy has agents converge on the strongest trail; here the trace marks ground already searched, so the swarm spreads out on its own. The film states the rule, then measures it.
 - **The journal put to the test, on camera:** one drone's radio is cut, then restored — it asks for what it missed and checks each hash chain before accepting it; a forged entry is rejected. Consensus keeps a contact from ever counting as a confirmation on its own.
-- **Measured, and stated as measured:** **no faster detection** (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.
+- **Measured, and stated as measured:** the A/B is that trace sharing itself — on against off, same code, same targets, alternating missions. **No faster detection** (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.
 
 ▶ **Watch all four films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
