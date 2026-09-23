@@ -156,7 +156,7 @@ export function initFleetModelsPanel(controllerInitial) {
             physical: { mass: 1.6, armLength: 0.28, boundingRadius: 0.55, propCount: 4 },
             performance: { maxSpeed: 8, maxClimb: 3, cruiseAlt: 6, maxAlt: 40, agility: 1.1, explorationRadius: 80, endurance_min: 22 },
             pid: { pos: { kp: 2.2, ki: 0.05, kd: 1.1 }, alt: { kp: 3.1, ki: 0.1, kd: 1.3 }, yaw: { kp: 1.9, ki: 0, kd: 0.3 } },
-            visual: { scale: 20, color: '0xffaa22', model: 'x500' },
+            visual: { scale: 11, color: '0xffaa22', model: 'x500' },
         }, null, 2);
     });
 

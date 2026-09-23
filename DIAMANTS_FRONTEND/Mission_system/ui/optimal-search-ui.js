@@ -138,7 +138,7 @@ export class OptimalSearchUI {
         
         // Doctrine tags
         tags.push(doctrine.id, doctrine.name.toLowerCase());
-        if (doctrine.params.usePheromones) tags.push('phéromones', 'pheromones');
+        if (doctrine.params.usePheromones) tags.push('pheromones', 'pheromones');
         if (doctrine.params.useGradients) tags.push('gradients');
         
         // COA tags
@@ -375,7 +375,7 @@ export class OptimalSearchUI {
         const priorities = [
             { key: 'coverage', label: '📐 Couverture', color: '#00FF88' },
             { key: 'time', label: '⚡ Speed', color: '#FFAA00' },
-            { key: 'energy', label: '🔋 Énergie', color: '#00CCFF' },
+            { key: 'energy', label: '🔋 Energy', color: '#00CCFF' },
             { key: 'reliability', label: '🛡️ Reliability', color: '#AA88FF' },
             { key: 'adaptability', label: '🧠 Adaptatif', color: '#FF88AA' }
         ];
@@ -598,7 +598,7 @@ export class OptimalSearchUI {
             <div class="metrics">
                 ${this._renderMetric('📐', 'Couverture', perf.coverage, '#00FF88')}
                 ${this._renderMetric('⚡', 'Speed', perf.time, '#FFAA00')}
-                ${this._renderMetric('🔋', 'Énergie', perf.energy, '#00CCFF')}
+                ${this._renderMetric('🔋', 'Energy', perf.energy, '#00CCFF')}
                 ${this._renderMetric('🛡️', 'Reliability', perf.reliability, '#AA88FF')}
                 ${this._renderMetric('🧠', 'Adaptatif', perf.adaptability, '#FF88AA')}
             </div>

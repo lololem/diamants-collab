@@ -141,7 +141,7 @@ export class BeaconSystem {
         group.add(light);
 
         // ── Label sprite ──
-        const labelSprite = this._createLabelSprite(label || `Balise ${_beaconCounter}`);
+        const labelSprite = this._createLabelSprite(label || `Beacon ${_beaconCounter}`);
         labelSprite.position.y = 2.5;
         group.add(labelSprite);
 
@@ -149,7 +149,7 @@ export class BeaconSystem {
 
         const beacon = {
             id,
-            label: label || `Balise ${_beaconCounter}`,
+            label: label || `Beacon ${_beaconCounter}`,
             group,
             core, ring, column, light, labelSprite,
             position: { x, y: this.options.height, z },

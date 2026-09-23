@@ -515,20 +515,20 @@ export class DiamantUI {
             { name: 'crossPlatformOptimizer', label: 'Optimiseur Multi-Plateforme', category: 'Performance' },
             { name: 'rlNeuralNetwork', label: 'RL Neural Network', category: 'AI' },
             { name: 'quantumNeuralNetwork', label: 'Quantum Neural Network', category: 'AI' },
-            { name: 'pidController', label: 'Contrôleur PID', category: 'Control' },
+            { name: 'pidController', label: 'PID Controller', category: 'Control' },
             { name: 'flockingBehaviors', label: 'Comportements de Vol en Formation', category: 'Behavior' },
             { name: 'glslGrassField', label: 'Champ d\'Herbe GLSL', category: 'Visual' },
-            { name: 'rosIntegrator', label: 'Intégrateur ROS', category: 'Integration' },
-            { name: 'weatherEngine', label: 'Moteur Météorologique', category: 'Environment' },
-            { name: 'terrainSystem', label: 'Système de Terrain', category: 'Environment' },
-            { name: 'lightingSystem', label: 'Système d\'Éclairage', category: 'Visual' },
+            { name: 'rosIntegrator', label: 'ROS Integrator', category: 'Integration' },
+            { name: 'weatherEngine', label: 'Weather Engine', category: 'Environment' },
+            { name: 'terrainSystem', label: 'Terrain System', category: 'Environment' },
+            { name: 'lightingSystem', label: 'System\'s Lighting', category: 'Visual' },
             { name: 'edgeAIProcessor', label: 'Processeur IA Edge', category: 'AI' },
-            { name: 'realtimeMesaIntegrator', label: 'Intégrateur Mesa Temps Réel', category: 'Integration' },
+            { name: 'realtimeMesaIntegrator', label: 'Real Time Mesa Integrator', category: 'Integration' },
             { name: 'cloudFormation', label: 'Formation de Nuages', category: 'Environment' },
-            { name: 'airTrafficSystem', label: 'Système de Trafic Aérien', category: 'Control' }
+            { name: 'airTrafficSystem', label: 'Air Traffic System', category: 'Control' }
         ];
 
-        let moduleDetails = '<h4>📊 Status Détaillé des Modules</h4>';
+        let moduleDetails = '<h4>📊 Detailed Module Status</h4>';
         
         // Grouper par catégorie
         const categories = {};
@@ -614,14 +614,14 @@ export class DiamantUI {
             try {
                 const metrics = this.config.controller.getPerformanceMetrics();
                 performanceDiv.innerHTML = `
-                    <h4>⚡ Métriques de Performance</h4>
+                    <h4>⚡ Performance Metrics</h4>
                     <div>CPU: ${metrics.cpu || 'N/A'}%</div>
-                    <div>Mémoire: ${metrics.memory || 'N/A'} MB</div>
+                    <div>Memory: ${metrics.memory || 'N/A'} MB</div>
                     <div>FPS: ${metrics.fps || 'N/A'}</div>
                     <div>Modules Actifs: ${metrics.activeModules || 0}</div>
                 `;
             } catch (e) {
-                performanceDiv.innerHTML = '<h4>⚡ Métriques de Performance</h4><div>Non disponibles</div>';
+                performanceDiv.innerHTML = '<h4>⚡ Performance Metrics</h4><div>Unavailable</div>';
             }
         }
     }
@@ -916,7 +916,7 @@ export class DiamantUI {
         const missionControl = document.getElementById('mission-control');
         missionControl.innerHTML = `
             <div class="panel-section">
-                <h3>🎯 Contrôle Mission</h3>
+                <h3>🎯 Mission Control</h3>
                 
                 <div class="metric-item">
                     <span class="metric-label">Mission Active:</span>
@@ -940,8 +940,8 @@ export class DiamantUI {
                     <option value="MAPPING">🗺️ Cartographie</option>
                 </select>
                 
-                <button class="control-button" id="start-mission">🚀 Démarrer Mission</button>
-                <button class="control-button" id="abort-mission">⏹️ Arrêter Mission</button>
+                <button class="control-button" id="start-mission">🚀 Start Mission</button>
+                <button class="control-button" id="abort-mission">⏹️ Stop Mission</button>
             </div>
         `;
 
@@ -949,7 +949,7 @@ export class DiamantUI {
         const swarmControl = document.getElementById('swarm-control');
         swarmControl.innerHTML = `
             <div class="panel-section">
-                <h3>🤖 Contrôle Essaim</h3>
+                <h3>🤖 Swarm Control</h3>
                 
                 <div class="metric-item">
                     <span class="metric-label">Drones Actifs:</span>
@@ -979,7 +979,7 @@ export class DiamantUI {
         const metricsPanel = document.getElementById('diamants-metrics');
         metricsPanel.innerHTML = `
             <div class="panel-section">
-                <h3>📊 Métriques DIAMANTS</h3>
+                <h3>📊 DIAMANTS Metrics</h3>
                 
                 <div class="metric-item">
                     <span class="metric-label">Intelligence I(t):</span>
@@ -1002,12 +1002,12 @@ export class DiamantUI {
                 </div>
                 
                 <div class="metric-item">
-                    <span class="metric-label">Émergence:</span>
+                    <span class="metric-label">Emergence:</span>
                     <span class="metric-value" id="emergence-value">0.00</span>
                 </div>
                 
                 <div class="metric-item">
-                    <span class="metric-label">Cohérence:</span>
+                    <span class="metric-label">Coherence:</span>
                     <span class="metric-value" id="coherence-value">0.00</span>
                 </div>
                 
@@ -1022,7 +1022,7 @@ export class DiamantUI {
             </div>
             
             <div class="panel-section" id="advanced-metrics" style="display: none;">
-                <h3>🔬 Métriques Advancedes</h3>
+                <h3>🔬 Advanced Metrics</h3>
                 
                 <div class="metric-item">
                     <span class="metric-label">H1 (Externe):</span>
@@ -1035,12 +1035,12 @@ export class DiamantUI {
                 </div>
                 
                 <div class="metric-item">
-                    <span class="metric-label">H3 (Énergie):</span>
+                    <span class="metric-label">H3 (Energy):</span>
                     <span class="metric-value" id="h3-value">0.00</span>
                 </div>
                 
                 <div class="metric-item">
-                    <span class="metric-label">H13 (Cohérence):</span>
+                    <span class="metric-label">H13 (Coherence):</span>
                     <span class="metric-value" id="h13-value">0.00</span>
                 </div>
                 
@@ -1053,12 +1053,12 @@ export class DiamantUI {
         const controlsOverlay = document.getElementById('controls-overlay');
         controlsOverlay.innerHTML = `
             <div class="controls-overlay">
-                <h4>🎮 Contrôles</h4>
+                <h4>🎮 Controls</h4>
                 <div style="font-size: 12px; line-height: 1.4;">
                     <div><strong>Souris:</strong> Orbit/Pan/Zoom</div>
-                    <div><strong>WASD:</strong> Déplacement caméra</div>
-                    <div><strong>QE:</strong> Montée/Descente</div>
-                    <div><strong>Espace:</strong> Reset caméra</div>
+                    <div><strong>WASD:</strong> Move camera</div>
+                    <div><strong>QE:</strong> Up/Down</div>
+                    <div><strong>Space:</strong> Reset camera</div>
                     <div><strong>R:</strong> Reset simulation</div>
                 </div>
                 
@@ -1075,7 +1075,7 @@ export class DiamantUI {
         const rightPanel = document.getElementById('drone-status');
         rightPanel.innerHTML = `
             <div class="panel-section">
-                <h3>🚁 État des Drones</h3>
+                <h3>🚁 Drone Status</h3>
                 <div id="drone-list"></div>
             </div>
             
@@ -1088,12 +1088,12 @@ export class DiamantUI {
                 </div>
                 
                 <div class="metric-item">
-                    <span class="metric-label">Zone Explorée:</span>
+                    <span class="metric-label">Area Explored:</span>
                     <span class="metric-value" id="explored-area">0 m²</span>
                 </div>
                 
                 <div class="metric-item">
-                    <span class="metric-label">Découvertes:</span>
+                    <span class="metric-label">Discoveries:</span>
                     <span class="metric-value" id="discoveries-count">0</span>
                 </div>
                 
@@ -1255,7 +1255,7 @@ export class DiamantUI {
                     ${drone.id} (${drone.type})
                 </div>
                 <div class="drone-state">
-                    État: ${status.state || 'UNKNOWN'}<br>
+                    Status: ${status.state || 'UNKNOWN'}<br>
                     Position: (${status.position?.[0]?.toFixed(1) || '0'}, 
                               ${status.position?.[1]?.toFixed(1) || '0'}, 
                               ${status.position?.[2]?.toFixed(1) || '0'})<br>
@@ -1375,7 +1375,7 @@ export class DiamantUI {
         if (formulaDisplay) {
             formulaDisplay.innerHTML = `
                 <div class="formula-display">
-                    <strong>${formula}</strong> - Intelligence Émergente DIAMANTS
+                    <strong>${formula}</strong> - DIAMANTS Emergent Intelligence
                 </div>
             `;
         }

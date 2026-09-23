@@ -353,7 +353,7 @@ export class DroneSelectPanel {
 
         const rows = [
             ['Type', drone.profileLabel || drone.droneProfile || drone.type || '—'],
-            ['Rôle', drone.agentRole || '—'],
+            ['Role', drone.agentRole || '—'],
             ['Phase', phase],
             ['Position', pos ? `${pos.x.toFixed(1)}, ${pos.y.toFixed(1)}, ${pos.z.toFixed(1)}` : '—'],
             ['Altitude', pos ? `${pos.y.toFixed(1)} m` : '—'],

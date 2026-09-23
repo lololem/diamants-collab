@@ -557,15 +557,15 @@ export class LLMChatPanel {
             const model = this.missionService._model;
             if (isLLM) {
                 this._addMessage('system',
-                    `🧠 NextGEN Command AI — connecté à **${model}** via Ollama.\n` +
+                    `🧠 NextGEN Command AI — connected to **${model}** via Ollama.\n` +
                     `Parlez naturellement : demandez une mission, posez une question, donnez un ordre.\n` +
-                    `[C] pour ouvrir/fermer • [📍] pour placer une balise dans la scène 3D`
+                    `[C] to open/close • [📍] to place a beacon in the 3D scene`
                 );
             } else {
                 this._addMessage('system',
-                    `⚠️ NextGEN Command AI — mode dégradé (pas de LLM).\n` +
-                    `Ollama non détecté sur localhost:11434. Commandes regex uniquement.\n` +
-                    `[C] pour ouvrir/fermer • [📍] pour placer une balise dans la scène 3D`
+                    `⚠️ NextGEN Command AI — limited mode (no LLM).\n` +
+                    `Ollama not detected on localhost:11434. Regex commands only.\n` +
+                    `[C] to open/close • [📍] to place a beacon in the 3D scene`
                 );
             }
         };
@@ -586,8 +586,8 @@ export class LLMChatPanel {
             onFound: (beaconId, droneId) => {
                 this.missionService.markBeaconFound(beaconId, droneId);
                 this._addBeaconMessage('assistant',
-                    `🎯 **Balise trouvée !**\n` +
-                    `Balise \`${beaconId}\` localisée par \`${droneId}\` ✅`,
+                    `🎯 **Beacon found!**\n` +
+                    `Beacon \`${beaconId}\` located by \`${droneId}\` ✅`,
                     beaconId
                 );
                 this._updateBeaconBadge();
@@ -608,7 +608,7 @@ export class LLMChatPanel {
             const { id, x, z } = e.detail;
             this.missionService.registerBeacon(id, { x, y: 0.5, z });
             this._addBeaconMessage('system',
-                `📍 Balise placée à (${x.toFixed(1)}, ${z.toFixed(1)}) — ID: ${id}`,
+                `📍 Beacon placed at (${x.toFixed(1)}, ${z.toFixed(1)}) — ID: ${id}`,
                 id
             );
             this._updateBeaconBadge();
@@ -1054,7 +1054,7 @@ export class LLMChatPanel {
         this._els.typing.classList.add('active');
 
         const isLLM = this.missionService._ollamaOnline;
-        this._setStatus('busy', isLLM ? `🧠 ${this.missionService._model} réfléchit…` : 'Traitement…');
+        this._setStatus('busy', isLLM ? `🧠 ${this.missionService._model} thinking…` : 'Processing…');
 
         try {
             const result = await this.missionService.processMessage(text);
@@ -1073,7 +1073,7 @@ export class LLMChatPanel {
             }
         } catch (err) {
             this._addMessage('error', `❌ Erreur: ${err.message}`);
-            this._setStatus('idle', 'Erreur — réessayez');
+            this._setStatus('idle', 'Error — try again');
         } finally {
             this._processing = false;
             this._els.sendBtn.disabled = false;
@@ -1096,7 +1096,7 @@ export class LLMChatPanel {
 
     _toggleBeaconMode() {
         if (!this.beaconSystem) {
-            this._addMessage('error', '⚠️ Système de balises non initialisé (scène 3D requise)');
+            this._addMessage('error', '⚠️ Beacon system not initialized (3D scene required)');
             return;
         }
 
@@ -1104,11 +1104,11 @@ export class LLMChatPanel {
         if (this.beaconSystem.placementMode) {
             this.beaconSystem.exitPlacementMode();
             btn.classList.remove('active');
-            this._addMessage('system', '📍 Mode placement balise désactivé');
+            this._addMessage('system', '📍 Beacon placement mode disabled');
         } else {
             this.beaconSystem.enterPlacementMode();
             btn.classList.add('active');
-            this._addMessage('system', '📍 Mode placement balise activé — cliquez dans la scène 3D pour placer une balise');
+            this._addMessage('system', '📍 Beacon placement mode enabled — click in the 3D scene to place a beacon');
             // Fermer le panneau pour permettre l'interaction avec la scène 3D
             this.hide();
         }
@@ -1140,7 +1140,7 @@ export class LLMChatPanel {
         window.addEventListener('diamants:autonomy-change', (e) => {
             if (this._visible) {
                 this._addMessage('system',
-                    `🎛️ Mode autonomie changé → ${e.detail.mode} (${e.detail.level}%)`
+                    `🎛️ Autonomy mode changed → ${e.detail.mode} (${e.detail.level}%)`
                 );
             }
         });
@@ -1160,34 +1160,34 @@ export class LLMChatPanel {
                 case 'auto-chain':
                     this._addMessage('system',
                         `🚀 Lancement automatique` +
-                        (data.takeoff ? ` + décollage` : '') +
+                        (data.takeoff ? ` + takeoff` : '') +
                         ` avant mission **${data.action}**…`
                     );
                     break;
                 case 'search-started':
                     if (data.type === 'SEARCH_BEACON') {
                         this._addMessage('system',
-                            `🔍 **Recherche balise lancée**\n` +
-                            `${data.drones} drones en exploration auto-organisée\n` +
+                            `🔍 **Beacon search started**\n` +
+                            `${data.drones} drones exploring autonomously\n` +
                             `📋 Doctrine: **${data.doctrine}** • COA: **${data.coa}** • Mode: **${data.mode}**\n` +
-                            `🎯 ${data.beacons} balise(s) à trouver — les drones ne connaissent pas leur position`
+                            `🎯 ${data.beacons} beacon(s) to find — drones do not know their locations`
                         );
                     } else if (data.type === 'SEARCH_ZONE') {
                         this._addMessage('system',
-                            `🔍 **Fouille de zone lancée**\n` +
-                            `${data.drones} drones déployés en spirale autour de (${data.zone.cx}, ${data.zone.cz}) r=${data.zone.radius}m`
+                            `🔍 **Area search started**\n` +
+                            `${data.drones} drones deployed in a spiral around (${data.zone.cx}, ${data.zone.cz}) r=${data.zone.radius}m`
                         );
                     }
                     break;
                 case 'mission-completee':
                     this._addMessage('system',
-                        `✅ **Mission terminée** — toutes les balises ont été trouvées !`
+                        `✅ **Mission complete** — all beacons have been found !`
                     );
                     break;
                 case 'beacons-placed': {
                     const ct = data.count || 0;
                     this._addMessage('system',
-                        `📍 **${ct} balise(s) placée(s)** ${data.random ? 'aléatoirement' : ''} dans la scène`
+                        `📍 **${ct} beacon(s) placed** ${data.random ? 'randomly' : ''} in the scene`
                     );
                     break;
                 }
@@ -1199,7 +1199,7 @@ export class LLMChatPanel {
                     break;
                 }
                 case 'beacons-cleared': {
-                    this._addMessage('system', `🗑️ **Toutes les balises supprimées**`);
+                    this._addMessage('system', `🗑️ **All beacons removed**`);
                     break;
                 }
             }
@@ -1232,7 +1232,7 @@ export class LLMChatPanel {
         let statusParts = [llmTag, `${droneCount} drones`, `Mode: ${mode}`];
         if (beaconCount > 0) {
             const found = [...(this.beaconSystem?.beacons?.values() || [])].filter(b => b.found).length;
-            statusParts.push(`Balises: ${found}/${beaconCount}`);
+            statusParts.push(`Beacons: ${found}/${beaconCount}`);
         }
         if (mission) {
             statusParts.push(`Mission: ${mission.type}`);

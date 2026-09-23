@@ -37,6 +37,13 @@ export { DRONE_PROFILES };
 // ─── Engine-level flight constants (externalized from code) ──────────
 import flightConfigRaw from './flight-config.json?raw';
 import { alea } from '../core/alea.js';
+
+/* LANDING-GEAR HEIGHT OF AN X500 / S500, PER UNIT OF MESH SCALE.
+ * Measured on the real mesh: origin at 2.35 m for a scale of 10, feet at
+ * 0.07 m — that is 0.228 per unit of scale. The previous 0.22 sank the feet
+ * 8 cm into the pad, and a flat 1.2 m minimum flight altitude left a scale-20
+ * airframe hovering with its gear two metres below the ground. */
+export const GARDE_X500 = 0.228;
 const FLIGHT_CONFIG = JSON.parse(flightConfigRaw);
 const AVOID  = FLIGHT_CONFIG.avoidance;
 const EXPLORE = FLIGHT_CONFIG.exploration;
@@ -526,7 +533,7 @@ export class AutonomousFlightEngine {
             const terrY = this._groundY(state.position.x, state.position.z);
             const ground = Math.max(0.15, terrY);
             const restY = state.x500Dynamics
-                ? ground + (state.profile.scale || 10) * 0.22  // match spawn height — gear on ground
+                ? ground + (state.profile.scale || 10) * GARDE_X500  // match spawn height — gear on ground
                 : ground + 0.05;
             // Store start altitude + target for S-curve descent trajectory
             state._landStartY = state.position.y;
@@ -1146,7 +1153,7 @@ export class AutonomousFlightEngine {
         if (state.phase === 'LAND' || state.phase === 'LANDED') {
             // Type-aware resting height: X500/S500 landing gear needs clearance
             const restY = state.x500Dynamics
-                ? effectiveGround + (state.profile.scale || 10) * 0.22  // match spawn height
+                ? effectiveGround + (state.profile.scale || 10) * GARDE_X500  // match spawn height
                 : effectiveGround + 0.05;
             if (state.position.y < restY) {
                 // Soft spring: push toward restY with damping (frame-rate independent)
@@ -1157,7 +1164,7 @@ export class AutonomousFlightEngine {
         } else {
             // Type-aware minimum altitude: X500/S500 have large landing gear
             // that extends ~1m below mesh origin — need extra clearance above grass (~0.6m)
-            const extraGear = state.x500Dynamics ? 1.2 : 0;
+            const extraGear = state.x500Dynamics ? Math.max(1.2, (state.profile.scale || 10) * GARDE_X500 - this.minAltitudeAboveGround) : 0;
             const minY = effectiveGround + this.minAltitudeAboveGround + extraGear;
             if (state.position.y < minY) {
                 state.position.y = minY; // HARD clamp
@@ -1642,7 +1649,7 @@ export class AutonomousFlightEngine {
                 const landTerrainY = this._groundY(landTarget.x, landTarget.z);
                 const landGround = Math.max(0.15, landTerrainY);
                 const landRestY = state.x500Dynamics
-                    ? landGround + (state.profile.scale || 10) * 0.22
+                    ? landGround + (state.profile.scale || 10) * GARDE_X500
                     : landGround + 0.05;
 
                 // Timer
@@ -1667,7 +1674,7 @@ export class AutonomousFlightEngine {
                 const curTerrY = this._groundY(state.position.x, state.position.z);
                 const curGround = Math.max(0.15, curTerrY);
                 const curMinRestY = state.x500Dynamics
-                    ? curGround + (state.profile.scale || 10) * 0.22
+                    ? curGround + (state.profile.scale || 10) * GARDE_X500
                     : curGround + 0.05;
                 descentY = Math.max(descentY, curMinRestY);
 
@@ -1703,7 +1710,7 @@ export class AutonomousFlightEngine {
                 const landedTerrY = this._groundY(state.position.x, state.position.z);
                 const landedGround = Math.max(0.15, landedTerrY);
                 const landedRestY = state.x500Dynamics
-                    ? landedGround + (state.profile.scale || 10) * 0.22  // match spawn height — gear on ground
+                    ? landedGround + (state.profile.scale || 10) * GARDE_X500  // match spawn height — gear on ground
                     : landedGround + 0.05;
                 state.waypoint = state.position.clone();
                 state.waypoint.y = landedRestY;
@@ -3321,7 +3328,7 @@ export class AutonomousFlightEngine {
         // Skip for IDLE/LANDED/LAND where drones are on or descending to the surface
         const ABSOLUTE_FLOOR = 0.15;
         // X500/S500 landing gear extends ~1m below mesh origin
-        const gearOffset = state.x500Dynamics ? 1.2 : 0;
+        const gearOffset = state.x500Dynamics ? Math.max(1.2, (state.profile.scale || 10) * GARDE_X500 - 0.5) : 0;
         if (state.phase !== 'IDLE' && state.phase !== 'LANDED' && state.phase !== 'LAND'
             && state.position.y < ABSOLUTE_FLOOR + 0.5 + gearOffset) {
             state.position.y = ABSOLUTE_FLOOR + 0.5 + gearOffset;

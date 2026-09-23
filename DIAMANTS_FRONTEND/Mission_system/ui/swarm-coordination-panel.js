@@ -265,7 +265,7 @@ export class SwarmCoordinationPanel {
                 color: '#555',
                 fontSize: '10px',
             });
-            empty.innerHTML = 'No coordinator detected<br><span style="font-size:9px;color:#444">Les X500/S500 apparaîtront ici</span>';
+            empty.innerHTML = 'No coordinator detected<br><span style="font-size:9px;color:#444">X500/S500 will appear here</span>';
             this._body.appendChild(empty);
             return;
         }

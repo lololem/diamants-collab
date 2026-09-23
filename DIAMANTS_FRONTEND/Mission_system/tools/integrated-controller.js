@@ -516,7 +516,7 @@ export class IntegratedDiamantsController {
             const profile = DRONE_PROFILES[profileName];
             const PLATFORM_SURFACE_Y = 0.15;
             const spawnY = (profileName === 'X500' || profileName === 'S500')
-                ? PLATFORM_SURFACE_Y + (profile.scale || 10) * 0.22
+                ? PLATFORM_SURFACE_Y + (profile.scale || 10) * 0.228
                 : PLATFORM_SURFACE_Y + 0.05;
             const startPosition = { x: spawnPositions[i].x, y: spawnY, z: spawnPositions[i].z };
             droneSlots.push({ i, profileName, spec, droneId, profile, startPosition });
@@ -665,7 +665,7 @@ export class IntegratedDiamantsController {
                             ctx.fillText(`${info.doctrine||'\u2014'}  \u2502  ${info.coa||'\u2014'}`, W/2, 62);
                             // Line 3 — Autonomy mode badge + action
                             const a = info.autonomy ?? 100;
-                            const aMode = info.autonomyMode || (a>=90?'DISTRIBUÉ':a>=75?'SEMI-AUTO':a>=50?'HYBRIDE':a>=25?'GUIDÉ':'CENTRAL');
+                            const aMode = info.autonomyMode || (a>=90?'DISTRIBUTED':a>=75?'SEMI-AUTO':a>=50?'HYBRID':a>=25?'GUIDED':'CENTRAL');
                             const bY=102;
                             const bColors={'CENTRAL':'#00BFFF','GUIDÉ':'#33bbdd','HYBRIDE':'#66DDAA','SEMI-AUTO':'#88dd88','AUTONOME':'#aaee66','DISTRIBUÉ':'#00FF88'};
                             const bC=bColors[aMode]||'#00FF88';
@@ -975,8 +975,8 @@ export class IntegratedDiamantsController {
         // Match ALL possible tree names (French species, English, EZ-Tree names)
         const TREE_NAME_PATTERNS = [
             'tree', 'Tree', 'arbre', 'Arbre',
-            'Pin', 'Chêne', 'Chene', 'Ch',       // French species
-            'Olivier', 'Cyprès', 'Cypres',         // French species
+            'Pin', 'Chêne', 'Chene', 'Ch',         // French species, as named in the scene
+            'Olivier', 'Cyprès', 'Cypres',         // idem — these match object names, do not translate
             'Oak', 'Pine', 'Cypress', 'Olive',     // English
             'Forest'                       // Forest group fallback
         ];
@@ -1095,6 +1095,15 @@ export class IntegratedDiamantsController {
 
         const profile = DRONE_PROFILES[profileId] || DRONE_PROFILES['CRAZYFLIE'];
         const modelId = profile.model || 'generic';
+
+        /* AN AIRCRAFT ADDED MID-MISSION PUTS ITS FEET ON THE PAD.
+         * The default height (0.15 m) is a Crazyflie's. An X500 / S500 airframe
+         * has its origin above a landing gear that grows with scale: spawned at
+         * 0.15 m, its whole gear sat below the ground. It now spawns the same
+         * way as the fleet loaded at start-up. */
+        if ((modelId === 'x500' || modelId === 's500') && position.y < 1) {
+            position.y = 0.15 + (profile.scale || 10) * 0.228;
+        }
 
         // 1. Create 3D mesh via factory
         let drone;

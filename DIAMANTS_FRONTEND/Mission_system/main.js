@@ -28,7 +28,7 @@ if (window.SILENT_MODE) {
         if (typeof first === 'string') {
             if (first.includes('DAE') || first.includes('THREE') || first.includes('ERROR') || 
                 first.includes('ERREUR') || first.includes('✅') || first.includes('❌') ||
-                first.includes('Moteur') || first.includes('hélice') || first.includes('propeller') ||
+                first.includes('Motor') || first.includes('propeller') ||
                 first.includes('[STATE-MACHINE]') || first.includes('[FLEET]') || first.includes('[DRONE-LOG]')) {
                 originalLog(...args);
             }
@@ -39,7 +39,7 @@ if (window.SILENT_MODE) {
         try { text = args.map(String).join(' '); } catch { originalLog(...args); return; }
         if (text.includes('DAE') || text.includes('THREE') || text.includes('ERROR') || 
             text.includes('ERREUR') || text.includes('✅') || text.includes('❌') ||
-            text.includes('Moteur') || text.includes('hélice') || text.includes('propeller') ||
+            text.includes('Motor') || text.includes('propeller') ||
             text.includes('[STATE-MACHINE]') || text.includes('[FLEET]') || text.includes('[DRONE-LOG]')) {
             originalLog(...args);
         }
@@ -86,7 +86,7 @@ async function waitForTHREE() {
         // Timeout de sécurité
         setTimeout(() => {
             if (!window.THREE) {
-                reject(new Error('Timeout: THREE.js non disponible après 10 secondes'));
+                reject(new Error('Timeout: THREE.js unavailable after 10 seconds'));
             }
         }, 10000);
     });
@@ -233,9 +233,9 @@ class DiamantsMissionSystem {
         log('⏳ Attente de THREE.js...');
         const threeReady = await initializeTHREE();
         if (!threeReady) {
-            const msg = 'THREE.js non initialisé (timeout ou erreur bootstrap)';
+            const msg = 'THREE.js not initialized (timeout or bootstrap error)';
             console.error('🛑 Impossible d\'initialiser THREE.js. Arrêt.');
-            showFatalInitError('Initialisation 3D échouée', msg);
+            showFatalInitError('3D initialization failed', msg);
             return;
         }
         
@@ -246,7 +246,7 @@ class DiamantsMissionSystem {
         await this.setupRenderer();
         // If renderer couldn't be created (WebGL blocked/unavailable), stop early
         if (!this.renderer) {
-            const msg = 'WebGL indisponible — vérifiez pilote GPU ou essayez un autre navigateur';
+            const msg = 'WebGL unavailable — check GPU driver or try another browser';
             console.error('🛑 WebGL renderer unavailable. Aborting further initialization.');
             showFatalInitError('Rendu WebGL impossible', msg);
             return;
@@ -508,30 +508,30 @@ class DiamantsMissionSystem {
                 <div style="margin: 25px 0;">
                     <div style="font-size: 18px; color: #4ecdc4; margin-bottom: 10px;">🔄 Solutions Rapides :</div>
                     <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
-                        <li><strong>Redémarrer le navigateur</strong> (fermer complètement et rouvrir)</li>
+                        <li><strong>Restart the browser</strong> (close completely and reopen)</li>
                         <li><strong>Actualiser la page</strong> (Ctrl+F5 ou Cmd+Shift+R)</li>
-                        <li><strong>Fermer d'autres onglets 3D/jeux</strong> pour libérer WebGL</li>
-                        <li><strong>Vider le cache</strong> : Paramètres → Confidentialité → Vider les données</li>
+                        <li><strong>Close other 3D/game tabs</strong> to free up WebGL</li>
+                        <li><strong>Clear the cache</strong> : Settings → Privacy → Clear data</li>
                     </ul>
                 </div>
                 
                 <div style="margin: 25px 0;">
-                    <div style="font-size: 18px; color: #4ecdc4; margin-bottom: 10px;">⚙️ Solutions Avancées :</div>
+                    <div style="font-size: 18px; color: #4ecdc4; margin-bottom: 10px;">⚙️ Advanced Solutions :</div>
                     <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
-                        <li><strong>Chrome :</strong> Aller à <code style="background: #1e1e1e; padding: 2px 6px; border-radius: 3px; color: #ffd700;">chrome://flags/</code> et activer "WebGL"</li>
-                        <li><strong>Firefox :</strong> Aller à <code style="background: #1e1e1e; padding: 2px 6px; border-radius: 3px; color: #ffd700;">about:config</code> et vérifier "webgl.disabled"</li>
-                        <li><strong>Hardware acceleration :</strong> Activer dans les paramètres du navigateur</li>
-                        <li><strong>Mode incognito :</strong> Essayer pour désactiver les extensions</li>
+                        <li><strong>Chrome :</strong> Go to <code style="background: #1e1e1e; padding: 2px 6px; border-radius: 3px; color: #ffd700;">chrome://flags/</code> and enable "WebGL"</li>
+                        <li><strong>Firefox :</strong> Go to <code style="background: #1e1e1e; padding: 2px 6px; border-radius: 3px; color: #ffd700;">about:config</code> and check "webgl.disabled"</li>
+                        <li><strong>Hardware acceleration :</strong> Enable in browser settings</li>
+                        <li><strong>Incognito mode :</strong> Try to disable extensions</li>
                     </ul>
                 </div>
                 
                 <div style="margin: 25px 0;">
-                    <div style="font-size: 18px; color: #4ecdc4; margin-bottom: 10px;">🛠️ Si le problème persiste :</div>
+                    <div style="font-size: 18px; color: #4ecdc4; margin-bottom: 10px;">🛠️ If the problem persists :</div>
                     <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
-                        <li>Mettre à jour les drivers graphiques</li>
-                        <li>Désactiver temporairement l'antivirus/extensions</li>
+                        <li>Update graphics drivers</li>
+                        <li>Temporarily disable antivirus/extensions</li>
                         <li>Tester avec un autre navigateur (Chrome, Firefox, Edge)</li>
-                        <li>Redémarrer l'ordinateur</li>
+                        <li>Restart the computer</li>
                     </ul>
                 </div>
                 
@@ -906,7 +906,7 @@ class DiamantsMissionSystem {
         };
         const qp = qualityProfiles[detectedQuality] || qualityProfiles.medium;
         if (!this.renderer) {
-            showFatalInitError('Rendu WebGL perdu', 'Le renderer a été libéré avant setupEnvironment.');
+            showFatalInitError('WebGL rendering lost', 'The renderer was released before setupEnvironment.');
             return;
         }
         this.renderer.setPixelRatio(qp.pixelRatio);
@@ -1333,7 +1333,7 @@ class DiamantsMissionSystem {
                     for (let i = 0; i < count; i++) {
                         const x = (Math.random() - 0.5) * 60;
                         const z = -5 - Math.random() * 45;
-                        bs.placeBeacon(x, z, `Balise-${Date.now()}-${i}`);
+                        bs.placeBeacon(x, z, `Beacon-${Date.now()}-${i}`);
                     }
                     window.dispatchEvent(new CustomEvent('diamants:beacons-updated'));
                 };
@@ -1768,6 +1768,84 @@ Souris: Navigation 3D
         }
     }
 
+    /* LABELS MUST NOT SWALLOW A CLOSE SHOT.
+     * A label has a fixed size in world units (5 to 6 m) and draws over
+     * everything: with the camera a few metres from a drone it covered the
+     * screen. Beyond 28 m nothing changes; closer in, labels shrink in
+     * proportion to distance and fade out under 4 m. Opacity is used rather
+     * than `visible`, so the "Labels" toggle keeps the last word. */
+    /* Drone labels: bounded size, inside the frame, never stacked.
+     *
+     * A label is a sprite anchored on its aircraft. When the fleet gathers, ten
+     * labels pile up and none stays readable; and when a drone drifts towards
+     * the edge of the view, its label is cut in half.
+     *
+     * So each label is projected to screen space, then:
+     *   - outside the usable frame (7 % margin) or behind the camera → switched
+     *     off rather than clipped;
+     *   - two labels that would overlap: the nearest one wins, the other is
+     *     switched off. The boxes compared are the ones ACTUALLY projected on
+     *     screen — an approximate grid still let some touch. The drone itself
+     *     stays visible either way.
+     */
+    _boundLabels() {
+        const now = performance.now();
+        if (!this._labels || now - (this._labelsScanT || 0) > 2000) {
+            this._labelsScanT = now; this._labels = [];
+            this.scene.traverse(o => { const m = o.material;
+                if (o.isSprite && m && m.depthTest === false && m.map && m.map.isCanvasTexture) this._labels.push(o); });
+        }
+        const cam = this.camera.position, p = this._labelPos || (this._labelPos = new THREE.Vector3());
+        const taken = this._labelBoxes || (this._labelBoxes = []);
+        taken.length = 0;
+        // nearest first: the closest label keeps the spot
+        const order = this._labelOrder || (this._labelOrder = []);
+        order.length = 0;
+        for (const s of this._labels) {
+            s.getWorldPosition(p);
+            order.push([s, p.distanceTo(cam), p.clone()]);
+        }
+        order.sort((a, b) => a[1] - b[1]);
+
+        const L = this.renderer?.domElement?.clientWidth || 1920;
+        const H = this.renderer?.domElement?.clientHeight || 1080;
+        // real on-screen size: an approximate grid still let two labels touch,
+        // so the projected box is measured instead
+        const factor = H / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+        const MARGE_PX = 8;
+        const scl = this._labelScale || (this._labelScale = new THREE.Vector3());
+        for (const [s, d, monde] of order) {
+            if (!s.userData.baseLabelScale) s.userData.baseLabelScale = s.scale.clone();
+            s.scale.copy(s.userData.baseLabelScale).multiplyScalar(Math.min(1, Math.max(0.2, d / 28)));
+            if (d <= 4) { s.material.opacity = 0; continue; }
+
+            const n = monde.project(this.camera);
+            if (n.z > 1) { s.material.opacity = 0; continue; }     // behind the camera
+            // the scale THAT MATTERS is the world one: a label is a child of
+            // its drone, which is itself scaled — with the local scale the
+            // boxes came out five times too small and no overlap was ever
+            // detected.
+            s.getWorldScale(scl);
+            const l = scl.x * factor / d + MARGE_PX, h = scl.y * factor / d + MARGE_PX;
+            const x = (n.x * 0.5 + 0.5) * L, y = (-n.y * 0.5 + 0.5) * H;
+            const b = [x - l / 2, y - h / 2, x + l / 2, y + h / 2];
+            // it is the BOX that must fit in the frame, not its anchor point:
+            // a label centred near the edge gets cut in half.
+            if (b[0] < 4 || b[1] < 4 || b[2] > L - 4 || b[3] > H - 4) {
+                s.material.opacity = 0;
+                continue;
+            }
+            let free = true;
+            for (let i = 0; i < taken.length; i++) {
+                const q = taken[i];
+                if (b[0] < q[2] && b[2] > q[0] && b[1] < q[3] && b[3] > q[1]) { free = false; break; }
+            }
+            if (!free) { s.material.opacity = 0; continue; }   // it would cover another one
+            taken.push(b);
+            s.material.opacity = 1;
+        }
+    }
+
     animate() {
         this._rafId = requestAnimationFrame(() => this.animate());
         
@@ -1991,6 +2069,9 @@ Souris: Navigation 3D
         _pf.ctrl += performance.now() - _tCtrl; // fin contrôleur/drones
         const _tRender = performance.now();
 
+        // Labels kept bounded and unstacked (see _boundLabels)
+        this._boundLabels();
+
         // Rendu
     if (!this.renderer || this._contextLost) {
             // Skip rendering while context is lost/unavailable
@@ -2012,7 +2093,7 @@ Souris: Navigation 3D
                 `controller ${(_pf.ctrl / n).toFixed(1)}ms | render ${(_pf.render / n).toFixed(1)}ms | ` +
                 `draws ${this.renderer?.info?.render?.calls} | tris ${Math.round((this.renderer?.info?.render?.triangles || 0) / 1000)}k | ` +
                 `objets ${(() => { let objs = 0; this.scene?.traverse(() => objs++); return objs; })()} | ` +
-                `notre code ${tot.toFixed(1)}ms | frame réelle ${realFrameMs.toFixed(1)}ms | ` +
+                `our code ${tot.toFixed(1)}ms | actual frame ${realFrameMs.toFixed(1)}ms | ` +
                 `HORS CODE ${gap.toFixed(1)}ms (${(100 * gap / realFrameMs).toFixed(0)}%)`,
                 'font-weight:bold;color:#0aa'
             );
@@ -2336,7 +2417,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (error) {
         const msg = error?.message || String(error);
         console.error('💥 Erreur fatale lors du démarrage:', msg, error?.stack || '');
-        showFatalInitError('DIAMANTS ne démarre pas', msg);
+        showFatalInitError('DIAMANTS cannot start', msg);
     }
 });
 
@@ -2377,8 +2458,8 @@ window.toggleCollisionDebug = function() {
         }
         
         log(isDebugEnabled ? 
-            '🔲 Visualisation des collisions activée' : 
-            '🔲 Visualisation des collisions désactivée'
+            '🔲 Collision visualization enabled' : 
+            '🔲 Collision visualization disabled'
         );
     } else {
         log('❌ Système de collision non disponible');

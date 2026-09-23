@@ -32,7 +32,7 @@ export class ScenarioEngine {
     isActive(_id) { return false; }
     getActiveScenarios() { return []; }
 
-    async execute(_id) { return { ok: false, reason: 'scénarios indisponibles (stub public)' }; }
+    async execute(_id) { return { ok: false, reason: 'scenarios unavailable (public stub)' }; }
     async resetAndExecute(_id) { return this.execute(_id); }
 
     _startAutoCheck() { /* no-op */ }

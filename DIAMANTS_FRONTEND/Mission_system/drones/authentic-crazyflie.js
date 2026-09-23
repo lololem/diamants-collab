@@ -821,7 +821,7 @@ export class AuthenticCrazyflie {
             // If server returned HTML (likely a 404 proxy page), abort early
             const sniff = text.slice(0, 200).toLowerCase();
             if (sniff.includes('<!doctype html') || sniff.startsWith('<html') || sniff.includes('<head>') || sniff.includes('<title>')) {
-                throw new Error('Reçu HTML au lieu d\'un DAE (chemin invalide)');
+                throw new Error('Received HTML instead of a DAE (path isn\'t valid)');
             }
             // Remove UTF-8 BOM if present
             if (text.charCodeAt(0) === 0xFEFF) {
@@ -1185,7 +1185,7 @@ export class AuthenticCrazyflie {
                         }
 
                         if (!propNode) {
-                            throw new Error(`ÉCHEC CRITIQUE: Aucune géométrie DAE trouvée dans ${propFileName}`);
+                            throw new Error(`CRITICAL FAILURE: No DAE geometry found in ${propFileName}`);
                         }
 
                         // Cloner la géométrie DAE AUTHENTIQUE
@@ -2029,13 +2029,13 @@ export class AuthenticCrazyflie {
             
             // Maintenant essayer de créer la boundary box
             if (this.scene) {
-                boundaryLog(`🔧 ${this.id} : Force création boundary boxes via ensureBoundaryBoxes()`);
+                boundaryLog(`🔧 ${this.id} : Forcing boundary boxes creation via ensureBoundaryBoxes()`);
                 this.createCollisionBox();
             } else {
-                boundaryLog(`❌ ${this.id} : Impossible créer boundary boxes - pas de scène disponible`);
+                boundaryLog(`❌ ${this.id} : Cannot create boundary boxes - no scene available`);
             }
         } else if (this.collisionBox) {
-            boundaryLog(`✅ ${this.id} : Boundary boxes déjà créées`);
+            boundaryLog(`✅ ${this.id} : Boundary boxes already created`);
         }
     }
 
@@ -2043,30 +2043,30 @@ export class AuthenticCrazyflie {
      * Initialiser/réactiver les bounding boxes de collision
      */
     createCollisionBox() {
-        boundaryLog(`🔧 ${this.id} : Tentative création boundary box - scene=${!!this.scene}, THREE=${!!window.THREE}`);
+        boundaryLog(`🔧 ${this.id} : Attempting boundary box creation - scene=${!!this.scene}, THREE=${!!window.THREE}`);
         if (!this.scene || !window.THREE) {
-            boundaryLog(`❌ ${this.id} : Impossible créer boundary box - scene=${!!this.scene}, THREE=${!!window.THREE}`);
+            boundaryLog(`❌ ${this.id} : Cannot create boundary box - scene=${!!this.scene}, THREE=${!!window.THREE}`);
             return;
         }
         
         // FORCER LE MODE DEBUG À TRUE POUR TEST
         let isDebugMode = true;
-        boundaryLog(`🔍 ${this.id} : Mode debug forcé à TRUE pour test`);
+        boundaryLog(`🔍 ${this.id} : Debug mode forced to TRUE for testing`);
         
         if (!isDebugMode) {
-            boundaryLog(`🔇 ${this.id} : Mode debug collision désactivé - pas de boundary box visuelle`);
+            boundaryLog(`🔇 ${this.id} : Collision debug mode disabled - no visual boundary box`);
             return;
         }
         
         // Supprimer l'ancien si il existe
         if (this.collisionBox) {
             this.mesh.remove(this.collisionBox);
-            boundaryLog(`🗑️ ${this.id} : Ancienne boundary box supprimée`);
+            boundaryLog(`🗑️ ${this.id} : Old boundary box removed`);
         }
         
         if (this.safetyZone) {
             this.scene.remove(this.safetyZone);
-            boundaryLog(`🗑️ ${this.id} : Ancienne safety zone supprimée`);
+            boundaryLog(`🗑️ ${this.id} : Old safety zone removed`);
         }
         
         // Créer une nouvelle bounding box visible (wireframe vert)
@@ -2084,7 +2084,7 @@ export class AuthenticCrazyflie {
         this.collisionBox.position.set(0, 0, 0); // Position relative au drone
         if (this.mesh) {
             this.mesh.add(this.collisionBox);
-            boundaryLog(`✅ ${this.id} : Collision box attachée au drone mesh`);
+            boundaryLog(`✅ ${this.id} : Collision box attached to drone mesh`);
         } else {
             // Fallback si le mesh n'existe pas encore
             this.scene.add(this.collisionBox);
@@ -2106,7 +2106,7 @@ export class AuthenticCrazyflie {
         this.safetyZone.position.set(this.position.x, 0.01, this.position.z); // Au niveau du sol
         this.scene.add(this.safetyZone);
         
-        boundaryLog(`📦 ${this.id} : Bounding box et zone de sécurité créées`);
+        boundaryLog(`📦 ${this.id} : Bounding box and safety zone created`);
     }
 
     /**
@@ -2129,7 +2129,7 @@ export class AuthenticCrazyflie {
             // Log uniquement les premières fois pour éviter le spam
             if (!this.missingBoxLogCount) this.missingBoxLogCount = 0;
             if (this.missingBoxLogCount < 3) {
-                boundaryLog(`⚠️ ${this.id} : Pas de collision box à mettre à jour (${this.missingBoxLogCount + 1}/3)`);
+                boundaryLog(`⚠️ ${this.id} : No collision box to update (${this.missingBoxLogCount + 1}/3)`);
                 this.missingBoxLogCount++;
             }
         }
@@ -2139,7 +2139,7 @@ export class AuthenticCrazyflie {
             this.safetyZone.position.x = this.position.x;
             this.safetyZone.position.z = this.position.z;
         } else if (!this.missingSafetyLogCount) {
-            boundaryLog(`⚠️ ${this.id} : Pas de safety zone à mettre à jour`);
+            boundaryLog(`⚠️ ${this.id} : No safety zone to update`);
             this.missingSafetyLogCount = 1;
         }
     }

@@ -19,7 +19,7 @@ const _log = window.SILENT_MODE ? () => {} : (...args) => console.log(...args);
 const _warn = window.SILENT_MODE ? () => {} : (...args) => console.warn(...args);
 const _error = window.SILENT_MODE ? () => {} : (...args) => console.error(...args);
 
-_log('🚀 THREE.js Bootstrap - Chargement forcé...');
+_log('🚀 THREE.js Bootstrap - Forced loading...');
 
 // Import THREE.js et exposition globale forcée
 async function bootstrapTHREE() {
@@ -28,7 +28,7 @@ async function bootstrapTHREE() {
         
         // Import dynamique de THREE.js
         const THREE = await import('https://unpkg.com/three@0.167.1/build/three.module.js');
-        _log('✅ THREE.js chargé:', THREE);
+        _log('✅ THREE.js loaded:', THREE);
         
         // Exposition globale forcée
         window.THREE = THREE;
@@ -79,23 +79,23 @@ async function bootstrapTHREE() {
             originalError.apply(console, args);
         };
         
-        _log('🔇 Warnings/Errors THREE.js silencés pour optimisation performances');
+        _log('🔇 THREE.js Warnings/Errors silenced to improve performance');
         
         // Import des addons critiques
         _log('📦 Chargement ColladaLoader...');
         try {
             const ColladaLoaderModule = await import('https://unpkg.com/three@0.167.1/examples/jsm/loaders/ColladaLoader.js');
             window.ColladaLoader = ColladaLoaderModule.ColladaLoader;
-            _log('✅ ColladaLoader chargé et exposé');
+            _log('✅ ColladaLoader loaded and exposed');
         } catch (colladaError) {
-            _warn('⚠️ ColladaLoader optionnel non chargé:', colladaError.message);
+            _warn('⚠️ Optional ColladaLoader not loaded:', colladaError.message);
             // Créer un ColladaLoader placeholder pour éviter les erreurs
             window.ColladaLoader = class {
                 constructor() {
-                    _warn('⚠️ ColladaLoader placeholder - fichiers .dae non supportés');
+                    _warn('⚠️ ColladaLoader placeholder - .dae files not supported');
                 }
                 load() {
-                    _warn('⚠️ Chargement .dae désactivé - ColladaLoader indisponible');
+                    _warn('⚠️ .dae loading disabled - ColladaLoader unavailable');
                 }
             };
         }
@@ -105,14 +105,14 @@ async function bootstrapTHREE() {
         try {
             const OrbitControlsModule = await import('https://unpkg.com/three@0.167.1/examples/jsm/controls/OrbitControls.js');
             window.OrbitControls = OrbitControlsModule.OrbitControls;
-            _log('✅ OrbitControls chargé et exposé');
+            _log('✅ OrbitControls loaded and exposed');
         } catch (orbitError) {
             _error('❌ Erreur chargement OrbitControls:', orbitError);
         }
         
         // Signaler que THREE.js est prêt
         window.THREE_READY = true;
-        _log('🎯 THREE.js Bootstrap terminé - Système prêt !');
+        _log('🎯 THREE.js Bootstrap complete - System ready !');
         
         // Déclencher événement personnalisé
         window.dispatchEvent(new CustomEvent('threeReady', { detail: { THREE } }));

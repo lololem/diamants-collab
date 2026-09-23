@@ -157,7 +157,7 @@ export class PanelController {
         const BADGE_STYLES = {
             simulation: { text: 'SIM',  bg: '#0d3b66', border: '#2196F3', color: '#64B5F6' },
             sitl:       { text: 'SITL', bg: '#3e2723', border: '#FF9800', color: '#FFB74D' },
-            real:       { text: 'RÉEL', bg: '#1b5e20', border: '#4CAF50', color: '#81C784' },
+            real:       { text: 'REAL', bg: '#1b5e20', border: '#4CAF50', color: '#81C784' },
             unknown:    { text: '—',    bg: '#1a1a2e', border: '#555',    color: '#888'    },
         };
 
@@ -1767,7 +1767,7 @@ export class PanelController {
         
         // Vérifier le système
         if (!window.diamantsSystem) {
-            issues.push('diamantsSystem non initialisé');
+            issues.push('diamantsSystem not initialized');
         }
         
         if (issues.length > 0) {
@@ -1792,7 +1792,7 @@ export class PanelController {
         
         // Test 1: Boutons câblés
         const test1 = this.buttonStates.size > 0;
-        results.tests.push({ name: 'Boutons câblés', passed: test1 });
+        results.tests.push({ name: 'Buttons wired', passed: test1 });
         test1 ? results.passed++ : results.failed++;
         
         // Test 2: Fonctions globales
@@ -1967,7 +1967,7 @@ export class PanelController {
         const dot = document.getElementById('llm-status-dot');
         if (dot) {
             dot.style.background = isUp ? '#0f0' : isDemoMode ? '#fa0' : isDown ? '#f00' : '#555';
-            dot.title = isUp ? 'Ollama: connecté ✅' : isDemoMode ? 'Mode démo: IA simulée 🟡' : isDown ? 'Ollama: injoignable ❌' : 'Ollama: inconnu';
+            dot.title = isUp ? 'Ollama: connected ✅' : isDemoMode ? 'Demo mode: simulated AI 🟡' : isDown ? 'Ollama: unreachable ❌' : 'Ollama: unknown';
         }
 
         // 2) Ping button — clear visual feedback
@@ -2048,7 +2048,7 @@ export class PanelController {
         };
 
         // ── Helper: sensor direction name ──
-        const SENSOR_DIRS = ['avant', 'arrière', 'gauche', 'droite', 'dessus'];
+        const SENSOR_DIRS = ['front', 'rear', 'left', 'right', 'top'];
 
         // ── Helper: get real peer drone name ──
         const getPeerName = (excludeId) => {
@@ -2302,15 +2302,15 @@ export class PanelController {
                     `Stable telemetry, latency —ms`
                 ];
                 const decisions = [
-                    `Maintien position sûre, monitoring continu`,
-                    `Prêt pour prochaine phase mission`,
-                    `Évaluation corridor ${direction}: praticable`,
+                    `Holding safe position, continuous monitoring`,
+                    `Ready for next mission phase`,
+                    `Corridor assessment ${direction}: passable`,
                     `Coordination essaim: posture ${phase.toLowerCase()}`,
                     `Optimisation couverture zone en cours`
                 ];
                 const actionDescs = [
                     `${feedAction}, alt ${alt}m, cap ${direction}`,
-                    `Exécution ${feedAction}, stabilisation active`,
+                    `Executing ${feedAction}, active stabilization`,
                     `Mode ${phase.toLowerCase()}: ${feedAction}`
                 ];
                 const pick = arr => arr[Math.floor(Math.random() * arr.length)];
@@ -2540,7 +2540,7 @@ export class PanelController {
         if (!mgr || (!ollamaUp && droneCount > 0)) {
             // No Ollama manager OR Ollama offline with drones → show demo simulation
             if (droneCount > 0) {
-                el.innerHTML = `🧠 <span style="color:#0ff">${droneCount}/${droneCount}</span> cerveaux actifs | 🟡 DÉMO (offline) | 💭 —`;
+                el.innerHTML = `🧠 <span style="color:#0ff">${droneCount}/${droneCount}</span> active brains | 🟡 DEMO (offline) | 💭 —`;
             } else {
                 el.innerHTML = '🧠 Initializing AI brains…';
             }

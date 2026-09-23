@@ -399,7 +399,7 @@ export class DiamantsUIController {
         { step: 1, level:  25, icon: '📐', mode: 'Guided',           short: 'GUIDED',    desc: 'Unified formation with individual micro-adjustments.' },
         { step: 2, level:  50, icon: '🔀', mode: 'Hybrid',         short: 'HYBRIDE',  desc: 'Objectifs de groupe + exploration locale autonome.' },
         { step: 3, level:  75, icon: '🧠', mode: 'Semi-autonomous',   short: 'SEMI-AUTO', desc: 'Independent exploration, stigmergy-based coordination.' },
-        { step: 4, level:  90, icon: '🤖', mode: 'Autonomous',        short: 'AUTONOME', desc: 'Agents indépendants, partage d\'information minimal.' },
+        { step: 4, level:  90, icon: '🤖', mode: 'Autonomous',        short: 'AUTONOMOUS', desc: 'Independent agents, sharing only what\'s essential.' },
         { step: 5, level: 100, icon: '⚡', mode: 'Fully distributed', short: 'DISTRIBUTED', desc: 'Fully autonomous agents — no central control.' },
     ];
 
