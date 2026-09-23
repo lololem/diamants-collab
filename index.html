@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DIAMANTS — Demonstration films</title>
-<meta name="description" content="Two demonstration films of DIAMANTS: a heterogeneous, fully distributed drone swarm simulation.">
+<meta name="description" content="Four demonstration films of DIAMANTS: a heterogeneous, fully distributed drone swarm simulation — reconnaissance, wildfire response, real-time multi-agent, and a hands-on tutorial.">
 <meta property="og:title" content="DIAMANTS — Demonstration films">
-<meta property="og:description" content="Unmapped Sector Reconnaissance · Distributed Wildfire Response">
+<meta property="og:description" content="Unmapped Sector Reconnaissance · Distributed Wildfire Response · Real-time multi-agent · Add your drone and your model">
 <meta property="og:image" content="https://lololem.github.io/diamants-collab/film1.jpg">
 <meta property="og:type" content="video.other">
 <style>
@@ -46,9 +46,9 @@
     <h1>Demonstration films</h1>
     <p class="lead">A heterogeneous drone swarm simulation — September 2026</p>
     <div class="notice">
-      <strong>Demonstration videos.</strong> These films were recorded from the current internal development version of DIAMANTS.
+      <strong>Demonstration videos.</strong> Films 1, 2 and 3 were recorded from the current internal development version of DIAMANTS.
       <strong>The code published in the <a href="https://github.com/lololem/diamants-collab" style="color:inherit">diamants-collab</a> repository is not up to date</strong>
-      and does not include every capability shown here.
+      and does not include every capability shown in them. The tutorial is the exception: it was recorded on that repository, as you receive it.
     </div>
     <div class="demo">
       <a class="btn" href="https://diamants-hypervision.pages.dev" target="_blank" rel="noopener">
@@ -60,9 +60,42 @@
     </div>
   </header>
 
+  <section id="tutorial">
+    <h2>Tutorial: add your drone and your model</h2>
+    <p class="sub">Recorded on the public repository · five steps in the interface — 4 min</p>
+    <video controls preload="metadata" playsinline poster="tutorial.jpg">
+      <source src="tutorial.mp4" type="video/mp4">
+    </video>
+    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4">download</a>.</p>
+    <p class="intro">Recorded on <strong>this</strong> repository, as you receive it — not on the internal build. Five steps, every one of them done on screen in the <strong>Fleet &amp; models</strong> panel:</p>
+    <ul>
+      <li><strong>Hardware is a file:</strong> a drone is one JSON profile — mass, size, speed, PID gains, airframe. Load it from the panel and the aircraft joins the swarm in flight, without touching a line of code.</li>
+      <li><strong>A real airframe, not a stand-in:</strong> that profile flies an authentic PX4 mesh, under the same physics and the same eight-state flight logic (idle, take-off, hover, explore, avoid, return, land, landed) as the rest of the fleet.</li>
+      <li><strong>Your model, from your own server:</strong> the model list is read from the Ollama server running on your machine. Pick one, apply it to the profile, and that profile's drone starts proposing actions — each proposal is a nudge of at most 8 metres on the computed waypoint, and only during exploration.</li>
+      <li><strong>Rules outrank the model:</strong> a battery forced to 8 % triggers a safety rule that imposes the landing before the model is even asked.</li>
+      <li><strong>Beyond language models:</strong> the last chapter shows the file route, and how to write your own provider — a reinforcement-learning policy or any HTTP endpoint, not only an LLM.</li>
+    </ul>
+  </section>
+
+  <section id="film3">
+    <h2>Film 3: Real-time multi-agent, shown and measured</h2>
+    <p class="sub">Live event feed · peer-to-peer journals · measured results — 13 min</p>
+    <video controls preload="metadata" playsinline poster="film3.jpg">
+      <source src="film3.mp4" type="video/mp4">
+    </video>
+    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4">download</a>.</p>
+    <p class="intro">Eleven aircraft, no central server, no GPS — and every claim checked on camera at the end of the run:</p>
+    <ul>
+      <li><strong>A time-stamped event feed:</strong> each line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed rather than on a commentary over it.</li>
+      <li><strong>Knowledge travels by journal:</strong> a scout's find reaches a distant drone's model through peer-to-peer journal exchange — no server, no shared database — and the swarm navigates without GPS. The trace is written on each drone's own grid, and fades.</li>
+      <li><strong>The journal put to the test, on camera:</strong> one drone's radio is cut, then restored — it asks for what it missed and checks each hash chain before accepting it; a forged entry is rejected. Consensus keeps a contact from ever counting as a confirmation on its own.</li>
+      <li><strong>Measured, and stated as measured:</strong> no faster detection (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.</li>
+    </ul>
+  </section>
+
   <section id="film1">
     <h2>Film 1: Unmapped Sector Reconnaissance</h2>
-    <p class="sub">Heterogeneous exploration · distributed swarming · federated learning — 22 min</p>
+    <p class="sub">Heterogeneous exploration · distributed swarming · federated learning — 21 min</p>
     <video controls preload="metadata" playsinline poster="film1.jpg">
       <source src="film1.mp4" type="video/mp4">
     </video>
