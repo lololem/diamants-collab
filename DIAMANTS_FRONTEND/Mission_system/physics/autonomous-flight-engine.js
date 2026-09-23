@@ -722,12 +722,26 @@ export class AutonomousFlightEngine {
             const cz = Math.max(-halfZone, Math.min(halfZone, wz));
 
             // Score: COA bias + visited penalty (per-drone knowledge)
-            let score = this._computeCOABias(cx, cz, state);
+            let score = this._computeCOABias(cx, cz, state) * this._coaWeight();
             const gx = Math.round(cx / cs);
             const gz = Math.round(cz / cs);
             if (localKnowledge.has(`${gx},${gz}`)) score -= 15;
 
             candidateList.push({ x: cx, z: cz, score });
+        }
+
+        /* The pattern's own step, competing with the draws above. Without it the
+         * bias had only randomness to rank, and a lane cannot emerge from a disc
+         * of random points. It gets a bonus so it can stand against eight
+         * candidates, never a free pass — an already-visited point is penalised
+         * like any other. */
+        const coaStep = this._coaNextWaypoint(state);
+        if (coaStep) {
+            const px = Math.max(-halfZone, Math.min(halfZone, coaStep.x));
+            const pz = Math.max(-halfZone, Math.min(halfZone, coaStep.z));
+            let sc = this._computeCOABias(px, pz, state) * this._coaWeight() + 10;
+            if (localKnowledge.has(`${Math.round(px / cs)},${Math.round(pz / cs)}`)) sc -= 15;
+            candidateList.push({ x: px, z: pz, score: sc });
         }
 
         // ACO-style probabilistic selection (softmax roulette)
@@ -2003,6 +2017,86 @@ export class AutonomousFlightEngine {
     //  COA BIAS — directional preference injected into cell scoring
     //  Returns a score modifier (positive = attract, negative = repel)
     // ═══════════════════════════════════════════════════════════════════
+    /* HOW MUCH THE SEARCH PATTERN WEIGHS.
+     *
+     * It used to be `1 - autonomy/100`, so the course of action was multiplied
+     * by ZERO at full autonomy — and below 75 % it only re-ranked eight points
+     * drawn at random in a disc around a group centre. Measured in flight over
+     * four courses of action, 40 s each: no clear separation — spread 84 to
+     * 105 m, mean turn 5.2 to 6.7°, coverage 389 to 409 cells, differences a
+     * single run is enough to produce.
+     *
+     * The confusion was semantic: autonomy says WHO decides, the course of
+     * action says HOW the ground is searched. A fully autonomous swarm can
+     * sweep in boustrophedon lanes without anyone assigning it a sector. The
+     * pattern therefore keeps a third of its weight at full autonomy; it is the
+     * assigned TERRITORY weight that rightly drops to zero.
+     */
+    _coaWeight() {
+        const coa = this.doctrineManager?.currentCOA;
+        if (!coa || coa.id === 'adaptive') return 0;
+        return 0.35 + 0.65 * (1 - this.autonomyLevel / 100);
+    }
+
+    /* THE PATTERN'S OWN NEXT STEP.
+     *
+     * A bias cannot draw a lane if all it has to rank is random candidates. So
+     * each course of action proposes its next step, which COMPETES with the
+     * other candidates instead of replacing them: the pattern becomes visible,
+     * while obstacle avoidance and drone repulsion keep the last word. Returns
+     * null for "adaptive" and "stigmergy", which have no geometry of their own.
+     */
+    _coaNextWaypoint(state) {
+        const coa = this.doctrineManager?.currentCOA;
+        if (!coa || coa.id === 'adaptive' || coa.id === 'stigmergy') return null;
+        const half = this._getHalfZone();
+        const tc = state._territoryCenter || { x: 0, z: 0 };
+        const p = state.position;
+        const clamp = (v) => Math.max(-half, Math.min(half, v));
+
+        switch (coa.id) {
+            case 'grid':
+            case 'boustrophedon': {
+                const spacing = coa.params?.lineSpacing || coa.params?.cellSize || 5;
+                const step = Math.max(6, spacing * 1.5);
+                const row = Math.floor(p.z / spacing);
+                const dir = row % 2 === 0 ? 1 : -1;
+                const rowZ = (row + 0.5) * spacing;
+                const x = p.x + dir * step;
+                // at the end of a lane, move to the next one instead of leaving the area
+                if (Math.abs(x) > half - 2) {
+                    return { x: clamp(p.x - dir * 2), z: clamp(rowZ + spacing) };
+                }
+                return { x: clamp(x), z: clamp(rowZ) };
+            }
+            case 'spiral': {
+                const dir = coa.params?.clockwise !== false ? -1 : 1;
+                const dx = p.x - tc.x, dz = p.z - tc.z;
+                const r = Math.max(4, Math.hypot(dx, dz));
+                const a = Math.atan2(dz, dx) + dir * Math.max(0.25, 8 / r);
+                const r2 = r + (coa.params?.pitch || 3);
+                return { x: clamp(tc.x + Math.cos(a) * r2), z: clamp(tc.z + Math.sin(a) * r2) };
+            }
+            case 'radial': {
+                const dx = p.x - tc.x, dz = p.z - tc.z;
+                const d = Math.hypot(dx, dz);
+                // at the centre, pick a heading rather than divide by zero
+                const ux = d > 0.5 ? dx / d : Math.cos(state._radialSeed ?? (state._radialSeed = Math.random() * 6.283));
+                const uz = d > 0.5 ? dz / d : Math.sin(state._radialSeed);
+                const step = 10;
+                if (d + step > half - 2) return { x: clamp(tc.x), z: clamp(tc.z) };   // start again from the centre
+                return { x: clamp(p.x + ux * step), z: clamp(p.z + uz * step) };
+            }
+            case 'perimeter': {
+                const R = half - 6;
+                const a = Math.atan2(p.z, p.x) + 0.22;
+                return { x: clamp(Math.cos(a) * R), z: clamp(Math.sin(a) * R) };
+            }
+            default:
+                return null;
+        }
+    }
+
     _computeCOABias(cellX, cellZ, state) {
         if (!this.doctrineManager) return 0;
         const coa = this.doctrineManager.currentCOA;
@@ -2395,8 +2489,7 @@ export class AutonomousFlightEngine {
                 // ═══ COA DIRECTIONAL BIAS ═══
                 // Injects pattern-specific preference (grid rows, spiral angle, etc.)
                 // ═══ AUTONOMY MODULATION: COA is orchestrator control → scales down ═══
-                const coaCentralFactor = 1 - this.autonomyLevel / 100;
-                score += this._computeCOABias(cell.x, cell.z, state) * coaCentralFactor;
+                score += this._computeCOABias(cell.x, cell.z, state) * this._coaWeight();
 
                 // ═══ BEACON FIELD REINFORCEMENT ═══
                 // Attract toward areas where beacons were found/reported.
@@ -2417,6 +2510,19 @@ export class AutonomousFlightEngine {
             }
             // ACO-style probabilistic selection (softmax roulette)
             // Like real ants: good paths have higher probability, but any path can be chosen
+            /* The pattern's step competes here too: nearby cells are a frontier,
+             * not a geometry — a lane or a spiral does not follow from them. */
+            const nearCoaStep = this._coaNextWaypoint(state);
+            if (nearCoaStep && !isCellBlocked(nearCoaStep.x, nearCoaStep.z)) {
+                const gxp = Math.round(nearCoaStep.x / this.cellSize), gzp = Math.round(nearCoaStep.z / this.cellSize);
+                if (!localKnowledge.has(`${gxp},${gzp}`)) {
+                    nearCandidates.push({
+                        x: nearCoaStep.x, z: nearCoaStep.z,
+                        score: this._computeCOABias(nearCoaStep.x, nearCoaStep.z, state) * this._coaWeight() + 10,
+                    });
+                }
+            }
+
             const selectedNear = this._selectProbabilistic(nearCandidates);
             if (selectedNear) {
                 const terrY = this._groundY(selectedNear.x, selectedNear.z);
@@ -2490,8 +2596,7 @@ export class AutonomousFlightEngine {
 
                     // COA bias (half strength for Phase 2 — proximity is primary concern)
                     // ═══ AUTONOMY MODULATION: COA → 0 at full autonomy ═══
-                    const coaCentralFactor2 = 1 - this.autonomyLevel / 100;
-                    score += this._computeCOABias(wx, wz, state) * 0.5 * coaCentralFactor2;
+                    score += this._computeCOABias(wx, wz, state) * 0.5 * this._coaWeight();
 
                     // ═══ BEACON FIELD REINFORCEMENT (Phase 2) ═══
                     // Even stronger in Phase 2 — when all nearby cells are explored,
