@@ -8,7 +8,7 @@ algorithm — **and your own drone and your own model**: a language model, a
 reinforcement-learning policy, any decision maker, kept in check by symbolic
 rules. See [Bring your own model](#bring-your-own-model-neurosymbolic).
 
-> 🎬 **New: two demonstration films (September 2026)** — [▶ watch them online](https://lololem.github.io/diamants-collab/), or see [Demonstration films](#demonstration-films-september-2026) below.
+> 🎬 **New: four demonstration films (September 2026)** — [▶ watch them online](https://lololem.github.io/diamants-collab/), or see [Demonstration films](#demonstration-films-september-2026) below.
 > They were recorded from the current internal development version: **the code published here is not up to date** and does not include every capability shown in them.
 >
 >
@@ -472,6 +472,8 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 #### Tutorial: add your drone and your model (4 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#tutorial) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
 
+[![Tutorial: add your drone and your model — click to watch](https://lololem.github.io/diamants-collab/tutorial-play.jpg)](https://lololem.github.io/diamants-collab/#tutorial)
+
 Recorded on **this** repository, as you receive it — not on the internal build.
 Five steps, every one of them done on screen in the **Fleet & models** panel:
 
@@ -504,6 +506,8 @@ This scenario focuses on dynamic task allocation and emergent air-ground coordin
 - **Live Adaptation:** Federated learning runs continuously during the response, while the operator retains the ability to dynamically issue high-level commands (e.g., zone search, patrol, return to base).
 
 #### Film 3: Real-time multi-agent, shown and measured (13 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film3) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film3-real-time-multi-agent.mp4)
+
+[![Film 3: Real-time multi-agent, shown and measured — click to watch](https://lololem.github.io/diamants-collab/film3-play.jpg)](https://lololem.github.io/diamants-collab/#film3)
 
 Recorded on the internal development build. Eleven aircraft, no central server,
 no GPS — and every claim checked on camera at the end of the run:
