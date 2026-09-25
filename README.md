@@ -474,14 +474,12 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 [![Tutorial: add your drone and your model — click to watch](https://lololem.github.io/diamants-collab/tutorial-play.jpg)](https://lololem.github.io/diamants-collab/#tutorial)
 
-Recorded on **this** repository, as you receive it — not on the internal build.
-Five steps, every one of them done on screen in the **Fleet & models** panel:
+Recorded on **this** repository, as you receive it. Five steps, all done on screen in the **Fleet & models** panel:
 
-- **Hardware is a file:** a drone is one JSON profile — mass, size, speed, PID gains, airframe. Load it from the panel and the aircraft joins the swarm in flight, without touching a line of code.
-- **A real airframe, not a stand-in:** that profile flies an authentic PX4 mesh, under the same physics and the same eight-state flight logic (idle, take-off, hover, explore, avoid, return, land, landed) as the rest of the fleet.
-- **Your model, from your own server:** the model list is read from the Ollama server running on your machine. Pick one, apply it to the profile, and that profile's drone starts proposing actions — each proposal is a nudge of at most 8 metres on the computed waypoint, and only during exploration.
-- **Rules outrank the model:** a battery forced to 8 % triggers a safety rule that imposes the landing before the model is even asked.
-- **Beyond language models:** the last chapter shows the file route, and how to write your own provider — a reinforcement-learning policy or any HTTP endpoint, not only an LLM.
+- **Hardware as a File:** A drone is one JSON profile — mass, speed, PID gains, airframe. Load it from the panel and the aircraft joins the swarm in flight, without touching a line of code.
+- **Authentic Airframe & Flight Logic:** That profile flies a real PX4 mesh, under the same physics and the same eight-state flight logic as the rest of the fleet.
+- **Your Own Model, Served Locally:** The model list is read from the Ollama server running on your machine. Apply one to a profile and that drone starts proposing actions, each capped at an 8-metre nudge on the computed waypoint.
+- **Rules Outrank the Model:** A battery forced to 8 % triggers a safety rule that imposes the landing before the model is even asked. The last chapter shows how to plug in your own provider — a reinforcement-learning policy or any HTTP endpoint, not only a language model.
 
 #### Film 1: Unmapped Sector Reconnaissance (21 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film1) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film1-unmapped-sector-reconnaissance.mp4)
 
@@ -509,14 +507,12 @@ This scenario focuses on dynamic task allocation and emergent air-ground coordin
 
 [![Film 3: Real-time multi-agent, shown and measured — click to watch](https://lololem.github.io/diamants-collab/film3-play.jpg)](https://lololem.github.io/diamants-collab/#film3)
 
-Recorded on the internal development build. Eleven aircraft, no central server,
-no GPS — and every claim checked on camera at the end of the run:
+This film runs the swarm in real time — eleven aircraft, no central server, no GPS — and closes on each of its claims checked against the running engine:
 
-- **A time-stamped event feed:** each line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed rather than on a commentary over it.
-- **Digital stigmergy, carried by shared journals:** each drone writes where it has been into its own grid — mapped cells and virtual pheromones, nothing laid in the world and no shared database — and those entries travel drone to drone through peer-to-peer journal exchange whenever two come within radio range. That is how a scout's find reaches a distant drone's model: no server, and the swarm navigates without GPS.
-- **The trace repels instead of attracting:** classic stigmergy has agents converge on the strongest trail; here the trace marks ground already searched, so the swarm spreads out on its own. The film states the rule, then measures it.
-- **The journal put to the test, on camera:** one drone's radio is cut, then restored — it asks for what it missed and checks each hash chain before accepting it; a forged entry is rejected. Consensus keeps a contact from ever counting as a confirmation on its own.
-- **Measured, and stated as measured:** the A/B is that trace sharing itself — on against off, same code, same targets, alternating missions. **No faster detection** (66.5 s against 65.3 s, p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a model fine-tuned on the swarm's own safety and doctrine rules goes from 31.8 % to 88.6 % compliant answers on the same base — shown with its real loss curve, adapters and all.
+- **Time-Stamped Event Feed:** Every line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed, not on a commentary over it.
+- **Digital Stigmergy Through Shared Journals:** Each drone writes where it has been into its own grid — mapped cells and virtual pheromones — and those entries travel from drone to drone whenever two come within radio range.
+- **A Trace That Repels:** Classic stigmergy has agents converge on the strongest trail; here the trace marks ground already searched, so the swarm spreads out on its own. The journal is put to the test on camera: a radio is cut and restored, and a forged entry is rejected.
+- **Measured, and Stated as Measured:** Trace sharing on against off, same code and same targets — **no significant gain in detection speed** (p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a fine-tuned model goes from 31.8 % to 88.6 % rule-compliant answers on the same base.
 
 ▶ **Watch all four films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
