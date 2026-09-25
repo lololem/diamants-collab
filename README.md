@@ -468,6 +468,8 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 <sub>Try DIAMANTS directly in your browser with the live demo — note that it is not up to date either compared with the demonstration films.</sub>
 
+<sub>**What it takes to run the code:** Node 20 and a browser with WebGL — nothing else. A local model server is optional: with none reachable, the eleven drones still take off and explore, and the model field simply offers no suggestions. Checked on a fresh clone.</sub>
+
 > ⚠️ **Films 1, 2 and 3 are demonstration videos**, recorded from the internal development version: **the code published here does not include every capability shown in them.** The tutorial below is the exception — it was recorded on this repository, as you receive it.
 
 #### Tutorial: add your drone and your model (4 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#tutorial) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-tutorial-add-your-drone-and-your-model.mp4)
@@ -488,8 +490,8 @@ Recorded on **this** repository, as you receive it. Five steps, all done on scre
 This scenario showcases a heterogeneous swarm operating within a fully decentralized architecture:
 
 - **Heterogeneous Swarm & Division of Labor:** Micro-drones act as reactive scouts, while camera-equipped platforms use on-board AI to verify targets in a two-stage detection process.
-- **Distributed Autonomy:** All decisions are made on-board without a central planner, utilizing collaborative coverage methods (stigmergy, consensus-based allocation, and area partitioning).
-- **True Flight Physics & Neurosymbolic AI:** Action proposals from the AI are strictly vetted by a deterministic rule layer before execution. The simulation incorporates the true flight physics of the drones (mass, inertia, rotor thrusts), ensuring highly realistic and safe control.
+- **Distributed Autonomy:** All decisions are made on-board without a central planner. Coverage is shared through stigmergy — each drone writes where it has been into its own map and reads its neighbours' — plus consensus-based allocation and area partitioning. Film 3 below shows that trace being written, exchanged and measured.
+- **True Flight Physics & Neurosymbolic AI:** The simulation carries the drones' real flight physics — mass, inertia, rotor thrust. What keeps the fleet inside its limits is the layer above: every AI proposal is vetted by deterministic rules before it reaches a motor.
 - **Federated Learning & Operator Control:** Agents collaboratively learn while keeping their observation data private. Operators can issue natural-language commands that seamlessly override autonomous missions, visualized through a live command-chain display.
 
 #### Film 2: Distributed Wildfire Response (17 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film2) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film2-distributed-wildfire-response.mp4)
