@@ -137,8 +137,8 @@ function diagnosticRenduUrgence() {
         if (window.engineInstance.isInitialized) {
             log('✅ Engine initialisé');
         } else {
-            warn('⚠️ Engine non initialisé');
-            diagnostics.problems.push('Engine non initialisé');
+            warn('⚠️ Engine not initialised');
+            diagnostics.problems.push('Engine not initialised');
         }
     } else {
         error('❌ Aucune instance engine');
