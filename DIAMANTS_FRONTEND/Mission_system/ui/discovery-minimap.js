@@ -77,7 +77,7 @@ export class DiscoveryMinimap {
 
     _init() {
         if (!this.canvas) {
-            console.warn('⚠️ Discovery canvas non trouvé');
+            console.warn('⚠️ Discovery canvas not found');
             return;
         }
 
@@ -86,7 +86,7 @@ export class DiscoveryMinimap {
         this.canvas._minimapInstance = this;
 
         window.DIAMANTS_DISCOVERY = this;
-        console.log('🟩 Discovery Minimap initialisée (pixel coverage)');
+        console.log('🟩 Discovery minimap ready (pixel coverage)');
     }
 
     _createGrid() {
@@ -156,12 +156,12 @@ export class DiscoveryMinimap {
         this.explorationStartTime = Date.now();
         this.isRunning = true;
         this.explorationGrid = this._createGrid();
-        console.log('🟩 Discovery: exploration démarrée');
+        console.log('🟩 Discovery: exploration started');
     }
 
     stopExploration() {
         this.isRunning = false;
-        console.log(`🟩 Discovery: arrêtée — ${this.totalCoverage.toFixed(1)}%`);
+        console.log(`🟩 Discovery: stopped — ${this.totalCoverage.toFixed(1)}%`);
     }
 
     reset() {

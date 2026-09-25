@@ -412,11 +412,14 @@ export class AuthenticCrazyflie {
         this.statusLED = this.createStatusLED();
         this.mesh.add(this.statusLED);
 
-    // CHARGEMENT DAE avec logs détaillés et timeout
-        log('🔄 Tentative chargement DAE pour drone', this.id);
+    // DAE loading, with detailed logs and a patience threshold
+        log('🔄 Loading DAE mesh for drone', this.id);
 
         const loadingTimeout = setTimeout(() => {
-            warn('⏱️ TIMEOUT chargement DAE pour drone', this.id, '- utilisation fallback visible');
+            // The load is NOT cancelled here — it keeps going and the real mesh
+            // replaces the simple shape as soon as it arrives. Saying "fallback"
+            // made a slow machine look like a failed one.
+            warn('⏱️ Mesh still loading after 5 s for', this.id, '— simple shape shown until it arrives');
         }, 5000);
 
         this.tryLoadRealMesh().then((ok) => {

@@ -13,6 +13,7 @@
  * Lancement du serveur de développement Vite avec configuration optimisée
  */
 
+import { existsSync } from 'fs'
 import { createServer } from 'vite'
 import { resolve } from 'path'
 
@@ -21,9 +22,30 @@ async function startDevServer() {
     console.log('🚁 DIAMANTS - Mission System Development Server');
     console.log('================================================');
     
+    /* A MISSING MODEL REGISTRY IS NOT AN ERROR.
+     *
+     * intelligence/model-providers/agent-models.json is yours to create — it
+     * is git-ignored on purpose, since it can hold an API key. Until you do,
+     * every page load asked for it and the browser printed a red 404. The dev
+     * server now answers an empty registry instead: same behaviour, clean
+     * console. Your own file, once written, is served normally. */
+    const registreVide = () => ({
+      name: 'diamants-registre-modeles',
+      configureServer(srv) {
+        srv.middlewares.use((req, res, next) => {
+          if (!req.url || !req.url.startsWith('/intelligence/model-providers/agent-models.json')) return next();
+          const chemin = resolve(process.cwd(), 'intelligence/model-providers/agent-models.json');
+          if (existsSync(chemin)) return next();
+          res.setHeader('Content-Type', 'application/json');
+          res.end('{}');
+        });
+      },
+    });
+
     const server = await createServer({
-      // Configuration Vite pour DIAMANTS
+      // Vite configuration for DIAMANTS
       root: process.cwd(),
+      plugins: [registreVide()],
       server: {
         port: 5550,
         host: 'localhost',
@@ -71,9 +93,9 @@ async function startDevServer() {
     await server.listen();
     server.printUrls();
     
-    console.log('\n✅ Serveur de développement démarré !');
-    console.log('🌐 Interface 3D: http://localhost:5550');
-    console.log('🚁 Système multi-drones prêt pour la simulation');
+    console.log('\n✅ Development server started!');
+    console.log('🌐 3D interface: http://localhost:5550');
+    console.log('🚁 Multi-drone system ready for simulation');
     
   } catch (error) {
     console.error('❌ Erreur lors du démarrage du serveur:', error);

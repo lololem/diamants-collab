@@ -855,6 +855,9 @@ export class IntegratedDiamantsController {
             const res = await fetch(`${import.meta.env.BASE_URL || '/'}${registryPath}`, { cache: 'no-store' });
             if (!res.ok) return;
             registry = await res.json();
+            // an empty registry is no registry: nothing to attach, and the
+            // dev server answers {} so nobody gets a 404 in their console
+            if (!registry || !Object.keys(registry).length) return;
         } catch (_) {
             return;
         }

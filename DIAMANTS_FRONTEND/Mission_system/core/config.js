@@ -181,6 +181,12 @@ export function validateConfig() {
  */
 export async function loadFleetConfig(apiUrl = 'http://localhost:8000') {
     try {
+        /* NO BACKEND ASKED FOR, NO PROBE.
+         * Falling back to the local fleet file is the normal path for anyone
+         * who just cloned the repository. Probing an address nobody runs only
+         * added a red line to their console. An empty apiUrl now goes straight
+         * to the file — same result, no noise. */
+        if (!apiUrl) throw new Error('no fleet API requested');
         const ctrl = new AbortController();
         const timer = setTimeout(() => ctrl.abort(), 2000);
         const resp = await fetch(`${apiUrl}/api/fleet`, { signal: ctrl.signal });

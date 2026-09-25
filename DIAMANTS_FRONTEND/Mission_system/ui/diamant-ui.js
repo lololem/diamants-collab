@@ -272,7 +272,7 @@ export class DiamantUI {
                         pauseBtn.textContent = engine.paused ? '▶️ Resume' : '⏸ Pause';
                     }
                 } else {
-                    console.warn('[UI-BTN] Pause: système non initialisé');
+                    console.warn('[UI-BTN] Pause: system not initialised');
                 }
             });
         }
@@ -285,7 +285,7 @@ export class DiamantUI {
                 } else if (typeof window.resetSwarm === 'function') {
                     window.resetSwarm();
                 } else {
-                    console.warn('[UI-BTN] Reset: aucune fonction disponible');
+                    console.warn('[UI-BTN] Reset: no function available');
                 }
             });
         }
@@ -300,9 +300,9 @@ export class DiamantUI {
                 
                 // Feedback immédiat
                 if (!window.SILENT_MODE) {
-                    console.log('🔊 Logs activés - Mode verbeux');
+                    console.log('🔊 Logs on — verbose mode');
                 } else {
-                    console.log('🔇 Logs silencieux activés');
+                    console.log('🔇 Logs silenced');
                 }
             });
         }

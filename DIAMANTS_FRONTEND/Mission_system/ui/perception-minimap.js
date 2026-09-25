@@ -177,7 +177,7 @@ export class PerceptionMinimap {
         // Expose globally
         window.DIAMANTS_PERCEPTION = this;
 
-        console.log('🌲 SLAM Forest Reconstruction initialisée —',
+        console.log('🌲 SLAM forest reconstruction ready —',
             `${this.cfg.gridSize}×${this.cfg.gridSize} grid, ${this.cfg.resolution}m/cell`);
     }
 

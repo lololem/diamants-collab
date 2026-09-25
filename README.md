@@ -478,7 +478,7 @@ Three.js 0.167, Vite 4.5, Vitest, ES modules, Node 20+.
 
 Recorded on **this** repository, as you receive it. Five steps, all done on screen in the **Fleet & models** panel:
 
-- **Hardware as a File:** A drone is one JSON profile — mass, speed, PID gains, airframe. Load it from the panel and the aircraft joins the swarm in flight, without touching a line of code.
+- **Hardware as a File:** A drone is one JSON profile — a `physical` block, a `performance` block, PID gains, and the airframe it flies. Load it from the panel and the aircraft joins the swarm in flight, without touching a line of code.
 - **Authentic Airframe & Flight Logic:** That profile flies a real PX4 mesh, under the same physics and the same eight-state flight logic as the rest of the fleet.
 - **Your Own Model, Served Locally:** The model list is read from the Ollama server running on your machine. Apply one to a profile and that drone starts proposing actions, each capped at an 8-metre nudge on the computed waypoint.
 - **Rules Outrank the Model:** A battery forced to 8 % triggers a safety rule that imposes the landing before the model is even asked. The last chapter shows how to plug in your own provider — a reinforcement-learning policy or any HTTP endpoint, not only a language model.

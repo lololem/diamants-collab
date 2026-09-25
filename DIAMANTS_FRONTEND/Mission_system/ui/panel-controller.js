@@ -850,7 +850,7 @@ export class PanelController {
         
         const system = window.diamantsSystem;
         if (!system?.integratedController) {
-            console.warn('[BTN-TEST] handleLaunch: système non prêt');
+            console.warn('[BTN-TEST] handleLaunch: system not ready');
 
             this.showFeedback('System not initialized — please wait', 'warning');
             return false;
@@ -893,7 +893,7 @@ export class PanelController {
         
         const system = window.diamantsSystem;
         if (!system?.integratedController) {
-            console.warn('[BTN-TEST] handleStop: système non prêt');
+            console.warn('[BTN-TEST] handleStop: system not ready');
             this.showFeedback('System not initialized — please wait', 'warning');
             return false;
         }
@@ -949,7 +949,7 @@ export class PanelController {
                 engine.takeoff(droneId, altitude);
                 count++;
             } else {
-                console.warn(`[TAKEOFF] Drone ${droneId} non trouvé dans l'engine`);
+                console.warn(`[TAKEOFF] Drone ${droneId} not found in the engine`);
             }
         });
         
@@ -984,7 +984,7 @@ export class PanelController {
                 engine.land(droneId);
                 count++;
             } else {
-                console.warn(`[LAND] Drone ${droneId} non trouvé dans l'engine`);
+                console.warn(`[LAND] Drone ${droneId} not found in the engine`);
             }
         });
         

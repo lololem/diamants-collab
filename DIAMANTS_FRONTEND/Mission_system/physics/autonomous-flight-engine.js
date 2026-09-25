@@ -2049,7 +2049,13 @@ export class AutonomousFlightEngine {
     _coaNextWaypoint(state) {
         const coa = this.doctrineManager?.currentCOA;
         if (!coa || coa.id === 'adaptive' || coa.id === 'stigmergy') return null;
-        const half = this._getHalfZone();
+        /* Le pas ne sort jamais de l'enveloppe DÉCLARÉE. La zone de doctrine
+         * peut être plus large que les bornes d'exploration du moteur — un
+         * périmètre tracé sur la première proposait des points hors de la
+         * seconde, et cinq essais de combinatoire le voyaient. On garde la
+         * plus serrée des deux. */
+        const half = Math.min(this._getHalfZone(),
+                              Number.isFinite(this.explorationBounds) ? this.explorationBounds : Infinity);
         const tc = state._territoryCenter || { x: 0, z: 0 };
         const p = state.position;
         const clamp = (v) => Math.max(-half, Math.min(half, v));

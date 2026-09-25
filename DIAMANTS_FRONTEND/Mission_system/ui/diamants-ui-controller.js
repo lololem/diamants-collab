@@ -64,7 +64,7 @@ export class DiamantsUIController {
         this.setupNavigation();
         this.startUpdateLoop();
         
-        console.log('🎨 DiamantsUIController initialisé');
+        console.log('🎨 DiamantsUIController ready');
     }
 
     /**

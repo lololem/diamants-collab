@@ -258,7 +258,17 @@ class DiamantsMissionSystem {
         
         // Load fleet config + environment in parallel (env uses fallback droneCount if config not ready)
         // Also start preloading drone 3D models (DAE/STL/GLB) in parallel to avoid sequential delay
-        const fleetPromise = loadFleetConfig('http://localhost:8000');
+        /* THE FLEET API IS ASKED FOR TOO.
+         *
+         * The simulator can take its fleet from a backend at :8000. Nobody
+         * cloning this repository has one, and probing it printed a red
+         * connection-refused line in the console of every visitor, for a call
+         * whose failure is the expected case — the defaults take over. It is
+         * now explicit: add ?api to the URL, or set window.DIAMANTS_API to the
+         * base URL of your backend. */
+        const apiBase = typeof window.DIAMANTS_API === 'string' ? window.DIAMANTS_API
+            : /[?&]api\b/.test(window.location.search) ? 'http://localhost:8000' : null;
+        const fleetPromise = loadFleetConfig(apiBase);
         const dronePreloadPromise = DroneVisualFactory.preloadModels().catch(e => {
             warn('⚠️ Early drone model preload failed (will retry):', e.message);
         });
@@ -559,10 +569,22 @@ class DiamantsMissionSystem {
 
     async setupRosWeb() {
         try {
+            /* THE ROS BRIDGE IS ASKED FOR, NOT ASSUMED.
+             *
+             * Almost nobody running this simulator has a ROS backend on
+             * ws://localhost:8765. Trying anyway printed a red WebSocket line
+             * in every visitor's console — a line no script can suppress, for
+             * a connection that was never expected to succeed. The bridge is
+             * therefore opt-in: add ?ros to the URL (or set
+             * window.DIAMANTS_ROS = true before load) and it connects exactly
+             * as before. Everything else — flight, AI, mission — is unchanged
+             * either way. */
+            const rosVoulu = window.DIAMANTS_ROS === true
+                || /[?&]ros\b/.test(window.location.search);
             this.ros = new RosWebBridge({ silent: window.SILENT_MODE });
-            await this.ros.connect().catch(() => {});
+            if (rosVoulu) await this.ros.connect().catch(() => {});
             
-            log(`🔌 ROS2 WebSocket: ${this.ros.connected ? 'Connected' : 'Offline'} — ${this.ros.url}`);
+            log(`🔌 ROS2 WebSocket: ${this.ros.connected ? 'Connected' : rosVoulu ? 'Offline' : 'Not requested (add ?ros to enable)'} — ${this.ros.url}`);
             
             // ── ID mapper ────────────────────────────────────────────
             // Backend IDs (crazyflie_01, 1-indexed) ↔ Frontend IDs (crazyflie_0, 0-indexed)

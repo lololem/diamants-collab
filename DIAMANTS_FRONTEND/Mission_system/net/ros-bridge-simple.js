@@ -71,6 +71,7 @@ export class RosWebBridge {
 
             this._ws.onopen = () => {
                 this.connected = true;
+                this._everConnected = true;
                 this._reconnectDelay = RECONNECT_MIN_MS;
                 this._reconnectRetries = 0;
                 this._errorEmitted = false;
@@ -398,6 +399,21 @@ export class RosWebBridge {
 
     _scheduleReconnect() {
         if (this._closing) return;
+        /* A BRIDGE THAT WAS NEVER THERE IS NOT A BRIDGE THAT DROPPED.
+         *
+         * Most people run this simulator with no ROS backend at all. The first
+         * attempt failing is the normal case, not an incident — yet the bridge
+         * then retried ten times, and every attempt prints a red WebSocket line
+         * in the browser console that no script can suppress. Measured on a
+         * fresh clone: three of them before the fleet had even taken off.
+         *
+         * So: retry only a connection that once succeeded. A backend started
+         * later is still picked up — connect() can be called again, and the
+         * page reload costs nothing. */
+        if (!this._everConnected) {
+            try { window.dispatchEvent(new CustomEvent('diamants:ws-absent')); } catch (_) {}
+            return;
+        }
         this._reconnectRetries++;
         if (this._reconnectRetries > RECONNECT_MAX_RETRIES) {
             this._log('log', `⏹ Stopped reconnecting after ${RECONNECT_MAX_RETRIES} attempts (backend unreachable)`);
