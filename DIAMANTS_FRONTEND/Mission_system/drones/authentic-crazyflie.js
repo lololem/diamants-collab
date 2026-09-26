@@ -514,7 +514,13 @@ export class AuthenticCrazyflie {
         {
             const _y = this.mesh?.position?.y;
             const _air = (_y === undefined) ? true : (_y > 1.0 || this.flightState?.isFlying === true);
-            this._labelSprite.visible = _air && !window._mobileLabelsHidden;
+            /* A SINGLE SWITCH FOR THE DECISION CARDS.
+             * The « Labels » button set `visible = false` on every sprite, and
+             * this line — which runs twice a second — turned them straight back
+             * on: they could not be switched off at all. Both buttons, the
+             * panel one and the mobile bar one, now write the same flag, and
+             * that flag decides here. */
+            this._labelSprite.visible = (_air && !window.DIAMANTS_LABELS_OFF);
         }
 
         const canvas = this._labelCanvas;

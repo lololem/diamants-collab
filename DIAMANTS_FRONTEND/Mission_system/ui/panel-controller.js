@@ -1463,21 +1463,18 @@ export class PanelController {
             this.showFeedback('Controller unavailable', 'warning');
             return true;
         }
-        // Toggle visibility on all drones' _labelSprite
-        const drones = controller.drones || [];
-        // Determine current state from first drone that has a label
-        let currentlyVisible = true;
-        for (const drone of drones) {
-            if (drone._labelSprite) {
-                currentlyVisible = drone._labelSprite.visible;
-                break;
-            }
-        }
-        const newVisible = !currentlyVisible;
-        for (const drone of drones) {
-            if (drone._labelSprite) {
-                drone._labelSprite.visible = newVisible;
-            }
+        /* THE FLAG FIRST, THE SPRITES AFTER.
+         *
+         * Setting `visible = false` on every sprite did not last half a
+         * second: each card redraws at 2 Hz and switched itself back on. The
+         * state now lives in `window.DIAMANTS_LABELS_OFF`, which the cards read
+         * as they redraw; we also apply it straight away so the click shows
+         * without waiting for the next draw. */
+        const newVisible = !!window.DIAMANTS_LABELS_OFF;   // turn back on if it was off
+        window.DIAMANTS_LABELS_OFF = !newVisible;
+        window._mobileLabelsHidden = window.DIAMANTS_LABELS_OFF;   // old name, still read by the mobile bar
+        for (const drone of (controller.drones || [])) {
+            if (drone._labelSprite) drone._labelSprite.visible = newVisible;
         }
         // Update button visual
         const btn = document.getElementById('btn-toggle-labels');

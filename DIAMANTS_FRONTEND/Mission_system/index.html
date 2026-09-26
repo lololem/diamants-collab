@@ -139,8 +139,13 @@
         }
 
         :root {
-            --sidebar-width: 420px;
-            --sidebar-scale: 1.4;
+            /* The sidebar opens at its working size. It started at 420 px with
+             * a 1.4 magnification — nearly a quarter of a laptop screen, taken
+             * before anything was asked. 320 px (1.067, the reference being
+             * 300) leaves the scene room; the right-hand handle still widens
+             * it up to 55 % of the window. */
+            --sidebar-width: 320px;
+            --sidebar-scale: 1.067;
             --sidebar-pad: calc(8px * var(--sidebar-scale));
             --sidebar-gap: calc(6px * var(--sidebar-scale));
         }
@@ -334,15 +339,21 @@
             border: 2px solid #00ccff;
             box-shadow: 0 0 8px rgba(0,204,255,0.7);
         }
+        /* THE SIX AUTONOMY STEPS MUST NOT TOUCH.
+         * As `flex: 1` with no gap and no wrapping, « Centralized Guided Hybrid
+         * Semi-auto Autonomous Distributed » ran together into one unreadable
+         * string under the slider. Six equal columns, a thread of space between
+         * them, and a long word wraps inside ITS column. */
         .autonomy-ticks {
-            display: flex; justify-content: space-between;
-            padding: 0; margin: 2px 0 0 0;
+            display: grid; grid-template-columns: repeat(6, 1fr);
+            column-gap: 3px; padding: 0; margin: 3px 0 0 0;
         }
         .autonomy-ticks span {
             font-size: 7.5px; color: #667;
-            text-align: center; flex: 1;
+            text-align: center; min-width: 0;
+            overflow-wrap: anywhere; hyphens: auto;
             cursor: pointer; transition: color 0.2s;
-            line-height: 1.2;
+            line-height: 1.15;
         }
         .autonomy-ticks span:hover { color: #aaddff; }
         .autonomy-ticks span.active { color: #ffffff; font-weight: bold; }
@@ -2512,15 +2523,19 @@
         let _labelHideAttempts = 0;
         function autoHideLabels() {
             if (!isMobile()) return;
+            /* THE DECISION CARDS STAY ON, PHONE INCLUDED.
+             *
+             * They used to be switched off two seconds after load on any phone.
+             * But that card — doctrine, course of action, autonomy, the action
+             * being taken — IS what this demo shows; turning it off left a
+             * phone with drones and no reason for their moves, and nothing on
+             * screen said a toolbar button would bring them back. The toolbar
+             * button still hides them for whoever wants a clear view. */
             _labelHideAttempts++;
             const sys = window.diamantsSystem;
             if (sys && sys.drones && sys.drones.length > 0) {
-                // Hide all drone labels
-                for (const d of sys.drones) {
-                    if (d._labelSprite) d._labelSprite.visible = false;
-                }
-                window._mobileLabelsHidden = true;
-                console.log('[MOBILE] 3D labels auto-hidden');
+                window.DIAMANTS_LABELS_OFF = false;
+                window._mobileLabelsHidden = false;
             } else if (_labelHideAttempts < 30) {
                 setTimeout(autoHideLabels, 500);
             }
@@ -2540,9 +2555,11 @@
         window._mobileToggleLabels = function() {
             const sys = window.diamantsSystem;
             if (!sys || !sys.drones) return;
-            window._mobileLabelsHidden = !window._mobileLabelsHidden;
+            // same switch as the panel's « Labels » button
+            window.DIAMANTS_LABELS_OFF = !window.DIAMANTS_LABELS_OFF;
+            window._mobileLabelsHidden = window.DIAMANTS_LABELS_OFF;
             for (const d of sys.drones) {
-                if (d._labelSprite) d._labelSprite.visible = !window._mobileLabelsHidden;
+                if (d._labelSprite) d._labelSprite.visible = !window.DIAMANTS_LABELS_OFF;
             }
             const btn = document.getElementById('mobile-btn-labels');
             if (btn) btn.classList.toggle('active', !window._mobileLabelsHidden);

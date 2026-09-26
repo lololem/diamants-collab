@@ -625,7 +625,8 @@ export class IntegratedDiamantsController {
                         {
                             const _y = this.mesh?.position?.y;
                             const _air = (_y === undefined) ? true : _y > 1.0;
-                            this._labelSprite.visible = _air && !window._mobileLabelsHidden;
+                            // one switch, see authentic-crazyflie.js
+                            this._labelSprite.visible = (_air && !window.DIAMANTS_LABELS_OFF);
                         }
                         const canvas = this._labelCanvas;
                         const ctx = canvas.getContext('2d');
