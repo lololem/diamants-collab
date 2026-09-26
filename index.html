@@ -126,20 +126,21 @@
   </section>
 
   <section id="film4">
-    <h2>Film 4: How one drone decides</h2>
-    <p class="sub">One aircraft · rules, then the model, then the peers — every figure read from the running engine — 4 min</p>
+    <h2>Film 4: Inside one cognitive drone</h2>
+    <p class="sub">Perception · rules · model · arbitration · state machine — one aircraft, one decision chain — 4 min</p>
     <video controls preload="metadata" playsinline poster="film4.jpg">
       <source src="film4.mp4" type="video/mp4">
     </video>
-    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-how-one-drone-decides.mp4">download</a>.</p>
-    <p class="intro">The first three films follow the swarm. This one stays on a single aircraft and follows one decision from end to end:</p>
+    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-inside-one-cognitive-drone.mp4">download</a>.</p>
+    <p class="intro">The first three films follow the swarm. This one stays inside a single aircraft and opens its decision chain layer by layer:</p>
     <ul>
-      <li><strong>One aircraft, followed end to end:</strong> eight of the eleven drones carry no model at all — they fly on rules and on what the swarm has written down. The camera stays on one of the three that do, and reads its decision card: doctrine, course of action, autonomy, and the action under way.</li>
-      <li><strong>Rules first, always:</strong> ten named safety rules — battery, bounds, altitude, obstacles, speed, stall — are evaluated before the model is asked anything. A critical verdict is applied to the flight itself: emergency landing, return home, hover or climb, not a line written on a label.</li>
-      <li><strong>What the model is allowed to do:</strong> it runs on the machine, answers with a direction, a confidence and a sentence of reasoning, and shifts the next waypoint by at most eight metres. Flight stays with a 60&nbsp;Hz control loop the model never touches.</li>
-      <li><strong>Peers agree without a dispatcher:</strong> in the wildfire scenario, fires are the tasks; agents bid on them and merge their beliefs with a rule identical on every agent, so they converge with no referee. An agent already under way keeps a commitment premium, so a marginally better-placed peer cannot take its task and waste the distance already flown. Allocation messages are sent only when something has changed — a heartbeat every five seconds keeps the agreement reachable for a peer that arrives later.</li>
+      <li><strong>What it senses:</strong> an OAK-D Pro W at 127 by 80 degrees with stereo depth, the peers within radio range, and the beacon areas other drones have shared over the journal.</li>
+      <li><strong>What is forbidden:</strong> ten named safety rules are evaluated before every request to the model. A critical verdict is applied to the flight itself — emergency landing, return home, hover or climb — not written on a label.</li>
+      <li><strong>What the model is given:</strong> not the simulation, but a situation report written from what this aircraft knows — position, speed, heading, state-machine phase, coverage, doctrine, battery, and the neighbours with their distance and bearing.</li>
+      <li><strong>What is done with the answer:</strong> it is applied only at or above 0.6 confidence — below that it is shown on screen and not applied — and only while the state machine is exploring or hovering. Taking off, landing or in an emergency, the model never gets a say.</li>
+      <li><strong>What is applied:</strong> a waypoint shifted by at most eight metres. The 60&nbsp;Hz flight loop is never touched. That is the point of a neurosymbolic stack — the part that can be wrong is the part that only advises.</li>
     </ul>
-    <p class="intro">Every figure on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so instead of filling the gap.</p>
+    <p class="intro">Every value on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so rather than filling the gap.</p>
   </section>
 
   <footer>
