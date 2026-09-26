@@ -47,7 +47,7 @@
     <p class="lead">A heterogeneous drone swarm simulation — September 2026</p>
     <p style="margin:0 0 14px;color:var(--muted);font-size:14px"><strong style="color:var(--text)">What it takes to run the code:</strong> Node 20 and a browser with WebGL — nothing else. A local model server is optional: with none reachable, the eleven drones still take off and explore, and the model field simply offers no suggestions. Checked on a fresh clone.</p>
     <div class="notice">
-      <strong>Demonstration videos.</strong> Films 1, 2 and 3 were recorded from the current internal development version of DIAMANTS.
+      <strong>Demonstration videos.</strong> Films 1 to 4 were recorded from the current internal development version of DIAMANTS.
       <strong>The code published in the <a href="https://github.com/lololem/diamants-collab" style="color:inherit">diamants-collab</a> repository is not up to date</strong>
       and does not include every capability shown in them. The tutorial is the exception: it was recorded on that repository, as you receive it.
     </div>
@@ -121,8 +121,25 @@
       <li><strong>Time-Stamped Event Feed:</strong> Every line states which drone acted, which model answered, with what confidence and in how many seconds. The film is built on that feed, not on a commentary over it.</li>
       <li><strong>Digital Stigmergy Through Shared Journals:</strong> Each drone writes where it has been into its own grid — mapped cells and virtual pheromones — and those entries travel from drone to drone whenever two come within radio range.</li>
       <li><strong>A Trace That Repels:</strong> Classic stigmergy has agents converge on the strongest trail; here the trace marks ground already searched, so the swarm spreads out on its own. The journal is put to the test on camera: a radio is cut and restored, and a forged entry is rejected.</li>
-      <li><strong>Measured, and Stated as Measured:</strong> Trace sharing on against off, same code and same targets — **no significant gain in detection speed** (p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a fine-tuned model goes from 31.8 % to 88.6 % rule-compliant answers on the same base.</li>
+      <li><strong>Measured, and Stated as Measured:</strong> Trace sharing on against off, same code and same targets — <strong>no significant gain in detection speed</strong> (p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a fine-tuned model goes from 31.8 % to 88.6 % rule-compliant answers on the same base.</li>
     </ul>
+  </section>
+
+  <section id="film4">
+    <h2>Film 4: How one drone decides</h2>
+    <p class="sub">One aircraft · rules, then the model, then the peers — every figure read from the running engine — 4 min</p>
+    <video controls preload="metadata" playsinline poster="film4.jpg">
+      <source src="film4.mp4" type="video/mp4">
+    </video>
+    <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-how-one-drone-decides.mp4">download</a>.</p>
+    <p class="intro">The first three films follow the swarm. This one stays on a single aircraft and follows one decision from end to end:</p>
+    <ul>
+      <li><strong>One aircraft, followed end to end:</strong> eight of the eleven drones carry no model at all — they fly on rules and on what the swarm has written down. The camera stays on one of the three that do, and reads its decision card: doctrine, course of action, autonomy, and the action under way.</li>
+      <li><strong>Rules first, always:</strong> ten named safety rules — battery, bounds, altitude, obstacles, speed, stall — are evaluated before the model is asked anything. A critical verdict is applied to the flight itself: emergency landing, return home, hover or climb, not a line written on a label.</li>
+      <li><strong>What the model is allowed to do:</strong> it runs on the machine, answers with a direction, a confidence and a sentence of reasoning, and shifts the next waypoint by at most eight metres. Flight stays with a 60&nbsp;Hz control loop the model never touches.</li>
+      <li><strong>Peers agree without a dispatcher:</strong> in the wildfire scenario, fires are the tasks; agents bid on them and merge their beliefs with a rule identical on every agent, so they converge with no referee. An agent already under way keeps a commitment premium, so a marginally better-placed peer cannot take its task and waste the distance already flown. Allocation messages are sent only when something has changed — a heartbeat every five seconds keeps the agreement reachable for a peer that arrives later.</li>
+    </ul>
+    <p class="intro">Every figure on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so instead of filling the gap.</p>
   </section>
 
   <footer>
