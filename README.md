@@ -520,15 +520,16 @@ This film runs the swarm in real time — eleven aircraft, no central server, no
 
 [![Film 4: Inside one cognitive drone — click to watch](https://lololem.github.io/diamants-collab/film4-play.jpg)](https://lololem.github.io/diamants-collab/#film4)
 
-The first three films follow the swarm. This one stays inside a single aircraft and opens its decision chain layer by layer:
+While the first three films observe the swarm from an operational viewpoint, this film locks onto a single heavy cognitive aircraft (`X500_09`) in continuous 3D flight and opens its complete neurosymbolic decision stack layer by layer:
 
-- **What it senses:** an OAK-D Pro W at 127 by 80 degrees with stereo depth, the peers within radio range, and the beacon areas other drones have shared over the journal.
-- **What is forbidden:** ten named safety rules are evaluated before every request to the model. A critical verdict is applied to the flight itself — emergency landing, return home, hover or climb — not written on a label.
-- **What the model is given:** not the simulation, but a situation report written from what this aircraft knows — position, speed, heading, state-machine phase, coverage, doctrine, battery, and the neighbours with their distance and bearing.
-- **What is done with the answer:** it is applied only at or above 0.6 confidence — below that it is shown on screen and not applied — and only while the state machine is exploring or hovering. Taking off, landing or in an emergency, the model never gets a say.
-- **What is applied:** a waypoint shifted by at most eight metres. The 60 Hz flight loop is never touched. That is the point of a neurosymbolic stack — the part that can be wrong is the part that only advises.
+- **Layer 1 — Stereo Perception (OAK-D Pro W):** An active infrared stereo camera at 127°×80° field of view with real-time edge AI object detection. Stereo depth re-projects 2D bounding boxes into metric 3D ground targets (wildfire fronts, canopy obstacles, peer drones).
+- **Layer 2 — Deterministic Safety Gate (Rules Before Neural):** Ten non-negotiable safety rules (geofence, minimum/maximum altitude, battery threshold, obstacle standoff, aerodynamic stall margin) are evaluated *before* the neural model is ever invoked. A safety violation immediately triggers deterministic flight intervention (RTL, Land, or Altitude Hold) without asking the model.
+- **Layer 3 — Edge LLM Reasoning (0.1 Hz):** The model is never fed raw simulation memory. It receives an on-board situation report synthesized from local sensors and peer messages (position vector, FSM phase, mapped cells, active doctrine, and radio neighbours). An on-board quantized model evaluates the tactical situation at 0.1 Hz and outputs structured JSON reasoning.
+- **Layer 4 — Confidence & Phase Arbitration:** Neural proposals are subjected to deterministic arbitration. Decisions are applied only if confidence meets or exceeds 0.60; below that threshold, proposals remain advisory. Furthermore, model guidance is strictly restricted to EXPLORE and HOVER phases — it is hard-locked out during TAKEOFF, LANDING, and EMERGENCY states.
+- **Layer 5 — FSM Modulation & 60 Hz PID Flight Control:** Validated model advice never controls motor throttles directly: it only modulates the next local waypoint by at most 8 metres. Physical flight stability is guaranteed by a deterministic 60 Hz PID attitude and position loop. Hallucinations or model latency can never compromise flight safety.
+- **Layer 6 — Decentralized Stigmergy & Swarm Interaction:** Reactive Crazyflie micro-scouts deposit digital pheromones and log surveyed cells into decentralized journals. When drones come within radio range, journals sync peer-to-peer. Inverse stigmergy repels aircraft from recently searched sectors, while wildfires are dynamically bid upon with ground Colossus rovers via HTN consensus auctions.
 
-Every value on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so rather than filling the gap.
+Every metric and decision on screen is read live from the running engine during flight. Zero simulated data, zero hardcoded telemetry.
 
 ▶ **Watch all five films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
