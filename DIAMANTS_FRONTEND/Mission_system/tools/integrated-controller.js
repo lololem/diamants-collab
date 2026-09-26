@@ -613,6 +613,8 @@ export class IntegratedDiamantsController {
                         const ps = this.mesh.scale?.x || 1;
                         this._labelSprite.position.set(0, 4.2 / ps, 0);
                         this._labelSprite.scale.set(6.0 / ps, 4.9 / ps, 1);
+                        this._labelSprite.userData.ancrageBas = (4.2 - 4.9 / 2) / ps;
+                        this._labelSprite.userData.echelleEtiquette = this._labelSprite.scale.clone();
                         this._labelSprite.renderOrder = 999;
                         this.mesh.add(this._labelSprite);
                         this._labelCanvas = canvas;

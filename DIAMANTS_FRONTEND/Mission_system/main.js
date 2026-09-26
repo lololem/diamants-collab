@@ -1810,61 +1810,174 @@ Souris: Navigation 3D
      *     screen — an approximate grid still let some touch. The drone itself
      *     stays visible either way.
      */
-    _boundLabels() {
+    /* Drone labels: bounded size, inside the frame, never stacked.
+     *
+     * In follow drone mode, labels previously flickered because:
+     *   1. s.getWorldPosition() was measured on the sprite center. As the card shrank,
+     *      its center lowered in 3D, shifting its screen projection and distance, creating
+     *      a 60 Hz feedback loop (shrink -> move -> grow -> move -> shrink).
+     *   2. No temporal smoothing on scale caused instantaneous discrete jumps.
+     *   3. The followed drone had no priority and could be hidden by overlap or bounds.
+     *
+     * Fixed by:
+     *   - Anchoring position evaluation on the physical base (ancrageBas, scale-invariant).
+     *   - Absolute priority for the followed drone (always visible, on top, depthTest false).
+     *   - Smooth exponential time filter on label width (_wLisse).
+     *   - Bottom-pinned anchor (s.position.y = ancrageBas + s.scale.y / 2) so card expands upwards.
+     */
+    _boundLabels(dt) {
         const now = performance.now();
         if (!this._labels || now - (this._labelsScanT || 0) > 2000) {
             this._labelsScanT = now; this._labels = [];
-            this.scene.traverse(o => { const m = o.material;
-                if (o.isSprite && m && m.depthTest === false && m.map && m.map.isCanvasTexture) this._labels.push(o); });
+            this.scene.traverse(o => {
+                const m = o.material;
+                if (o.isSprite && (o.userData?.carteDecision === true || (m && m.map && m.map.isCanvasTexture))) {
+                    this._labels.push(o);
+                }
+            });
         }
-        const cam = this.camera.position, p = this._labelPos || (this._labelPos = new THREE.Vector3());
+        const cam = this.camera.position;
         const taken = this._labelBoxes || (this._labelBoxes = []);
         taken.length = 0;
-        // nearest first: the closest label keeps the spot
+
+        const suivi = (this.autoFollow && this.followDroneIndex >= 0 && this.drones && this.drones[this.followDroneIndex]) || null;
+        const meshSuivi = suivi && (suivi.mesh || suivi.group || suivi.object3D) || null;
+        const estSuivie = (s) => {
+            if (!meshSuivi) return false;
+            for (let o = s; o; o = o.parent) if (o === meshSuivi) return true;
+            return false;
+        };
+
         const order = this._labelOrder || (this._labelOrder = []);
         order.length = 0;
+        const pBase = this._labelPos || (this._labelPos = new THREE.Vector3());
+
         for (const s of this._labels) {
-            s.getWorldPosition(p);
-            order.push([s, p.distanceTo(cam), p.clone()]);
+            const ancrageBas = s.userData.ancrageBas != null ? s.userData.ancrageBas : 0;
+            if (s.parent) {
+                pBase.set(0, ancrageBas, 0);
+                s.parent.localToWorld(pBase);
+            } else {
+                s.getWorldPosition(pBase);
+            }
+            order.push([s, pBase.distanceTo(cam), pBase.clone(), estSuivie(s)]);
         }
-        order.sort((a, b) => a[1] - b[1]);
+        // Priority to followed drone, then nearest to farthest
+        order.sort((a, b) => (b[3] - a[3]) || (a[1] - b[1]));
 
         const L = this.renderer?.domElement?.clientWidth || 1920;
         const H = this.renderer?.domElement?.clientHeight || 1080;
-        // real on-screen size: an approximate grid still let two labels touch,
-        // so the projected box is measured instead
         const factor = H / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-        const MARGE_PX = 8;
-        const scl = this._labelScale || (this._labelScale = new THREE.Vector3());
-        for (const [s, d, monde] of order) {
-            if (!s.userData.baseLabelScale) s.userData.baseLabelScale = s.scale.clone();
-            s.scale.copy(s.userData.baseLabelScale).multiplyScalar(Math.min(1, Math.max(0.2, d / 28)));
-            if (d <= 4) { s.material.opacity = 0; continue; }
+        const dtSafe = Math.min(0.1, Math.max(0.001, dt || 0.016));
 
-            const n = monde.project(this.camera);
-            if (n.z > 1) { s.material.opacity = 0; continue; }     // behind the camera
-            // the scale THAT MATTERS is the world one: a label is a child of
-            // its drone, which is itself scaled — with the local scale the
-            // boxes came out five times too small and no overlap was ever
-            // detected.
-            s.getWorldScale(scl);
-            const l = scl.x * factor / d + MARGE_PX, h = scl.y * factor / d + MARGE_PX;
-            const x = (n.x * 0.5 + 0.5) * L, y = (-n.y * 0.5 + 0.5) * H;
-            const b = [x - l / 2, y - h / 2, x + l / 2, y + h / 2];
-            // it is the BOX that must fit in the frame, not its anchor point:
-            // a label centred near the edge gets cut in half.
-            if (b[0] < 4 || b[1] < 4 || b[2] > L - 4 || b[3] > H - 4) {
+        const compact = L < 620 || H < 520;
+        const MARGE_PX = compact ? 4 : 8;
+        const maxLabels = compact ? 2 : Infinity;
+        let placed = 0;
+
+        for (const [s, d, mondeBase, prioritaire] of order) {
+            if (s.visible === false) continue;
+            if (placed >= maxLabels) { s.material.opacity = 0; continue; }
+
+            // Display distance range (followed drone bypasses)
+            const PORTEE = 48;
+            let alpha = 1.0;
+            if (!prioritaire) {
+                if (d > PORTEE) { s.material.opacity = 0; continue; }
+                if (d > 38) { alpha = (PORTEE - d) / 10; }
+                if (d <= 3) { s.material.opacity = 0; continue; }
+                if (d < 5) { alpha = Math.min(alpha, (d - 3) / 2); }
+            }
+
+            // Project base anchor above drone
+            const n = mondeBase.project(this.camera);
+            if (n.z > 1) { s.material.opacity = 0; continue; }
+
+            const xBase = (n.x * 0.5 + 0.5) * L;
+            const yBase = (-n.y * 0.5 + 0.5) * H;
+
+            if (!s.userData.echelleEtiquette) s.userData.echelleEtiquette = s.scale.clone();
+            const pe = s.parent ? s.parent.getWorldScale(this._labelScale || (this._labelScale = new THREE.Vector3()))
+                                : { x: 1, y: 1 };
+            const largRefMonde = s.userData.echelleEtiquette.x * (pe.x || 1);
+            const hautRefMonde = s.userData.echelleEtiquette.y * (pe.y || 1);
+            const ratioHW = hautRefMonde / (largRefMonde || 1);
+
+            // Nominal perspective width
+            const largNominale = largRefMonde * factor / d;
+
+            // Screen bounds
+            const maxi = compact ? Math.min(260, Math.max(180, L * 0.35)) : Math.max(220, Math.min(340, L * 0.20));
+            const mini = maxi * 0.45;
+            let wCible = Math.max(mini, Math.min(maxi, largNominale));
+            let hCible = wCible * ratioHW;
+
+            // Lateral constraints
+            const dispoX = 2 * Math.min(xBase - 8, (L - 8) - xBase);
+            if (dispoX > 40 && wCible > dispoX) {
+                const kw = Math.max(0.45, dispoX / wCible);
+                wCible *= kw;
+                hCible *= kw;
+            }
+
+            // Vertical constraint under top banner
+            const BANDEAU = H < 500 ? 80 : (H < 700 ? 95 : 120);
+            const hautDispo = yBase - BANDEAU;
+            if (hautDispo > 30 && hCible > hautDispo) {
+                const kh = Math.max(0.55, hautDispo / hCible);
+                wCible *= kh;
+                hCible *= kh;
+            }
+
+            // Continuous temporal smoothing on width (eliminates jitter and steps)
+            if (s.userData._wLisse == null || isNaN(s.userData._wLisse)) {
+                s.userData._wLisse = wCible;
+            } else {
+                if (Math.abs(wCible - s.userData._wLisse) > 0.4) {
+                    const tau = prioritaire ? 0.08 : 0.15;
+                    const kLisse = 1 - Math.exp(-dtSafe / tau);
+                    s.userData._wLisse += (wCible - s.userData._wLisse) * kLisse;
+                }
+            }
+            const wFinal = s.userData._wLisse;
+            const hFinal = wFinal * ratioHW;
+
+            // Apply world dimensions
+            const scaleMondeX = wFinal * d / factor;
+            const scaleMondeY = hFinal * d / factor;
+            s.scale.set(scaleMondeX / (pe.x || 1), scaleMondeY / (pe.y || 1), 1);
+
+            // Bottom anchor
+            if (s.position.x !== 0) s.position.x = 0;
+            if (s.position.z !== 0) s.position.z = 0;
+            const ancrageBas = s.userData.ancrageBas != null ? s.userData.ancrageBas : 0;
+            s.position.y = ancrageBas + s.scale.y / 2;
+
+            // Screen bounding box for collision / overlap
+            const b = [xBase - wFinal / 2 - MARGE_PX, yBase - hFinal - MARGE_PX, xBase + wFinal / 2 + MARGE_PX, yBase + MARGE_PX];
+
+            if (!prioritaire && (b[0] < 4 || b[1] < 4 || b[2] > L - 4 || b[3] > H - 4)) {
                 s.material.opacity = 0;
                 continue;
             }
+
             let free = true;
             for (let i = 0; i < taken.length; i++) {
                 const q = taken[i];
                 if (b[0] < q[2] && b[2] > q[0] && b[1] < q[3] && b[3] > q[1]) { free = false; break; }
             }
-            if (!free) { s.material.opacity = 0; continue; }   // it would cover another one
+            if (!free && !prioritaire) { s.material.opacity = 0; continue; }
+
             taken.push(b);
-            s.material.opacity = 1;
+            placed++;
+            s.material.opacity = alpha;
+
+            // Render order and depth test: followed drone always in foreground
+            s.renderOrder = prioritaire ? 1000 : 900 + Math.round(Math.max(0, Math.min(1, 1 - d / 150)) * 99);
+            const testerZ = !prioritaire;
+            if (s.material.depthTest !== testerZ) {
+                s.material.depthTest = testerZ;
+            }
         }
     }
 
@@ -2092,7 +2205,7 @@ Souris: Navigation 3D
         const _tRender = performance.now();
 
         // Labels kept bounded and unstacked (see _boundLabels)
-        this._boundLabels();
+        this._boundLabels(delta);
 
         // Rendu
     if (!this.renderer || this._contextLost) {
@@ -2322,6 +2435,24 @@ Souris: Navigation 3D
                     id, state.position, state.heading || 0, wp
                 );
             }
+
+            // ── Federated Learning minimap (RL / FedAvg / MARL)
+            if (window.DIAMANTS_FED_MINIMAP) {
+                window.DIAMANTS_FED_MINIMAP.updateDronePosition(
+                    id, state.position, state.heading || 0, state.role || null
+                );
+            }
+        }
+
+        // ── Ground UGVs feed the same tactical maps as the drones ──
+        const groundVehicles = flightEngine.groundVehicles || this.integratedController?.groundVehicles || [];
+        for (const rv of groundVehicles) {
+            if (!rv.position) continue;
+            const pos = rv.position;
+            if (window.DIAMANTS_MINIMAP) window.DIAMANTS_MINIMAP.updateDronePosition(rv.id, pos, rv.heading || 0, null);
+            if (window.DIAMANTS_DISCOVERY) window.DIAMANTS_DISCOVERY.updateDronePosition(rv.id, pos);
+            if (window.DIAMANTS_SITAC) window.DIAMANTS_SITAC.updateDronePosition(rv.id, pos, rv.heading || 0, null);
+            if (window.DIAMANTS_FED_MINIMAP) window.DIAMANTS_FED_MINIMAP.updateDronePosition(rv.id, pos, rv.heading || 0, 'ugv');
         }
     }
 

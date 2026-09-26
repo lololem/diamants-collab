@@ -492,6 +492,8 @@ export class AuthenticCrazyflie {
         this._labelSprite.position.set(0, 3.5 / parentScale, 0);
         // Label world size: ~5 m wide × 3.1 m tall (readable from afar)
         this._labelSprite.scale.set(5.0 / parentScale, 3.1 / parentScale, 1);
+        this._labelSprite.userData.ancrageBas = (3.5 - 3.1 / 2) / parentScale;
+        this._labelSprite.userData.echelleEtiquette = this._labelSprite.scale.clone();
         this._labelSprite.renderOrder = 999;
 
         if (this.mesh) {

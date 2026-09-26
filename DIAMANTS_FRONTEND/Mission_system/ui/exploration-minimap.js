@@ -9,16 +9,17 @@
 /**
  * DIAMANTS - Exploration Minimap (Stigmergy Pheromone Field)
  * 
- * Vraie visualisation stigmergique avec :
- *   - Grid de pheromones persistante (dépôt + diffusion + évaporation)
- *   - Effet glow radial comme des vrais pheromones de fourmis
- *   - Dégradé vert→jaune→blanc selon l'intensité
- *   - Positions des drones avec heading + ID
- *   - Waypoints cibles
- *   - Timer et % couverture
+ * Visualisation stigmergique authentique avec :
+ *   - Grille de phéromones persistante (dépôt + diffusion + évaporation)
+ *   - Échelle étendue adaptée au théâtre opérationnel 240x240m (256m / ±128m)
+ *   - Conditions aux limites dissipatives (élimination des barres blanches saturées)
+ *   - Dégradé continu vert émeraude → jaune doré → rehaut doux
+ *   - Rendu haute performance à double passe (cellules nettes + halo diffusé)
+ *   - Positions des drones avec heading + identifiant court NATO
+ *   - Synchronisation de résolution dynamique (DPR / _syncSize)
+ *   - Waypoints cibles et indicateur de couverture
  *
- * AUCUNE DETECTION ICI - la détection est sur la SITAC.
- * Modèle stigmergique basé sur stigmergy-engine.js
+ * Modèle stigmergique aligné sur la doctrine et le vol autonome.
  */
 
 const DRONE_COLORS = [
@@ -32,15 +33,28 @@ function _droneIdx(id) {
     return m ? parseInt(m[1], 10) - 1 : 0;
 }
 
-// Pheromone grid constants (matches stigmergy-engine.js)
-const PHERO_GRID = 80;              // cells per side (80x80)
-const PHERO_RES = 1.5;              // meters per cell
-const PHERO_HALF = (PHERO_GRID * PHERO_RES) / 2;  // 60m half-extent
-const PHERO_DEPOSIT = 8.0;          // deposit per frame when drone is on cell
-const PHERO_DEPOSIT_RADIUS = 3;     // deposit radius in cells (~4.5m)
-const PHERO_EVAP_RATE = 0.0004;     // evaporation per frame (~0.005/sec at 12FPS, matches real engine)
-const PHERO_DIFFUSION_RATE = 0.08;  // diffusion to neighbors
-const PHERO_MAX = 100;              // max intensity
+function _shortId(id) {
+    const s = String(id);
+    const m = s.match(/(\d+)\s*$/);
+    const n = m ? m[1] : '';
+    if (/^crazyflie/i.test(s)) return 'CF' + n;
+    if (/^x500/i.test(s)) return 'X' + n;
+    if (/^s500/i.test(s)) return 'S' + n;
+    if (/^colossus/i.test(s)) return 'COL' + (n.replace(/^0+/, '') || n);
+    return s.length > 7 ? s.slice(0, 7) : s;
+}
+
+// ─── Pheromone grid constants ────────────────────────────────────────
+// Grille 128×128 à 2.0m de résolution = 256m d'étendue totale (±128m).
+// Englobe l'intégralité du théâtre opérationnel 240×240m avec marge de confort.
+const PHERO_GRID = 128;             // cellules par côté (128×128 = 16 384 cellules)
+const PHERO_RES = 2.0;              // mètres par cellule
+const PHERO_HALF = (PHERO_GRID * PHERO_RES) / 2; // 128.0m demi-étendue
+const PHERO_DEPOSIT = 4.5;          // dépôt par frame sous chaque drone
+const PHERO_DEPOSIT_RADIUS = 2;     // rayon de dépôt en cellules (~4m autour de l'appareil)
+const PHERO_EVAP_RATE = 0.0012;     // évaporation douce (~1.2% / sec à 10FPS, sillage visible ~45-60s)
+const PHERO_DIFFUSION_RATE = 0.08;  // fraction redistribuée aux 8 voisins
+const PHERO_MAX = 100;              // intensité maximale
 
 export class ExplorationMinimap {
     constructor(canvasId = 'minimap_canvas') {
@@ -48,9 +62,9 @@ export class ExplorationMinimap {
         this.ctx = this.canvas?.getContext('2d');
 
         this.config = {
-            gridSize: 100,
-            zoneSize: 120,
-            updateInterval: 80,
+            gridSize: 120,
+            zoneSize: 240,
+            updateInterval: 100,
             showWaypoints: true,
         };
 
@@ -58,7 +72,7 @@ export class ExplorationMinimap {
         this.totalCoverage = 0;
         this.isRunning = false;
 
-        this._adaptiveZone = 40;
+        this._adaptiveZone = 60;
         this._maxExtent = 0;
 
         /** @type {Map<number, {x:number, y:number, z:number, heading:number, waypoint:{x:number,z:number}|null}>} */
@@ -68,9 +82,11 @@ export class ExplorationMinimap {
         this._pheroGrid = new Float32Array(PHERO_GRID * PHERO_GRID);
         this._pheroScratch = new Float32Array(PHERO_GRID * PHERO_GRID);
         this._diffuseCounter = 0;
+        this._visitedSyncedSize = 0;
 
-        // Pheromone image buffer (RGBA) for fast rendering
-        this._pheroImageData = null;
+        this._champCv = null;
+        this._champCtx = null;
+        this._champImg = null;
 
         this._snapInterval = 200;
         this._lastSnapTime = 0;
@@ -90,15 +106,18 @@ export class ExplorationMinimap {
             return;
         }
         this._offscreen = document.createElement('canvas');
-        this._offscreen.width = this.canvas.width;
-        this._offscreen.height = this.canvas.height;
+        this._offscreen.width = this.canvas.width || 340;
+        this._offscreen.height = this.canvas.height || 250;
         this._offCtx = this._offscreen.getContext('2d');
+
+        const ancienne = this.canvas._minimapInstance;
+        if (ancienne && ancienne !== this) ancienne._retiree = true;
         this.canvas._minimapInstance = this;
 
         this._createTimerElement();
         this._startRenderLoop();
         window.DIAMANTS_MINIMAP = this;
-        console.log('Exploration Minimap initialisee (pheromone field)');
+        console.log('Exploration Minimap initialisee (pheromone field 256m, dissipative boundaries)');
     }
 
     _createTimerElement() {
@@ -115,6 +134,22 @@ export class ExplorationMinimap {
         }
         this.timerElement = document.getElementById('exploration-time');
         this.percentElement = document.getElementById('exploration-percent');
+    }
+
+    _syncSize() {
+        const c = this.canvas;
+        if (!c) return false;
+        const r = c.getBoundingClientRect();
+        const cw = Math.max(80, Math.round(r.width));
+        const ch = Math.max(80, Math.round(r.height));
+        const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+        const bw = Math.round(cw * dpr), bh = Math.round(ch * dpr);
+        if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+        if (this._offscreen && (this._offscreen.width !== bw || this._offscreen.height !== bh)) {
+            this._offscreen.width = bw; this._offscreen.height = bh;
+        }
+        this._cssW = cw; this._cssH = ch; this._dpr = dpr;
+        return true;
     }
 
     // -- PUBLIC API --
@@ -141,6 +176,7 @@ export class ExplorationMinimap {
         this.dronePositions.clear();
         this._pheroGrid.fill(0);
         this.totalCoverage = 0;
+        this._visitedSyncedSize = 0;
     }
 
     getStats() {
@@ -163,15 +199,20 @@ export class ExplorationMinimap {
         const gz0 = Math.floor((wz + PHERO_HALF) / PHERO_RES);
         const R = PHERO_DEPOSIT_RADIUS;
 
+        // Skip if entirely outside grid
+        if (gx0 < -R || gx0 >= PHERO_GRID + R || gz0 < -R || gz0 >= PHERO_GRID + R) return;
+
         for (let dz = -R; dz <= R; dz++) {
+            const gz = gz0 + dz;
+            if (gz < 0 || gz >= PHERO_GRID) continue;
+            const rowOffset = gz * PHERO_GRID;
             for (let dx = -R; dx <= R; dx++) {
                 const gx = gx0 + dx;
-                const gz = gz0 + dz;
-                if (gx < 0 || gx >= PHERO_GRID || gz < 0 || gz >= PHERO_GRID) continue;
+                if (gx < 0 || gx >= PHERO_GRID) continue;
                 const dist = Math.sqrt(dx * dx + dz * dz);
                 if (dist > R + 0.5) continue;
                 const falloff = 1 - dist / (R + 1);
-                const idx = gz * PHERO_GRID + gx;
+                const idx = rowOffset + gx;
                 this._pheroGrid[idx] = Math.min(PHERO_MAX, this._pheroGrid[idx] + intensity * falloff * falloff);
             }
         }
@@ -179,15 +220,20 @@ export class ExplorationMinimap {
 
     /** Evaporate all cells: value *= (1 - rate) */
     _evaporate() {
+        const decay = 1 - PHERO_EVAP_RATE;
         for (let i = 0; i < this._pheroGrid.length; i++) {
             if (this._pheroGrid[i] > 0) {
-                this._pheroGrid[i] *= (1 - PHERO_EVAP_RATE);
+                this._pheroGrid[i] *= decay;
                 if (this._pheroGrid[i] < 0.05) this._pheroGrid[i] = 0;
             }
         }
     }
 
-    /** Diffuse pheromones to 8-neighbors (Gaussian-like, run every 3 frames) */
+    /**
+     * Diffuse pheromones to 8-neighbors with dissipative open-world boundaries.
+     * Open boundary condition: any pheromone diffusing to the perimeter
+     * naturally dissipates into space instead of forming saturated edge walls.
+     */
     _diffuse() {
         const g = this._pheroGrid;
         const s = this._pheroScratch;
@@ -201,10 +247,11 @@ export class ExplorationMinimap {
         const shareDiag = rate * 0.707 / totalW;
 
         for (let z = 1; z < N - 1; z++) {
+            const row = z * N;
             for (let x = 1; x < N - 1; x++) {
-                const idx = z * N + x;
+                const idx = row + x;
                 const val = g[idx];
-                if (val < 0.1) continue;
+                if (val < 0.08) continue;
                 const give = val * rate;
                 s[idx] -= give;
                 // Orthogonal
@@ -220,23 +267,53 @@ export class ExplorationMinimap {
             }
         }
 
-        // Clamp
+        // Dissipative boundaries: zero the outer perimeter so no accumulation can occur
+        const lastRow = (N - 1) * N;
+        for (let i = 0; i < N; i++) {
+            s[i] = 0;                 // top row (z = 0)
+            s[lastRow + i] = 0;       // bottom row (z = N - 1)
+            s[i * N] = 0;             // left column (x = 0)
+            s[i * N + (N - 1)] = 0;   // right column (x = N - 1)
+        }
+
+        // Write back clamped
         for (let i = 0; i < s.length; i++) {
             this._pheroGrid[i] = Math.min(PHERO_MAX, Math.max(0, s[i]));
         }
     }
 
+    /** Sync visited cells from flight engine so explored terrain is immediately visible */
+    _syncVisitedCells() {
+        const visited = window.DIAMANTS_VISITED_CELLS;
+        const cellSize = window.DIAMANTS_CELL_SIZE || 2;
+        if (!visited || visited.size === 0) return;
+        if (this._visitedSyncedSize === visited.size) return;
+        this._visitedSyncedSize = visited.size;
+
+        for (const cellKey of visited) {
+            const parts = cellKey.split(',');
+            const wx = (parseInt(parts[0], 10) + 0.5) * cellSize;
+            const wz = (parseInt(parts[1], 10) + 0.5) * cellSize;
+            const gx = Math.floor((wx + PHERO_HALF) / PHERO_RES);
+            const gz = Math.floor((wz + PHERO_HALF) / PHERO_RES);
+            if (gx >= 0 && gx < PHERO_GRID && gz >= 0 && gz < PHERO_GRID) {
+                const idx = gz * PHERO_GRID + gx;
+                if (this._pheroGrid[idx] < 20.0) {
+                    this._pheroGrid[idx] = 20.0;
+                }
+            }
+        }
+    }
+
     /** Full pheromone tick: deposit for each drone, evaporate, diffuse every 3 frames */
     _tickPheromones() {
-        // Deposit at each drone position
         this.dronePositions.forEach((pos) => {
             this._deposit(pos.x, pos.z, PHERO_DEPOSIT);
         });
 
-        // Evaporate
+        this._syncVisitedCells();
         this._evaporate();
 
-        // Diffuse every 3 frames (performance)
         this._diffuseCounter++;
         if (this._diffuseCounter >= 3) {
             this._diffuse();
@@ -252,7 +329,7 @@ export class ExplorationMinimap {
 
         const engine = window.DIAMANTS_STIGMERGY_INSTANCE;
         if (window.DIAMANTS_VISITED_CELLS) {
-            // Coverage computed in _render()
+            // Computed in _render
         } else if (engine && typeof engine.getMetrics === 'function') {
             const m = engine.getMetrics();
             if (m.explorationCoverage) this.totalCoverage = parseFloat(m.explorationCoverage) || 0;
@@ -281,10 +358,13 @@ export class ExplorationMinimap {
     // -- RENDER --
     _startRenderLoop() {
         const loop = () => {
+            if (this._retiree) return;
             requestAnimationFrame(loop);
             const now = performance.now();
             if (now - this._lastRender < this.config.updateInterval) return;
             this._lastRender = now;
+            const _el = this.canvas || this.ctx?.canvas;
+            if (_el && _el.getClientRects().length === 0 && !_el._viewerShowing) return;
             this._tickPheromones();
             this._syncCoverage();
             this._render();
@@ -292,20 +372,87 @@ export class ExplorationMinimap {
         loop();
     }
 
+    /**
+     * Peint le champ de phéromones sur le canevas intermédiaire 128×128.
+     * Dégradé organique continu :
+     *   - Faible (< 0.35) : vert forêt → émeraude vif
+     *   - Moyen (0.35..0.75) : émeraude → jaune doré ambré
+     *   - Fort (> 0.75) : ambre doré → blanc doré chaud (sans rupture)
+     */
+    _peindreChamp(gxMin, gxMax, gzMin, gzMax) {
+        if (!this._champCv || this._champCv.width !== PHERO_GRID) {
+            this._champCv = document.createElement('canvas');
+            this._champCv.width = this._champCv.height = PHERO_GRID;
+            this._champCtx = this._champCv.getContext('2d');
+            this._champImg = this._champCtx.createImageData(PHERO_GRID, PHERO_GRID);
+        }
+        const d = this._champImg.data;
+        d.fill(0);
+
+        const z0 = Math.max(0, gzMin), z1 = Math.min(PHERO_GRID - 1, gzMax);
+        const x0 = Math.max(0, gxMin), x1 = Math.min(PHERO_GRID - 1, gxMax);
+
+        for (let gz = z0; gz <= z1; gz++) {
+            const rowOffset = gz * PHERO_GRID;
+            for (let gx = x0; gx <= x1; gx++) {
+                const val = this._pheroGrid[rowOffset + gx];
+                if (val < 1.0) continue;
+
+                const intensity = Math.min(1.0, val / PHERO_MAX);
+                const o = (rowOffset + gx) * 4;
+
+                let r, g, b, a;
+                if (intensity < 0.35) {
+                    const t = intensity / 0.35;
+                    r = Math.floor(t * 35);
+                    g = Math.floor(130 + t * 110);
+                    b = Math.floor(55 * (1 - t) + 15);
+                    a = Math.floor(50 + t * 90);
+                } else if (intensity < 0.75) {
+                    const t = (intensity - 0.35) / 0.40;
+                    r = Math.floor(35 + t * 205);
+                    g = Math.floor(240 + t * 10);
+                    b = Math.floor(15 * (1 - t));
+                    a = Math.floor(140 + t * 65);
+                } else {
+                    const t = (intensity - 0.75) / 0.25;
+                    r = 255;
+                    g = Math.floor(250 + t * 5);
+                    b = Math.floor(t * 160);
+                    a = Math.floor(205 + t * 45);
+                }
+
+                d[o] = r;
+                d[o + 1] = g;
+                d[o + 2] = b;
+                d[o + 3] = a;
+            }
+        }
+        this._champCtx.putImageData(this._champImg, 0, 0);
+    }
+
     _render() {
         if (!this.ctx) return;
-        const ctx = this._offCtx || this.ctx;
-        const w = this.canvas.width;
-        const h = this.canvas.height;
+        if (!this._syncSize()) return;
 
-        if (window.DIAMANTS_DOCTRINE) {
+        const ctx = this._offCtx || this.ctx;
+        const dpr = this._dpr || 1;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        ctx.textBaseline = 'alphabetic';
+
+        const w = this._cssW;
+        const h = this._cssH;
+
+        // Synchroniser la taille de zone avec la doctrine
+        let maxConfigZone = this.config.zoneSize;
+        if (window.DIAMANTS_DOCTRINE?.zoneParams) {
             const dz = window.DIAMANTS_DOCTRINE.zoneParams;
-            this.config.zoneSize = Math.max(dz.sizeX, dz.sizeZ);
+            maxConfigZone = Math.max(dz.sizeX, dz.sizeZ);
+            this.config.zoneSize = maxConfigZone;
         }
 
-        // Adaptive zoom
-        const maxConfigZone = this.config.zoneSize;
-        let rawExtent = 20;
+        // Zoom adaptatif fluide couvrant toute la flotte
+        let rawExtent = 30;
         this.dronePositions.forEach((pos) => {
             const m = Math.max(Math.abs(pos.x), Math.abs(pos.z));
             if (m > rawExtent) rawExtent = m;
@@ -321,18 +468,21 @@ export class ExplorationMinimap {
                 if (m > rawExtent) rawExtent = m;
             }
         }
-        const targetZone = Math.min(maxConfigZone, Math.max(40, rawExtent * 2 * 1.3));
+        const targetZone = Math.min(maxConfigZone, Math.max(60, rawExtent * 2 * 1.15));
         if (targetZone > this._adaptiveZone) {
             this._adaptiveZone += (targetZone - this._adaptiveZone) * 0.08;
             if (this._adaptiveZone > targetZone - 1) this._adaptiveZone = targetZone;
+        } else if (targetZone < this._adaptiveZone && this._adaptiveZone > maxConfigZone) {
+            this._adaptiveZone = maxConfigZone;
         }
+
         const zoneSize = this._adaptiveZone;
         const halfZone = zoneSize / 2;
 
         const _wToPixX = (wx) => ((wx + halfZone) / zoneSize) * w;
         const _wToPixY = (wz) => ((wz + halfZone) / zoneSize) * h;
 
-        // Coverage %
+        // Calcul du % de couverture
         if (visitedCells && visitedCells.size > 0) {
             const arenaArea = maxConfigZone * maxConfigZone;
             const coveredArea = visitedCells.size * engineCellSize * engineCellSize;
@@ -340,14 +490,15 @@ export class ExplorationMinimap {
             this._journalCoverage = this.totalCoverage;
         }
 
-        // === BACKGROUND ===
+        // === FOND DE CARTE TACTIQUE ===
         ctx.fillStyle = '#0a1628';
         ctx.fillRect(0, 0, w, h);
 
-        // === SUBTLE GRID ===
-        ctx.strokeStyle = 'rgba(0, 255, 136, 0.04)';
+        // === GRILLE DE RÉFÉRENCE TACTIQUE ===
+        ctx.strokeStyle = 'rgba(0, 255, 136, 0.05)';
         ctx.lineWidth = 0.5;
-        for (let wpos = -halfZone; wpos <= halfZone; wpos += 10) {
+        const pasGrille = zoneSize > 150 ? 20 : 10;
+        for (let wpos = -halfZone; wpos <= halfZone; wpos += pasGrille) {
             const px = _wToPixX(wpos);
             const py = _wToPixY(wpos);
             ctx.beginPath();
@@ -356,86 +507,42 @@ export class ExplorationMinimap {
             ctx.stroke();
         }
 
-        // === PHEROMONE FIELD (the real stigmergy visualization) ===
-        // Render the pheromone grid as colored cells with glow
-        // Color ramp: dark green (low) -> bright green -> yellow -> white (high)
+        // === CHAMP DE PHÉROMONES (Double passe haute performance) ===
         const cellPxW = (PHERO_RES / zoneSize) * w;
         const cellPxH = (PHERO_RES / zoneSize) * h;
 
-        // Compute visible grid range
         const gxMin = Math.max(0, Math.floor((-halfZone + PHERO_HALF) / PHERO_RES) - 1);
         const gxMax = Math.min(PHERO_GRID - 1, Math.ceil((halfZone + PHERO_HALF) / PHERO_RES) + 1);
-        const gzMin = gxMin;
-        const gzMax = gxMax;
+        const gzMin = Math.max(0, Math.floor((-halfZone + PHERO_HALF) / PHERO_RES) - 1);
+        const gzMax = Math.min(PHERO_GRID - 1, Math.ceil((halfZone + PHERO_HALF) / PHERO_RES) + 1);
 
-        for (let gz = gzMin; gz <= gzMax; gz++) {
-            for (let gx = gxMin; gx <= gxMax; gx++) {
-                const val = this._pheroGrid[gz * PHERO_GRID + gx];
-                if (val < 0.3) continue;
+        this._peindreChamp(gxMin, gxMax, gzMin, gzMax);
 
-                const intensity = val / PHERO_MAX; // 0..1
-                const worldX = (gx + 0.5) * PHERO_RES - PHERO_HALF;
-                const worldZ = (gz + 0.5) * PHERO_RES - PHERO_HALF;
-                const px = _wToPixX(worldX) - cellPxW / 2;
-                const py = _wToPixY(worldZ) - cellPxH / 2;
+        const cx0 = _wToPixX(-PHERO_HALF), cx1 = _wToPixX(PHERO_HALF);
+        const cy0 = _wToPixY(-PHERO_HALF), cy1 = _wToPixY(PHERO_HALF);
+        const dw = Math.abs(cx1 - cx0);
+        const dh = Math.abs(cy1 - cy0);
+        const dx = Math.min(cx0, cx1);
+        const dy = Math.min(cy0, cy1);
 
-                // Color ramp: green (low) -> yellow (med) -> white (high)
-                let r, g, b, a;
-                if (intensity < 0.3) {
-                    // Dark green
-                    r = 0; g = Math.floor(80 + intensity * 500); b = Math.floor(20 + intensity * 100);
-                    a = intensity * 1.5;
-                } else if (intensity < 0.6) {
-                    // Bright green -> yellow
-                    const t = (intensity - 0.3) / 0.3;
-                    r = Math.floor(t * 255); g = Math.floor(230 + t * 25); b = Math.floor(50 * (1 - t));
-                    a = 0.35 + t * 0.25;
-                } else {
-                    // Yellow -> white hot
-                    const t = (intensity - 0.6) / 0.4;
-                    r = 255; g = 255; b = Math.floor(t * 200);
-                    a = 0.55 + t * 0.35;
-                }
+        // Passe 1 : cellules discrètes (trame tactile nette)
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(this._champCv, dx, dy, dw, dh);
 
-                ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
-                ctx.fillRect(px, py, cellPxW + 0.5, cellPxH + 0.5);
-            }
-        }
-
-        // === GLOW PASS (larger, softer overlay for high-intensity areas) ===
+        // Passe 2 : halo diffusé continu (glow organique de phéromones)
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
-        for (let gz = gzMin; gz <= gzMax; gz++) {
-            for (let gx = gxMin; gx <= gxMax; gx++) {
-                const val = this._pheroGrid[gz * PHERO_GRID + gx];
-                if (val < 15) continue; // only glow for stronger deposits
-
-                const intensity = val / PHERO_MAX;
-                const worldX = (gx + 0.5) * PHERO_RES - PHERO_HALF;
-                const worldZ = (gz + 0.5) * PHERO_RES - PHERO_HALF;
-                const px = _wToPixX(worldX);
-                const py = _wToPixY(worldZ);
-
-                const glowR = cellPxW * (1.5 + intensity * 2);
-                const grad = ctx.createRadialGradient(px, py, 0, px, py, glowR);
-
-                if (intensity > 0.5) {
-                    grad.addColorStop(0, 'rgba(255, 255, 200, ' + (intensity * 0.2) + ')');
-                    grad.addColorStop(0.4, 'rgba(180, 255, 50, ' + (intensity * 0.12) + ')');
-                    grad.addColorStop(1, 'rgba(0, 100, 30, 0)');
-                } else {
-                    grad.addColorStop(0, 'rgba(0, 255, 100, ' + (intensity * 0.15) + ')');
-                    grad.addColorStop(0.5, 'rgba(0, 150, 60, ' + (intensity * 0.08) + ')');
-                    grad.addColorStop(1, 'rgba(0, 60, 20, 0)');
-                }
-
-                ctx.fillStyle = grad;
-                ctx.fillRect(px - glowR, py - glowR, glowR * 2, glowR * 2);
-            }
-        }
+        ctx.imageSmoothingEnabled = true;
+        const flou = Math.max(2.0, cellPxW * 0.9);
+        ctx.filter = `blur(${flou.toFixed(1)}px)`;
+        ctx.drawImage(this._champCv, dx, dy, dw, dh);
+        ctx.filter = 'none';
         ctx.restore();
 
-        // === WAYPOINTS (hidden at high autonomy — no orchestrator) ===
+        // Échelle d'interface proportionnelle
+        const k = Math.max(0.85, Math.min(2.0, Math.min(w, h) / 200));
+
+        // === WAYPOINTS CIBLES ===
         const _autoLevel = (typeof window !== 'undefined' ? window.DIAMANTS_AUTONOMY_LEVEL : 0) ?? 0;
         if (this.config.showWaypoints && _autoLevel < 75) {
             this.dronePositions.forEach((pos, id) => {
@@ -448,45 +555,45 @@ export class ExplorationMinimap {
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 1.5;
                 ctx.beginPath();
-                ctx.moveTo(wx - 4, wy - 4); ctx.lineTo(wx + 4, wy + 4);
-                ctx.moveTo(wx + 4, wy - 4); ctx.lineTo(wx - 4, wy + 4);
+                ctx.moveTo(wx - 4 * k, wy - 4 * k); ctx.lineTo(wx + 4 * k, wy + 4 * k);
+                ctx.moveTo(wx + 4 * k, wy - 4 * k); ctx.lineTo(wx - 4 * k, wy + 4 * k);
                 ctx.stroke();
 
-                const dx = _wToPixX(pos.x);
-                const dy = _wToPixY(pos.z);
+                const dpx = _wToPixX(pos.x);
+                const dpy = _wToPixY(pos.z);
                 ctx.setLineDash([2, 4]);
-                ctx.strokeStyle = this._getDroneColor(id, 0.2);
+                ctx.strokeStyle = this._getDroneColor(id, 0.25);
                 ctx.lineWidth = 0.8;
                 ctx.beginPath();
-                ctx.moveTo(dx, dy);
+                ctx.moveTo(dpx, dpy);
                 ctx.lineTo(wx, wy);
                 ctx.stroke();
                 ctx.setLineDash([]);
             });
         }
 
-        // === DRONE POSITIONS ===
+        // === POSITIONS DES DRONES ===
         this.dronePositions.forEach((pos, id) => {
             const cx = _wToPixX(pos.x);
             const cy = _wToPixY(pos.z);
             const color = DRONE_COLORS[_droneIdx(id) % DRONE_COLORS.length];
 
-            // Soft halo
+            // Halo doux
             ctx.beginPath();
-            ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+            ctx.arc(cx, cy, 6 * k, 0, Math.PI * 2);
             ctx.fillStyle = this._getDroneColor(id, 0.25);
             ctx.fill();
 
-            // Body
+            // Corps du drone
             ctx.beginPath();
-            ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+            ctx.arc(cx, cy, 3 * k, 0, Math.PI * 2);
             ctx.fillStyle = color;
             ctx.fill();
 
-            // Heading arrow
+            // Flèche de cap
             if (pos.heading !== undefined) {
-                const ax = cx + Math.sin(pos.heading) * 9;
-                const ay = cy + Math.cos(pos.heading) * 9;
+                const ax = cx + Math.sin(pos.heading) * (9 * k);
+                const ay = cy + Math.cos(pos.heading) * (9 * k);
                 ctx.beginPath();
                 ctx.moveTo(cx, cy);
                 ctx.lineTo(ax, ay);
@@ -495,27 +602,28 @@ export class ExplorationMinimap {
                 ctx.stroke();
             }
 
-            // ID label
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold 7px monospace';
+            // Identifiant court NATO
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${Math.round(8 * k)}px monospace`;
             ctx.textAlign = 'center';
-            ctx.fillText(id.toString(), cx, cy - 8);
+            ctx.fillText(_shortId(id), cx, cy - 8 * k);
         });
 
-        // === ZONE SIZE ===
-        ctx.fillStyle = 'rgba(0, 255, 136, 0.5)';
-        ctx.font = 'bold 8px monospace';
+        // === INDICATEUR DE TAILLE DE ZONE ===
+        ctx.fillStyle = 'rgba(0, 255, 136, 0.6)';
+        ctx.font = `bold ${Math.round(9 * k)}px monospace`;
         ctx.textAlign = 'right';
-        ctx.fillText(Math.round(zoneSize) + 'm', w - 4, h - 4);
+        ctx.fillText(Math.round(zoneSize) + 'm', w - 6, h - 6);
 
-        // === BORDER ===
+        // === CADRE DU RADAR ===
         ctx.strokeStyle = '#00ff88';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 1.5;
         ctx.strokeRect(1, 1, w - 2, h - 2);
 
-        // Blit
+        // Recopie du tampon vers le canevas d'affichage
         if (this._offCtx) {
-            this.ctx.clearRect(0, 0, w, h);
+            this.ctx.setTransform(1, 0, 0, 1, 0, 0);
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
             this.ctx.drawImage(this._offscreen, 0, 0);
         }
 
@@ -538,7 +646,6 @@ export class ExplorationMinimap {
                 const doc = dm.currentDoctrine;
                 const coa = dm.currentCOA;
                 const label = (doc?.icon || '') + ' ' + (doc?.name || 'Exploration') + ' - ' + (coa?.icon || '') + ' ' + (coa?.name || '');
-                // Update only the first text node to preserve child elements (detach button, expand indicator)
                 let textNode = Array.from(header.childNodes).find(n => n.nodeType === Node.TEXT_NODE);
                 if (textNode) { textNode.textContent = label + ' '; }
                 else { header.insertBefore(document.createTextNode(label + ' '), header.firstChild); }
@@ -547,10 +654,15 @@ export class ExplorationMinimap {
     }
 }
 
+function _autoInstancier() {
+    const cv = document.getElementById('minimap_canvas');
+    if (cv && cv._minimapInstance) return;
+    new ExplorationMinimap();
+}
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { new ExplorationMinimap(); });
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(_autoInstancier, 400); });
 } else {
-    setTimeout(() => new ExplorationMinimap(), 100);
+    setTimeout(_autoInstancier, 400);
 }
 
 export default ExplorationMinimap;
