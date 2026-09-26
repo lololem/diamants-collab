@@ -663,7 +663,9 @@ export class IntegratedDiamantsController {
                             ctx.fillStyle = pC; ctx.fillRect(W*0.15, 50, W*0.7, 3);
                             // Line 2 — Doctrine / COA
                             ctx.font = 'bold 28px monospace'; ctx.fillStyle = '#88ccff';
-                            ctx.fillText(`${info.doctrine||'\u2014'}  \u2502  ${info.coa||'\u2014'}`, W/2, 62);
+                            // the leading pictogram cuts the right-hand word off the card
+                            const sansIcone = (t) => String(t || '').replace(/^[^\w(]+/u, '').trim();
+                            ctx.fillText(`${sansIcone(info.doctrine)||'\u2014'}  \u2502  ${sansIcone(info.coa)||'\u2014'}`, W/2, 62);
                             // Line 3 — Autonomy mode badge + action
                             const a = info.autonomy ?? 100;
                             const aMode = info.autonomyMode || (a>=90?'DISTRIBUTED':a>=75?'SEMI-AUTO':a>=50?'HYBRID':a>=25?'GUIDED':'CENTRAL');

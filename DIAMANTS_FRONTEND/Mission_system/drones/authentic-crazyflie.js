@@ -577,8 +577,14 @@ export class AuthenticCrazyflie {
             // ── Line 2: Doctrine / COA ──
             ctx.font = 'bold 24px monospace';
             ctx.fillStyle = '#88ccff';
-            const docLabel = info.doctrine || '\u2014';
-            const coaLabel = info.coa || '\u2014';
+            /* The leading pictogram costs two fixed-width characters, and it is
+             * what pushes the right-hand word off the card: « 🔄 Self-Organized
+             * │ Distributed » does not fit, so « Distributed » came out cut.
+             * Dropped from the card — the mode badge right below already says
+             * the same thing. */
+            const sansIcone = (t) => String(t || '').replace(/^[^\w(]+/u, '').trim();
+            const docLabel = sansIcone(info.doctrine) || '\u2014';
+            const coaLabel = sansIcone(info.coa) || '\u2014';
             ctx.fillText(`${docLabel}  \u2502  ${coaLabel}`, W / 2, 62);
 
             // ── Line 3: Autonomy mode badge + action ──
