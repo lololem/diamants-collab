@@ -516,18 +516,19 @@ This film runs the swarm in real time — eleven aircraft, no central server, no
 - **A Trace That Repels:** Classic stigmergy has agents converge on the strongest trail; here the trace marks ground already searched, so the swarm spreads out on its own. The journal is put to the test on camera: a radio is cut and restored, and a forged entry is rejected.
 - **Measured, and Stated as Measured:** Trace sharing on against off, same code and same targets — **no significant gain in detection speed** (p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a fine-tuned model goes from 31.8 % to 88.6 % rule-compliant answers on the same base.
 
-#### Film 4: How one drone decides (4 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film4) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-how-one-drone-decides.mp4)
+#### Film 4: Inside one cognitive drone (4 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film4) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-inside-one-cognitive-drone.mp4)
 
-[![Film 4: How one drone decides — click to watch](https://lololem.github.io/diamants-collab/film4-play.jpg)](https://lololem.github.io/diamants-collab/#film4)
+[![Film 4: Inside one cognitive drone — click to watch](https://lololem.github.io/diamants-collab/film4-play.jpg)](https://lololem.github.io/diamants-collab/#film4)
 
-The first three films follow the swarm. This one stays on a single aircraft and follows one decision from end to end:
+The first three films follow the swarm. This one stays inside a single aircraft and opens its decision chain layer by layer:
 
-- **One aircraft, followed end to end:** eight of the eleven drones carry no model at all — they fly on rules and on what the swarm has written down. The camera stays on one of the three that do, and reads its decision card: doctrine, course of action, autonomy, and the action under way.
-- **Rules first, always:** ten named safety rules — battery, bounds, altitude, obstacles, speed, stall — are evaluated before the model is asked anything. A critical verdict is applied to the flight itself: emergency landing, return home, hover or climb, not a line written on a label.
-- **What the model is allowed to do:** it runs on the machine, answers with a direction, a confidence and a sentence of reasoning, and shifts the next waypoint by at most eight metres. Flight stays with a 60 Hz control loop the model never touches.
-- **Peers agree without a dispatcher:** in the wildfire scenario, fires are the tasks; agents bid on them and merge their beliefs with a rule identical on every agent, so they converge with no referee. An agent already under way keeps a commitment premium, so a marginally better-placed peer cannot take its task and waste the distance already flown. Allocation messages are sent only when something has changed — a heartbeat every five seconds keeps the agreement reachable for a peer that arrives later.
+- **What it senses:** an OAK-D Pro W at 127 by 80 degrees with stereo depth, the peers within radio range, and the beacon areas other drones have shared over the journal.
+- **What is forbidden:** ten named safety rules are evaluated before every request to the model. A critical verdict is applied to the flight itself — emergency landing, return home, hover or climb — not written on a label.
+- **What the model is given:** not the simulation, but a situation report written from what this aircraft knows — position, speed, heading, state-machine phase, coverage, doctrine, battery, and the neighbours with their distance and bearing.
+- **What is done with the answer:** it is applied only at or above 0.6 confidence — below that it is shown on screen and not applied — and only while the state machine is exploring or hovering. Taking off, landing or in an emergency, the model never gets a say.
+- **What is applied:** a waypoint shifted by at most eight metres. The 60 Hz flight loop is never touched. That is the point of a neurosymbolic stack — the part that can be wrong is the part that only advises.
 
-Every figure on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so instead of filling the gap.
+Every value on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so rather than filling the gap.
 
 ▶ **Watch all five films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
