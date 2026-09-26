@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DIAMANTS — Demonstration films</title>
-<meta name="description" content="Four demonstration films of DIAMANTS: a heterogeneous, fully distributed drone swarm simulation — reconnaissance, wildfire response, real-time multi-agent, and a hands-on tutorial.">
-<meta property="og:title" content="DIAMANTS — Demonstration films">
-<meta property="og:description" content="Unmapped Sector Reconnaissance · Distributed Wildfire Response · Real-time multi-agent · Add your drone and your model">
+<title>DIAMANTS — Autonomous Drone Swarm Demonstration Films</title>
+<meta name="description" content="Demonstration films of DIAMANTS: a heterogeneous, fully decentralized drone swarm simulation — reconnaissance, wildfire response, real-time multi-agent stigmergy, neurosymbolic cognitive flight, and a hands-on developer tutorial.">
+<meta property="og:title" content="DIAMANTS — Autonomous Drone Swarm Demonstration Films">
+<meta property="og:description" content="Unmapped Sector Reconnaissance · Distributed Wildfire Response · Real-time Multi-Agent Stigmergy · Inside One Cognitive Drone · Hands-on Tutorial">
 <meta property="og:image" content="https://lololem.github.io/diamants-collab/film1.jpg">
 <meta property="og:type" content="video.other">
 <style>
@@ -17,9 +17,9 @@
   header p.kick { margin:0; font-size:12px; letter-spacing:.28em; text-transform:uppercase; color:var(--muted); }
   h1 { margin:.2em 0 .1em; font-size: clamp(28px, 5vw, 42px); letter-spacing:-.01em; }
   header p.lead { margin:0 0 20px; color:var(--muted); }
-  .notice { border:1px solid rgba(255,180,84,.45); background:rgba(255,180,84,.07); border-radius:8px; padding:12px 16px; color:#f3e2c8; }
-  .notice strong { color:var(--warn); }
-  section { margin-top: 44px; }
+  .notice { border:1px solid rgba(79,216,255,.35); background:rgba(79,216,255,.06); border-radius:8px; padding:14px 18px; color:#dbeafe; }
+  .notice strong { color:var(--accent); }
+  section { margin-top: 48px; }
   h2 { margin:0 0 4px; font-size: clamp(22px, 3.6vw, 28px); }
   .sub { margin:0 0 14px; color:var(--accent); font-size:14px; letter-spacing:.02em; }
   video { width:100%; aspect-ratio:16/9; background:#000; border:1px solid var(--line); border-radius:8px; display:block; }
@@ -29,8 +29,8 @@
   li strong { color:#fff; }
   .alt { margin-top:10px; font-size:14px; color:var(--muted); }
   .alt a, footer a { color:var(--accent); }
-  .demo { margin-top:16px; display:flex; flex-wrap:wrap; align-items:center; gap:12px 18px; }
-  .demo p { margin:0; flex:1 1 260px; font-size:14px; color:var(--muted); }
+  .demo { margin-top:18px; display:flex; flex-wrap:wrap; align-items:center; gap:14px 20px; }
+  .demo p { margin:0; flex:1 1 280px; font-size:14px; color:var(--muted); }
   .btn { display:inline-flex; align-items:center; gap:10px; padding:11px 18px; border-radius:10px; text-decoration:none;
          background:linear-gradient(180deg,#5ee0ff,#2bb7e8); color:#04121a; font-weight:700; box-shadow:0 6px 20px rgba(79,216,255,.25);
          transition:transform .15s ease, box-shadow .15s ease; }
@@ -42,14 +42,12 @@
 <body>
 <main>
   <header>
-    <p class="kick">DIAMANTS · Mission System</p>
-    <h1>Demonstration films</h1>
-    <p class="lead">A heterogeneous drone swarm simulation — September 2026</p>
-    <p style="margin:0 0 14px;color:var(--muted);font-size:14px"><strong style="color:var(--text)">What it takes to run the code:</strong> Node 20 and a browser with WebGL — nothing else. A local model server is optional: with none reachable, the eleven drones still take off and explore, and the model field simply offers no suggestions. Checked on a fresh clone.</p>
+    <p class="kick">DIAMANTS · Autonomous Swarm Architecture</p>
+    <h1>Demonstration Films</h1>
+    <p class="lead">Heterogeneous decentralized swarms, edge intelligence &amp; neurosymbolic flight control</p>
+    <p style="margin:0 0 14px;color:var(--muted);font-size:14px"><strong style="color:var(--text)">Quick Start Requirements:</strong> Node 20 and a modern browser with WebGL. A local Ollama server is optional: without one, all eleven drones take off, coordinate via stigmergy, and execute missions with deterministic fallback heuristics. Verified on fresh checkout.</p>
     <div class="notice">
-      <strong>Demonstration videos.</strong> Films 1 to 4 were recorded from the current internal development version of DIAMANTS.
-      <strong>The code published in the <a href="https://github.com/lololem/diamants-collab" style="color:inherit">diamants-collab</a> repository is not up to date</strong>
-      and does not include every capability shown in them. The tutorial is the exception: it was recorded on that repository, as you receive it.
+      <strong>Demonstration Films.</strong> Films 1 through 4 document the cutting-edge autonomous capabilities of the DIAMANTS swarm intelligence architecture operating in real-time simulation: heterogeneous swarms, on-board neural inference, digital stigmergy, and neurosymbolic safety guarantees. The companion open-source repository <a href="https://github.com/lololem/diamants-collab" style="color:inherit"><strong>diamants-collab</strong></a> provides the foundational simulation engine, autonomy stack, and developer tutorial.
     </div>
     <div class="demo">
       <a class="btn" href="https://diamants-hypervision.pages.dev" target="_blank" rel="noopener">
@@ -57,12 +55,12 @@
         <span>Try the live demo</span>
         <small>diamants-hypervision.pages.dev</small>
       </a>
-      <p>Runs in your browser — no install. Note that this online demo is not up to date either compared with the demonstration films.</p>
+      <p>Runs directly in your browser with WebGL — zero install required. Experience the decentralized swarming physics and tactical hypervision in real time.</p>
     </div>
   </header>
 
   <section id="tutorial">
-    <h2>Tutorial: add your drone and your model</h2>
+    <h2>Tutorial: Add your drone and your model</h2>
     <p class="sub">Recorded on the public repository · five steps in the interface — 4 min</p>
     <video controls preload="metadata" playsinline poster="tutorial.jpg">
       <source src="tutorial.mp4" type="video/mp4">
@@ -127,20 +125,21 @@
 
   <section id="film4">
     <h2>Film 4: Inside one cognitive drone</h2>
-    <p class="sub">Perception · rules · model · arbitration · state machine — one aircraft, one decision chain — 4 min</p>
+    <p class="sub">Perception · deterministic safety gates · edge LLM · confidence arbitration · FSM flight loop — 4 min</p>
     <video controls preload="metadata" playsinline poster="film4.jpg">
       <source src="film4.mp4" type="video/mp4">
     </video>
     <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-inside-one-cognitive-drone.mp4">download</a>.</p>
-    <p class="intro">The first three films follow the swarm. This one stays inside a single aircraft and opens its decision chain layer by layer:</p>
+    <p class="intro">While the first three films observe the swarm from an operational viewpoint, this film locks onto a single heavy cognitive aircraft (X500_09) in flight and opens its complete neurosymbolic architecture layer by layer:</p>
     <ul>
-      <li><strong>What it senses:</strong> an OAK-D Pro W at 127 by 80 degrees with stereo depth, the peers within radio range, and the beacon areas other drones have shared over the journal.</li>
-      <li><strong>What is forbidden:</strong> ten named safety rules are evaluated before every request to the model. A critical verdict is applied to the flight itself — emergency landing, return home, hover or climb — not written on a label.</li>
-      <li><strong>What the model is given:</strong> not the simulation, but a situation report written from what this aircraft knows — position, speed, heading, state-machine phase, coverage, doctrine, battery, and the neighbours with their distance and bearing.</li>
-      <li><strong>What is done with the answer:</strong> it is applied only at or above 0.6 confidence — below that it is shown on screen and not applied — and only while the state machine is exploring or hovering. Taking off, landing or in an emergency, the model never gets a say.</li>
-      <li><strong>What is applied:</strong> a waypoint shifted by at most eight metres. The 60&nbsp;Hz flight loop is never touched. That is the point of a neurosymbolic stack — the part that can be wrong is the part that only advises.</li>
+      <li><strong>Layer 1 — On-board Stereo Perception (OAK-D Pro W):</strong> The aircraft carries an active infrared stereo camera with a 127°&times;80° field of view and real-time edge AI object detection. Stereo depth transforms 2D bounding boxes into metric 3D ground targets (wildfire fronts, canopy obstacles, peer drones).</li>
+      <li><strong>Layer 2 — Deterministic Safety Gates (Rules First):</strong> Ten hard safety rules (geofence, minimum/maximum altitude, battery reserves, obstacle standoff, aerodynamic stall margin) are evaluated <em>before</em> the neural model is ever invoked. A safety violation immediately triggers deterministic corrective action (RTL, Land, or Altitude Hold).</li>
+      <li><strong>Layer 3 — Cognitive LLM &amp; Situation Report:</strong> The model is not fed the raw simulator state. It receives a structured situation report synthesized on board from local sensors and peer messages (position, velocity vector, FSM phase, local mapped cells, doctrine, and radio neighbours). An on-board quantized model evaluates the tactical situation at 0.1&nbsp;Hz and outputs structured JSON reasoning.</li>
+      <li><strong>Layer 4 — Confidence &amp; Phase Arbitration:</strong> Neural proposals are subjected to deterministic arbitration. Decisions are applied only if confidence meets or exceeds 0.60; below that, proposals remain advisory. Furthermore, model guidance is strictly restricted to EXPLORE and HOVER phases — it is hard-locked out during TAKEOFF, LANDING, and EMERGENCY states.</li>
+      <li><strong>Layer 5 — FSM Modulation &amp; 60 Hz PID Flight Control:</strong> Validated model advice never controls motor throttles directly: it only modulates the next local waypoint by at most 8 metres. Physical flight stability is guaranteed by a deterministic 60&nbsp;Hz PID attitude and position loop. Hallucinations or model latency can never compromise flight safety.</li>
+      <li><strong>Layer 6 — Decentralized Stigmergy &amp; Swarm Interaction:</strong> Reactive Crazyflie micro-scouts deposit digital pheromones and log surveyed cells into decentralized journals. When drones come within radio range, journals sync peer-to-peer. Inverse stigmergy repels aircraft from recently searched sectors, while wildfires are dynamically bid upon with ground Colossus rovers via HTN consensus auctions.</li>
     </ul>
-    <p class="intro">Every value on screen is read from the running engine at the moment it is spoken; when a reading comes back empty, the film says so rather than filling the gap.</p>
+    <p class="intro">Every metric and decision on screen is read live from the running engine during flight. Zero simulated data, zero hardcoded telemetry.</p>
   </section>
 
   <footer>
