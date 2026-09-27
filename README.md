@@ -516,20 +516,38 @@ This film runs the swarm in real time — eleven aircraft, no central server, no
 - **A Trace That Repels:** Classic stigmergy has agents converge on the strongest trail; here the trace marks ground already searched, so the swarm spreads out on its own. The journal is put to the test on camera: a radio is cut and restored, and a forged entry is rejected.
 - **Measured, and Stated as Measured:** Trace sharing on against off, same code and same targets — **no significant gain in detection speed** (p = 0.89), but 12.8 % less ground covered twice (p = 0.02); and a fine-tuned model goes from 31.8 % to 88.6 % rule-compliant answers on the same base.
 
-#### Film 4: Inside one cognitive drone (4 min) — [▶ watch online](https://lololem.github.io/diamants-collab/#film4) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-inside-one-cognitive-drone.mp4)
+#### Film 4: Inside one cognitive drone (2 min 29) — [▶ watch online](https://lololem.github.io/diamants-collab/#film4) · [download 1080p](https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-inside-one-cognitive-drone.mp4)
 
-[![Film 4: Inside one cognitive drone — click to watch](https://lololem.github.io/diamants-collab/film4-play.jpg)](https://lololem.github.io/diamants-collab/#film4)
+[![Film 4: Inside one cognitive drone — click to watch](https://lololem.github.io/diamants-collab/film4-play.jpg?v=20260927)](https://lololem.github.io/diamants-collab/#film4)
 
-While the first three films observe the swarm from an operational viewpoint, this film locks onto a single heavy cognitive aircraft (`X500_09`) in continuous 3D flight and opens its complete neurosymbolic decision stack layer by layer:
+Follow `X500_09` during a simulated swarm mission and inspect how a neural
+proposal becomes a flight-guidance input. Fixed inspection panels keep the
+text readable while the aircraft and its neighbours move. A decision record
+shows the neighbour context supplied to the model, its structured answer and
+explanation, confidence and phase eligibility, and the **measured waypoint
+change**, linked by decision identifier. A proposal is never counted as an
+executed action merely because it passed the confidence threshold.
 
-- **Layer 1 — Stereo Perception (OAK-D Pro W):** An active infrared stereo camera at 127°×80° field of view with real-time edge AI object detection. Stereo depth re-projects 2D bounding boxes into metric 3D ground targets (wildfire fronts, canopy obstacles, peer drones).
-- **Layer 2 — Deterministic Safety Gate (Rules Before Neural):** Ten non-negotiable safety rules (geofence, minimum/maximum altitude, battery threshold, obstacle standoff, aerodynamic stall margin) are evaluated *before* the neural model is ever invoked. A safety violation immediately triggers deterministic flight intervention (RTL, Land, or Altitude Hold) without asking the model.
-- **Layer 3 — Edge LLM Reasoning (0.1 Hz):** The model is never fed raw simulation memory. It receives an on-board situation report synthesized from local sensors and peer messages (position vector, FSM phase, mapped cells, active doctrine, and radio neighbours). An on-board quantized model evaluates the tactical situation at 0.1 Hz and outputs structured JSON reasoning.
-- **Layer 4 — Confidence & Phase Arbitration:** Neural proposals are subjected to deterministic arbitration. Decisions are applied only if confidence meets or exceeds 0.60; below that threshold, proposals remain advisory. Furthermore, model guidance is strictly restricted to EXPLORE and HOVER phases — it is hard-locked out during TAKEOFF, LANDING, and EMERGENCY states.
-- **Layer 5 — FSM Modulation & 60 Hz PID Flight Control:** Validated model advice never controls motor throttles directly: it only modulates the next local waypoint by at most 8 metres. Physical flight stability is guaranteed by a deterministic 60 Hz PID attitude and position loop. Hallucinations or model latency can never compromise flight safety.
-- **Layer 6 — Decentralized Stigmergy & Swarm Interaction:** Reactive Crazyflie micro-scouts deposit digital pheromones and log surveyed cells into decentralized journals. When drones come within radio range, journals sync peer-to-peer. Inverse stigmergy repels aircraft from recently searched sectors, while wildfires are dynamically bid upon with ground Colossus rovers via HTN consensus auctions.
+The film preserves the original six inspection views and adds **decision
+memory** as a seventh. This is a teaching layout for mechanisms implemented in
+the simulator, not a claim that the system has seven physical hardware layers.
 
-Every metric and decision on screen is read live from the running engine during flight. Zero simulated data, zero hardcoded telemetry.
+| View | What to inspect |
+|---|---|
+| **1 · Perception** | The simulated onboard image and current detection boxes. The inspector distinguishes an online YOLO service from simulator detections. |
+| **2 · Symbolic safety** | The last verdict from the deterministic evaluator, which runs before model queries and can request a flight intervention. |
+| **3 · Neural proposal** | A structured action, direction, confidence and short model-generated explanation. This is the model's output, not access to its hidden internal reasoning. |
+| **4 · Arbitration** | The configured confidence threshold (0.60) and phase eligibility. Eligibility and actual application are separate observations. |
+| **5 · Flight effect** | The waypoint before and after directional bias and bounds clamping, with its measured displacement. Flight updates continue between asynchronous model calls. |
+| **6 · Swarm interaction** | Current radio neighbours, local map knowledge and the latest peer exchange. Neighbour positions supplied to the aerial model come from simulator state; they must not be mistaken for received radio messages. |
+| **7 · Decision memory** | Recent accepted decisions retained by the drone; the last three are supplied as context to its next query. This is short-term memory, not online model training. |
+
+The inspection panels read runtime state and recorded events. Decision evidence
+stays on screen for at least ten seconds; missing or unapplied results remain
+explicit. This is a **simulation demonstration**: it does not validate physical
+stereo accuracy, certify flight safety or measure a 60 Hz control frequency.
+The internal version filmed here includes capabilities not yet shipped in this
+public repository.
 
 ▶ **Watch all five films in the browser: [lololem.github.io/diamants-collab](https://lololem.github.io/diamants-collab/)** — the full-quality files are also on the [release page](https://github.com/lololem/diamants-collab/releases/tag/demo-videos-2026-09).
 
