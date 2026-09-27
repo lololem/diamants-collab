@@ -47,7 +47,7 @@
     <p class="lead">Heterogeneous decentralized swarms, edge intelligence &amp; neurosymbolic flight control</p>
     <p style="margin:0 0 14px;color:var(--muted);font-size:14px"><strong style="color:var(--text)">Quick Start Requirements:</strong> Node 20 and a modern browser with WebGL. A local Ollama server is optional: without one, all eleven drones take off, coordinate via stigmergy, and execute missions with deterministic fallback heuristics. Verified on fresh checkout.</p>
     <div class="notice">
-      <strong>Demonstration Films.</strong> Films 1 through 4 document the cutting-edge autonomous capabilities of the DIAMANTS swarm intelligence architecture operating in real-time simulation: heterogeneous swarms, on-board neural inference, digital stigmergy, and neurosymbolic safety guarantees. The companion open-source repository <a href="https://github.com/lololem/diamants-collab" style="color:inherit"><strong>diamants-collab</strong></a> provides the foundational simulation engine, autonomy stack, and developer tutorial.
+      <strong>Demonstration Films.</strong> Films 1 through 4 document the cutting-edge autonomous capabilities of the DIAMANTS swarm intelligence architecture operating in real-time simulation: heterogeneous swarms, on-board neural inference, digital stigmergy, and neural proposals constrained by symbolic rules. The companion open-source repository <a href="https://github.com/lololem/diamants-collab" style="color:inherit"><strong>diamants-collab</strong></a> provides the foundational simulation engine, autonomy stack, and developer tutorial.
     </div>
     <div class="demo">
       <a class="btn" href="https://diamants-hypervision.pages.dev" target="_blank" rel="noopener">
@@ -125,21 +125,22 @@
 
   <section id="film4">
     <h2>Film 4: Inside one cognitive drone</h2>
-    <p class="sub">Perception · deterministic safety gates · edge LLM · confidence arbitration · FSM flight loop — 4 min</p>
-    <video controls preload="metadata" playsinline poster="film4.jpg">
-      <source src="film4.mp4" type="video/mp4">
+    <p class="sub">Seven inspection views · peer context · neural proposals · measured waypoint effects · memory</p>
+    <video controls preload="metadata" playsinline poster="film4.jpg?v=20260927">
+      <source src="film4.mp4?v=20260927" type="video/mp4">
     </video>
     <p class="alt">Full-quality version (1080p): <a href="https://github.com/lololem/diamants-collab/releases/download/demo-videos-2026-09/DIAMANTS-film4-inside-one-cognitive-drone.mp4">download</a>.</p>
-    <p class="intro">While the first three films observe the swarm from an operational viewpoint, this film locks onto a single heavy cognitive aircraft (X500_09) in flight and opens its complete neurosymbolic architecture layer by layer:</p>
+    <p class="intro">Follow X500_09 in simulation with stable inspection panels. Read a complete decision record: neighbours supplied to the model, its structured proposal, confidence and phase eligibility, and the measured waypoint change linked by decision identifier.</p>
     <ul>
-      <li><strong>Layer 1 — On-board Stereo Perception (OAK-D Pro W):</strong> The aircraft carries an active infrared stereo camera with a 127°&times;80° field of view and real-time edge AI object detection. Stereo depth transforms 2D bounding boxes into metric 3D ground targets (wildfire fronts, canopy obstacles, peer drones).</li>
-      <li><strong>Layer 2 — Deterministic Safety Gates (Rules First):</strong> Ten hard safety rules (geofence, minimum/maximum altitude, battery reserves, obstacle standoff, aerodynamic stall margin) are evaluated <em>before</em> the neural model is ever invoked. A safety violation immediately triggers deterministic corrective action (RTL, Land, or Altitude Hold).</li>
-      <li><strong>Layer 3 — Cognitive LLM &amp; Situation Report:</strong> The model is not fed the raw simulator state. It receives a structured situation report synthesized on board from local sensors and peer messages (position, velocity vector, FSM phase, local mapped cells, doctrine, and radio neighbours). An on-board quantized model evaluates the tactical situation at 0.1&nbsp;Hz and outputs structured JSON reasoning.</li>
-      <li><strong>Layer 4 — Confidence &amp; Phase Arbitration:</strong> Neural proposals are subjected to deterministic arbitration. Decisions are applied only if confidence meets or exceeds 0.60; below that, proposals remain advisory. Furthermore, model guidance is strictly restricted to EXPLORE and HOVER phases — it is hard-locked out during TAKEOFF, LANDING, and EMERGENCY states.</li>
-      <li><strong>Layer 5 — FSM Modulation &amp; 60 Hz PID Flight Control:</strong> Validated model advice never controls motor throttles directly: it only modulates the next local waypoint by at most 8 metres. Physical flight stability is guaranteed by a deterministic 60&nbsp;Hz PID attitude and position loop. Hallucinations or model latency can never compromise flight safety.</li>
-      <li><strong>Layer 6 — Decentralized Stigmergy &amp; Swarm Interaction:</strong> Reactive Crazyflie micro-scouts deposit digital pheromones and log surveyed cells into decentralized journals. When drones come within radio range, journals sync peer-to-peer. Inverse stigmergy repels aircraft from recently searched sectors, while wildfires are dynamically bid upon with ground Colossus rovers via HTN consensus auctions.</li>
+      <li><strong>1 — Perception:</strong> Simulated onboard image and current boxes; the inspector identifies whether the YOLO service is online.</li>
+      <li><strong>2 — Symbolic safety:</strong> The last observed verdict from the deterministic evaluator, before neural queries.</li>
+      <li><strong>3 — Neural proposal:</strong> Action, direction, confidence and the model's short explanation, held long enough to read.</li>
+      <li><strong>4 — Arbitration:</strong> Confidence threshold 0.60 and phase eligibility. Eligibility does not establish execution.</li>
+      <li><strong>5 — Flight effect:</strong> Waypoint coordinates before and after directional bias and bounds clamping, with measured displacement.</li>
+      <li><strong>6 — Swarm interaction:</strong> Radio neighbours, local map knowledge and peer exchanges. Model neighbour context comes from simulator positions, separately from radio messages.</li>
+      <li><strong>7 — Decision memory:</strong> Recent accepted decisions; the last three form context for the next query. This is not online training.</li>
     </ul>
-    <p class="intro">Every metric and decision on screen is read live from the running engine during flight. Zero simulated data, zero hardcoded telemetry.</p>
+    <p class="intro">The original six inspection views are retained, with memory made explicit as a seventh. This is a teaching layout, not seven hardware layers. All observations are from simulation: no physical stereo validation, flight-safety guarantee or measured 60 Hz control frequency is claimed.</p>
   </section>
 
   <footer>
