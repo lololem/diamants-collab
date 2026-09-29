@@ -98,7 +98,12 @@ async function startDevServer() {
     server.printUrls();
     
     console.log('\n✅ Development server started!');
-    console.log(`🌐 3D interface: http://localhost:${Number(process.env.PORT) || 5550}`);
+    /* The address announced is the one actually serving. It used to be a
+     * guess: with the port taken, Vite falls back to the next one and the
+     * console still printed 5550. */
+    const servedPort = server.config?.server?.port || Number(process.env.PORT) || 5550;
+    const address = server.resolvedUrls?.local?.[0] || ('http://localhost:' + servedPort + '/');
+    console.log(`🌐 3D interface: ${address}`);
     console.log('🚁 Multi-drone system ready for simulation');
     
   } catch (error) {
