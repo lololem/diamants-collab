@@ -1542,6 +1542,8 @@ export class PanelController {
     }
     
     handleTogglePanel() {
+        // the canvas must measure itself again after the toggle (see index.html)
+        setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) { /* not critical */ } }, 320);
         console.log('[BTN-TEST] handleTogglePanel() called');
         const panel = document.getElementById('ros_interface');
         const canvas = document.getElementById('canvas_container');

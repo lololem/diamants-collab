@@ -2634,9 +2634,48 @@
                 // Hide mobile backdrop
                 if (backdrop) backdrop.classList.remove('active');
             }
+            /* THE RENDERER MUST MEASURE ITSELF AGAIN, OR IT KEEPS THE OLD SIZE.
+             *
+             * The canvas takes the width of its container when it measures.
+             * Collapsing the sidebar widens that container, but nothing told
+             * the engine: the render kept its former width and left a dead band
+             * down the side, showing the page background. The resize event is
+             * already listened to; it just has to be sent, once the transition
+             * is over. */
+            setTimeout(() => { try { window.dispatchEvent(new Event('resize')); } catch (e) { /* not critical */ } }, 320);
             // Persist sidebar state
             window.DIAMANTS?.viewPersistence?.scheduleSave();
         }
+
+        /* THE CONTROL SIDEBAR IS OPEN AT STARTUP, ON A DESKTOP.
+         *
+         * It was not — and that was written nowhere: no inline style, no rule
+         * in any sheet. The panel simply started collapsed, and a visitor
+         * opened the demo without a single control in sight.
+         *
+         * On a phone it stays collapsed: open, it covers the whole scene. And
+         * a layout that was saved keeps the last word — view-persistence
+         * restores it just after. `?ui=defaut` in the address clears the saved
+         * layout and starts from the original one. */
+        (function sidebarOpenAtStartup() {
+            if (/[?&]ui=(defaut|default|reset)\b/.test(location.search)) {
+                for (const key of ['diamants-view-state', 'diamants.minimapDockOuvert', 'diamants.minimapDock']) {
+                    try { localStorage.removeItem(key); } catch (e) { /* storage unavailable */ }
+                }
+            }
+            const place = () => {
+                const small = window.matchMedia('(pointer: coarse)').matches
+                    && (window.innerWidth <= 768 || (window.innerHeight <= 500 && window.innerWidth <= 960));
+                if (small) return;
+                let saved = false;
+                try { saved = !!localStorage.getItem('diamants-view-state'); } catch (e) { /* storage unavailable */ }
+                if (saved) return;
+                const panel = document.getElementById('ros_interface');
+                if (panel && getComputedStyle(panel).display === 'none') togglePanel();
+            };
+            if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', place);
+            else place();
+        })();
 
         // Toggle sections collapsibles
         function toggleSection(sectionId) {
