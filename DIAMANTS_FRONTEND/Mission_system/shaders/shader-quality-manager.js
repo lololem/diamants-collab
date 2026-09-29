@@ -138,11 +138,45 @@ const SHADER_IMPORTS = {
     'grass-fragment-fixed.js': () => import('./grass-fragment-fixed.js')
 };
 
+/* A LOAD THAT FAILS ONCE IS NOT A LOAD THAT FAILS.
+ *
+ * In development each shader is a module served on its own. When the quality
+ * changes while the page is still loading, several imports leave together and
+ * one of them can come back in error — the dev server transforms and serves
+ * modules on demand. The console then showed « ❌ Erreur lors du chargement des
+ * shaders low » on an application that was otherwise fine: the caller falls
+ * back to MEDIUM.
+ *
+ * The file is there — reloaded alone, it answers. So we try once more, after a
+ * breath, before calling it a failure. The built bundle never meets this case:
+ * the shaders are already inside it. */
+async function importWithRetry(importer, what) {
+    try {
+        return await importer();
+    } catch (e) {
+        /* Three attempts, with room to breathe: on the very first load the dev
+         * server is still transforming modules and 120 ms is not always
+         * enough. The exact cause, read from the message: « Failed to fetch
+         * dynamically imported module » — the request is ABORTED during the
+         * module loading storm, not refused (no 4xx answer). The same failure
+         * hits other late imports. So the last attempt waits for the storm to
+         * pass. */
+        for (const wait of [150, 500, 1500]) {
+            await new Promise(r => setTimeout(r, wait));
+            try { return await importer(); } catch (_) { /* try again */ }
+        }
+        warn(`Shader ${what} unavailable after four attempts: ${e && e.message || e}`);
+        throw e;
+    }
+}
+
 function importShaderByName(name, fallback) {
     const importer = SHADER_IMPORTS[name];
-    if (importer) return importer();
+    if (importer) return importWithRetry(importer, name);
     warn(`Shader module not found in map: ${name}. Falling back to: ${fallback}`);
-    return (SHADER_IMPORTS[fallback] || (() => Promise.reject(new Error(`Missing fallback shader: ${fallback}`))))();
+    const fb = SHADER_IMPORTS[fallback];
+    if (!fb) return Promise.reject(new Error(`Missing fallback shader: ${fallback}`));
+    return importWithRetry(fb, fallback);
 }
 
 /**
@@ -213,12 +247,19 @@ export class ShaderQualityManager {
                 features: config.features
             };
         } catch (err) {
-            console.error(`❌ Erreur lors du chargement des shaders ${quality}:`, err);
-            // Fallback vers stable
+            /* A RED ERROR FOR A SITUATION THAT IS CAUGHT IS A FALSE SIGNAL.
+             *
+             * When a shader does not arrive — request aborted during the module
+             * loading storm, in development only — we fall back to MEDIUM and
+             * the grass shows. Writing « ❌ Erreur » suggests a breakdown in an
+             * otherwise clean console. We say it for what it is: a fallback,
+             * with its cause. If the fallback itself fails, that is a real
+             * error, and it propagates. */
             if (quality !== QUALITY_LEVELS.MEDIUM) {
-                log(`🔄 Fallback vers MEDIUM depuis ${quality}`);
+                warn(`Shaders « ${quality} » unavailable (${err && err.message || err}) — falling back to MEDIUM`);
                 return await this.getShaders(QUALITY_LEVELS.MEDIUM);
             }
+            console.error(`❌ MEDIUM shaders unavailable, no fallback left:`, err);
             throw err;
         }
     }

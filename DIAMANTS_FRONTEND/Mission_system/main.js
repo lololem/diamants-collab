@@ -1608,11 +1608,19 @@ class DiamantsMissionSystem {
                 log('✅ Panel Controller et Doctrine Manager initialisés');
                 
                 if (import.meta.env.DEV) {
-                    import('./tests/button-test-suite.js').then((mod) => {
-                        window.ButtonTestSuite = mod.ButtonTestSuite;
-                        window.TEST_DATASETS = mod.TEST_DATASETS;
-                        log('🧪 ButtonTestSuite chargé (dev only)');
-                    }).catch((e) => warn('ButtonTestSuite dev load failed:', e));
+                    /* THIS TEST MODULE IS IN NO HURRY, AND ITS HASTE COST A
+                     * RED LINE. Requested in the middle of the module loading
+                     * storm, its import was ABORTED by the browser — « Failed
+                     * to fetch dynamically imported module » — and the warning
+                     * showed on every cold start. It loads once the page has
+                     * settled. */
+                    setTimeout(() => {
+                        import('./tests/button-test-suite.js').then((mod) => {
+                            window.ButtonTestSuite = mod.ButtonTestSuite;
+                            window.TEST_DATASETS = mod.TEST_DATASETS;
+                            log('🧪 ButtonTestSuite chargé (dev only)');
+                        }).catch((e) => warn('ButtonTestSuite dev load failed:', e));
+                    }, 3000);
                 }
                 
                 // Auto-tests désactivés — utilisez runButtonTests() manuellement dans la console
