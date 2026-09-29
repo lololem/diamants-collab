@@ -1691,6 +1691,21 @@ class DiamantsMissionSystem {
         // Redimensionnement
     this._onResize = () => this.onWindowResize();
     window.addEventListener('resize', this._onResize);
+    /* THE RENDER FOLLOWS ITS CONTAINER, WHATEVER CHANGES IT.
+     *
+     * Listening to the window alone is not enough: the container also changes
+     * width when the sidebar is collapsed, and no window resize happens then.
+     * Sending a resize event by hand after the toggle was a guess about when
+     * the layout settles — measured, it was still a step behind two seconds
+     * later, so the canvas kept the width it had before the previous toggle.
+     * A ResizeObserver reads the container itself and never guesses. */
+    try {
+        const box = this.renderer?.domElement?.parentElement;
+        if (box && typeof ResizeObserver === 'function') {
+            this._boxObserver = new ResizeObserver(() => this.onWindowResize());
+            this._boxObserver.observe(box);
+        }
+    } catch (e) { /* the window listener above still covers the usual case */ }
     window.addEventListener('orientationchange', () => { setTimeout(() => this.onWindowResize(), 150); });
         
         // Raccourcis clavier
