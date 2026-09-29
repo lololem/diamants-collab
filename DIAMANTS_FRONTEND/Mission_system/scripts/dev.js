@@ -47,7 +47,11 @@ async function startDevServer() {
       root: process.cwd(),
       plugins: [registreVide()],
       server: {
-        port: 5550,
+        /* The port is configurable: 5550 is often already taken — by another
+         * copy of this application, or by anything else on the machine. Vite
+         * would then pick a free one silently and the address printed below
+         * would be wrong. `PORT=5551 npm run dev` settles it. */
+        port: Number(process.env.PORT) || 5550,
         host: 'localhost',
         open: false,
         cors: true,
@@ -94,7 +98,7 @@ async function startDevServer() {
     server.printUrls();
     
     console.log('\n✅ Development server started!');
-    console.log('🌐 3D interface: http://localhost:5550');
+    console.log(`🌐 3D interface: http://localhost:${Number(process.env.PORT) || 5550}`);
     console.log('🚁 Multi-drone system ready for simulation');
     
   } catch (error) {
